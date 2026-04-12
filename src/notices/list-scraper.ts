@@ -4,7 +4,7 @@ import { parseKoreanDateToIso } from "../shared/date.js";
 import { collapseWhitespace } from "../shared/text.js";
 import type { NoticeListItem, NoticeSource } from "./types.js";
 
-function extractExternalIdFromOnclick(onclick?: string): string | undefined {
+export function extractExternalIdFromOnclick(onclick?: string): string | undefined {
   if (!onclick) {
     return undefined;
   }
@@ -16,7 +16,10 @@ function extractExternalIdFromOnclick(onclick?: string): string | undefined {
   return match?.[2];
 }
 
-function buildDetailUrlFromOnclick(origin: string, onclick?: string): string | undefined {
+export function buildDetailUrlFromOnclick(
+  origin: string,
+  onclick?: string,
+): string | undefined {
   if (!onclick) {
     return undefined;
   }
@@ -35,7 +38,30 @@ function buildDetailUrlFromOnclick(origin: string, onclick?: string): string | u
   return `${origin}/bbs/${siteId}/${boardId}/${articleId}/artclView.do`;
 }
 
-function extractExternalId(detailUrl: string): string {
+/**
+ * 명지대 게시판은 `href="#" + onclick` 조합을 자주 사용한다. 단순히 href가
+ * 존재한다는 이유만으로 우선하면 `https://.../#`를 상세 URL로 잘못 저장하므로,
+ * 실제 이동 가능한 href인지 먼저 판별한 뒤 아니면 onclick fallback으로 넘긴다.
+ */
+function resolveDetailUrl(
+  origin: string,
+  href: string | undefined,
+  onclick: string | undefined,
+): string | undefined {
+  const normalizedHref = href?.trim();
+  const isPlaceholderHref =
+    !normalizedHref ||
+    normalizedHref === "#" ||
+    normalizedHref.toLowerCase().startsWith("javascript:");
+
+  if (!isPlaceholderHref) {
+    return new URL(normalizedHref, origin).toString();
+  }
+
+  return buildDetailUrlFromOnclick(origin, onclick);
+}
+
+export function extractExternalId(detailUrl: string): string {
   const match = /\/bbs\/[^/]+\/\d+\/(\d+)\/artclView\.do/.exec(detailUrl);
   if (!match) {
     throw new Error(`unable to extract external id from detail url: ${detailUrl}`);
@@ -44,7 +70,10 @@ function extractExternalId(detailUrl: string): string {
   return match[1]!;
 }
 
-function extractCategoryLabel(anchorText: string, strongText: string): string | undefined {
+export function extractCategoryLabel(
+  anchorText: string,
+  strongText: string,
+): string | undefined {
   const normalizedAnchor = collapseWhitespace(anchorText);
   if (!normalizedAnchor || normalizedAnchor === strongText) {
     return undefined;
@@ -55,12 +84,17 @@ function extractCategoryLabel(anchorText: string, strongText: string): string | 
   return collapsed || undefined;
 }
 
-function parseLeadingBracketCategory(title: string): string | undefined {
+export function parseLeadingBracketCategory(title: string): string | undefined {
   const match = /^\[([^\]]+)\]/.exec(title);
   return match?.[1]?.trim();
 }
 
-function parseHtmlListItems(
+/**
+ * HTML 목록 파서는 네트워크 없이도 충분히 검증 가능하므로 export해서 fixture
+ * 기반 회귀 테스트를 걸어둔다. CMS 마크업이 조금만 바뀌어도 가장 먼저 깨지는
+ * 지점이기 때문에, worker 안정성에서 가장 중요한 순수 함수 중 하나다.
+ */
+export function parseHtmlListItems(
   html: string,
   source: NoticeSource,
   origin: string,
@@ -96,9 +130,7 @@ function parseHtmlListItems(
 
     const href = anchor.attr("href");
     const onclick = anchor.attr("onclick");
-    const detailUrl = href
-      ? new URL(href, origin).toString()
-      : buildDetailUrlFromOnclick(origin, onclick);
+    const detailUrl = resolveDetailUrl(origin, href, onclick);
     if (!detailUrl) {
       continue;
     }
@@ -131,7 +163,7 @@ function parseHtmlListItems(
   return items;
 }
 
-function parseRssUrl(html: string, origin: string): string | undefined {
+export function parseRssUrl(html: string, origin: string): string | undefined {
   const $ = loadHtml(html);
   const rssAnchor = $("a")
     .toArray()
@@ -142,7 +174,7 @@ function parseRssUrl(html: string, origin: string): string | undefined {
   return href ? new URL(href, origin).toString() : undefined;
 }
 
-function parseRssItems(
+export function parseRssItems(
   rssXml: string,
   source: NoticeSource,
   origin: string,
@@ -185,7 +217,7 @@ function parseRssItems(
   return items;
 }
 
-function dedupeItems(items: NoticeListItem[]): NoticeListItem[] {
+export function dedupeItems(items: NoticeListItem[]): NoticeListItem[] {
   const deduped = new Map<string, NoticeListItem>();
 
   for (const item of items) {

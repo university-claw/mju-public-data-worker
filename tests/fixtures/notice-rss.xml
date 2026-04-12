@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>명지대학교 일반공지 RSS</title>
+    <item>
+      <title>[학사] 2026학년도 1학기 수강정정 안내</title>
+      <link>https://www.mju.ac.kr/bbs/mjukr/141/230921/artclView.do</link>
+      <pubDate>Tue, 07 Apr 2026 09:00:00 +0900</pubDate>
+      <author>학사지원팀</author>
+    </item>
+    <item>
+      <title>[학사] 수강철회 기간 안내</title>
+      <link>https://www.mju.ac.kr/bbs/mjukr/141/230917/artclView.do</link>
+      <pubDate>Mon, 30 Mar 2026 13:20:00 +0900</pubDate>
+      <author>학사지원팀</author>
+    </item>
+    <item>
+      <title>[행정] 학생증 재발급 절차 안내</title>
+      <link>https://www.mju.ac.kr/bbs/mjukr/141/230916/artclView.do</link>
+      <pubDate>Sun, 29 Mar 2026 10:00:00 +0900</pubDate>
+      <author>학생지원팀</author>
+    </item>
+  </channel>
+</rss>

@@ -9,7 +9,9 @@
     "check": "tsc --noEmit",
     "migrate": "tsx src/main.ts migrate",
     "doctor": "tsx src/main.ts doctor",
-    "collect:notices": "tsx src/main.ts collect notices"
+    "collect:notices": "tsx src/main.ts collect notices",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "myongji",
@@ -29,6 +31,7 @@
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
   }
 }

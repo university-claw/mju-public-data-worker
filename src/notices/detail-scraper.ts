@@ -9,7 +9,7 @@ import type {
   NoticeListItem,
 } from "./types.js";
 
-function parseAttachments(
+export function parseAttachments(
   html: ReturnType<typeof loadHtml>,
   origin: string,
 ): NoticeAttachment[] {
@@ -37,7 +37,7 @@ function parseAttachments(
   return attachments;
 }
 
-function parseImages(
+export function parseImages(
   html: ReturnType<typeof loadHtml>,
   origin: string,
 ): NoticeAssetImage[] {
@@ -66,8 +66,15 @@ function parseImages(
   return images;
 }
 
-export async function scrapeNoticeDetail(item: NoticeListItem): Promise<NoticeDetail> {
-  const htmlText = await fetchHtml(item.detailUrl);
+/**
+ * 상세 HTML 파서는 네트워크와 분리해 두면 첨부/이미지/본문 추출 회귀를 빠르게
+ * 확인할 수 있다. 실제 사이트 마크업이 조금 바뀌었을 때 어떤 셀렉터가 깨졌는지
+ * 테스트로 바로 드러나게 하는 용도다.
+ */
+export function parseNoticeDetailHtml(
+  htmlText: string,
+  item: NoticeListItem,
+): NoticeDetail {
   const $ = loadHtml(htmlText);
   const origin = new URL(item.detailUrl).origin;
   const bodyRoot = $(".artclView").first();
@@ -91,4 +98,9 @@ export async function scrapeNoticeDetail(item: NoticeListItem): Promise<NoticeDe
     attachments,
     images,
   };
+}
+
+export async function scrapeNoticeDetail(item: NoticeListItem): Promise<NoticeDetail> {
+  const htmlText = await fetchHtml(item.detailUrl);
+  return parseNoticeDetailHtml(htmlText, item);
 }

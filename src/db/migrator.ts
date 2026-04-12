@@ -29,6 +29,11 @@ export async function runMigrations(pool: Pool, schema: string): Promise<void> {
 
   try {
     await client.query("BEGIN");
+    // worker가 동시에 올라오더라도 마이그레이션은 한 세션만 실행되게 잠근다.
+    // collect와 migrate를 병렬로 실행했을 때 중복 insert가 나는 경로를 막기 위함이다.
+    await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [
+      `migrations:${schema}`,
+    ]);
     await ensureMigrationTable(client, schema);
 
     const appliedRows = await client.query<{ version: string }>(

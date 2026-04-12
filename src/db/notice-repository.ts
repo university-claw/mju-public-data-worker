@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import type {
   NoticeAssetImage,
+  NoticeAssetProcessingUpdate,
   NoticeAttachment,
   NoticeDetail,
   NoticeSource,
@@ -15,6 +16,7 @@ export interface NoticeUpsertInput extends NoticeDetail {
 export interface NoticeUpsertResult {
   noticeItemId: number;
   wasInserted: boolean;
+  obsoleteStorageKeys: string[];
 }
 
 export class NoticeRepository {
@@ -150,16 +152,102 @@ export class NoticeRepository {
     try {
       await client.query("BEGIN");
       const upsertResult = await this.upsertNoticeRow(client, input);
-      await this.replaceAttachments(client, upsertResult.noticeItemId, input.attachments);
-      await this.replaceImages(client, upsertResult.noticeItemId, input.images);
+      const obsoleteAttachmentKeys = await this.syncAttachments(
+        client,
+        upsertResult.noticeItemId,
+        input.attachments,
+      );
+      const obsoleteImageKeys = await this.syncImages(
+        client,
+        upsertResult.noticeItemId,
+        input.images,
+      );
       await client.query("COMMIT");
-      return upsertResult;
+      return {
+        ...upsertResult,
+        obsoleteStorageKeys: [
+          ...obsoleteAttachmentKeys,
+          ...obsoleteImageKeys,
+        ],
+      };
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
     }
+  }
+
+  async updateAttachmentProcessing(
+    noticeItemId: number,
+    downloadUrl: string,
+    update: NoticeAssetProcessingUpdate,
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        UPDATE ${this.schema}.notice_attachments
+        SET
+          storage_provider = $3,
+          storage_key = $4,
+          content_type = $5,
+          size_bytes = $6,
+          sha256 = $7,
+          downloaded_at = $8,
+          download_status = $9,
+          error_message = $10,
+          updated_at = now()
+        WHERE notice_item_id = $1
+          AND download_url = $2
+      `,
+      [
+        noticeItemId,
+        downloadUrl,
+        update.storageProvider ?? null,
+        update.storageKey ?? null,
+        update.contentType ?? null,
+        update.sizeBytes ?? null,
+        update.sha256 ?? null,
+        update.downloadedAt ?? null,
+        update.downloadStatus,
+        update.errorMessage ?? null,
+      ],
+    );
+  }
+
+  async updateImageProcessing(
+    noticeItemId: number,
+    imageUrl: string,
+    update: NoticeAssetProcessingUpdate,
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        UPDATE ${this.schema}.notice_images
+        SET
+          storage_provider = $3,
+          storage_key = $4,
+          content_type = $5,
+          size_bytes = $6,
+          sha256 = $7,
+          downloaded_at = $8,
+          download_status = $9,
+          error_message = $10,
+          updated_at = now()
+        WHERE notice_item_id = $1
+          AND image_url = $2
+      `,
+      [
+        noticeItemId,
+        imageUrl,
+        update.storageProvider ?? null,
+        update.storageKey ?? null,
+        update.contentType ?? null,
+        update.sizeBytes ?? null,
+        update.sha256 ?? null,
+        update.downloadedAt ?? null,
+        update.downloadStatus,
+        update.errorMessage ?? null,
+      ],
+    );
   }
 
   private async upsertNoticeRow(
@@ -252,18 +340,34 @@ export class NoticeRepository {
     return {
       noticeItemId: Number(result.rows[0]!.id),
       wasInserted: result.rows[0]!.inserted,
+      obsoleteStorageKeys: [],
     };
   }
 
-  private async replaceAttachments(
+  private async syncAttachments(
     client: PoolClient,
     noticeItemId: number,
     attachments: NoticeAttachment[],
-  ): Promise<void> {
-    await client.query(
-      `DELETE FROM ${this.schema}.notice_attachments WHERE notice_item_id = $1`,
-      [noticeItemId],
-    );
+  ): Promise<string[]> {
+    const currentUrls = attachments.map((attachment) => attachment.downloadUrl);
+    const deletedRows = currentUrls.length
+      ? await client.query<{ storage_key: string | null }>(
+          `
+            DELETE FROM ${this.schema}.notice_attachments
+            WHERE notice_item_id = $1
+              AND NOT (download_url = ANY($2::text[]))
+            RETURNING storage_key
+          `,
+          [noticeItemId, currentUrls],
+        )
+      : await client.query<{ storage_key: string | null }>(
+          `
+            DELETE FROM ${this.schema}.notice_attachments
+            WHERE notice_item_id = $1
+            RETURNING storage_key
+          `,
+          [noticeItemId],
+        );
 
     for (const attachment of attachments) {
       await client.query(
@@ -275,6 +379,11 @@ export class NoticeRepository {
             sort_order
           )
           VALUES ($1, $2, $3, $4)
+          ON CONFLICT (notice_item_id, download_url) DO UPDATE
+          SET
+            file_name = EXCLUDED.file_name,
+            sort_order = EXCLUDED.sort_order,
+            updated_at = now()
         `,
         [
           noticeItemId,
@@ -284,17 +393,36 @@ export class NoticeRepository {
         ],
       );
     }
+
+    return deletedRows.rows
+      .map((row) => row.storage_key)
+      .filter((storageKey): storageKey is string => Boolean(storageKey));
   }
 
-  private async replaceImages(
+  private async syncImages(
     client: PoolClient,
     noticeItemId: number,
     images: NoticeAssetImage[],
-  ): Promise<void> {
-    await client.query(
-      `DELETE FROM ${this.schema}.notice_images WHERE notice_item_id = $1`,
-      [noticeItemId],
-    );
+  ): Promise<string[]> {
+    const currentUrls = images.map((image) => image.imageUrl);
+    const deletedRows = currentUrls.length
+      ? await client.query<{ storage_key: string | null }>(
+          `
+            DELETE FROM ${this.schema}.notice_images
+            WHERE notice_item_id = $1
+              AND NOT (image_url = ANY($2::text[]))
+            RETURNING storage_key
+          `,
+          [noticeItemId, currentUrls],
+        )
+      : await client.query<{ storage_key: string | null }>(
+          `
+            DELETE FROM ${this.schema}.notice_images
+            WHERE notice_item_id = $1
+            RETURNING storage_key
+          `,
+          [noticeItemId],
+        );
 
     for (const image of images) {
       await client.query(
@@ -306,6 +434,11 @@ export class NoticeRepository {
             sort_order
           )
           VALUES ($1, $2, $3, $4)
+          ON CONFLICT (notice_item_id, image_url) DO UPDATE
+          SET
+            alt_text = EXCLUDED.alt_text,
+            sort_order = EXCLUDED.sort_order,
+            updated_at = now()
         `,
         [
           noticeItemId,
@@ -315,5 +448,9 @@ export class NoticeRepository {
         ],
       );
     }
+
+    return deletedRows.rows
+      .map((row) => row.storage_key)
+      .filter((storageKey): storageKey is string => Boolean(storageKey));
   }
 }

@@ -1,5 +1,9 @@
 import type { Pool } from "pg";
 import { NoticeRepository } from "../db/notice-repository.js";
+import {
+  createNoticeAssetProcessor,
+  type NoticeAssetProcessor,
+} from "../notices/asset-processor.js";
 import { scrapeNoticeDetail } from "../notices/detail-scraper.js";
 import { scrapeNoticeList } from "../notices/list-scraper.js";
 import { NOTICE_SOURCES } from "../notices/sources.js";
@@ -8,6 +12,7 @@ import type { NoticeSource } from "../notices/types.js";
 export interface CollectNoticesOptions {
   limit: number;
   triggerReason: string;
+  storageLocalRoot: string;
 }
 
 export interface SourceCollectMetrics {
@@ -49,10 +54,14 @@ export async function collectNotices(
   options: CollectNoticesOptions,
 ): Promise<CollectNoticesResult> {
   const repository = new NoticeRepository(pool, schema);
+  const assetProcessor = createNoticeAssetProcessor({
+    repository,
+    storageLocalRoot: options.storageLocalRoot,
+  });
   await repository.ensureSources(NOTICE_SOURCES);
 
   const scrapeRunId = await repository.createScrapeRun(
-    "mju-public-data-worker",
+    "mju-public-data-worker:notices",
     options.triggerReason,
   );
 
@@ -71,6 +80,7 @@ export async function collectNotices(
       try {
         const metrics = await collectSingleSource(
           repository,
+          assetProcessor,
           source,
           options.limit,
         );
@@ -154,6 +164,8 @@ export async function collectNotices(
       );
     }
     throw error;
+  } finally {
+    await assetProcessor.close();
   }
 }
 
@@ -169,6 +181,7 @@ function accumulateMetrics(
 
 async function collectSingleSource(
   repository: NoticeRepository,
+  assetProcessor: NoticeAssetProcessor,
   source: NoticeSource,
   limit: number,
 ): Promise<SourceCollectMetrics> {
@@ -192,6 +205,7 @@ async function collectSingleSource(
         listUrl: source.listUrl,
         fetchedAt,
       });
+      await assetProcessor.processNotice(detail, upsertResult, fetchedAt);
 
       metrics.processedCount += 1;
       if (upsertResult.wasInserted) {

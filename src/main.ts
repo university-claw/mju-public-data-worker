@@ -87,9 +87,14 @@ async function runCollect(args: string[]): Promise<void> {
     await runMigrations(pool, config.pgSchema);
 
     if (target === "notices") {
+      if (!config.storageLocalRoot) {
+        throw new Error("collect notices requires STORAGE_LOCAL_ROOT");
+      }
+
       const result = await collectNotices(pool, config.pgSchema, {
         limit: parseLimit(args, 30),
         triggerReason: "manual",
+        storageLocalRoot: config.storageLocalRoot,
       });
 
       console.log(

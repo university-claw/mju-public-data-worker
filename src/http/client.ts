@@ -26,6 +26,27 @@ export async function fetchHtml(url: string): Promise<string> {
   return httpClient.get(url).text();
 }
 
+export async function downloadBinary(
+  url: string,
+  options?: {
+    headers?: Record<string, string>;
+  },
+): Promise<{
+  buffer: Buffer;
+  contentType: string | null;
+}> {
+  const requestOptions = {
+    responseType: "buffer" as const,
+    ...(options?.headers ? { headers: options.headers } : {}),
+  };
+  const response = await httpClient.get(url, requestOptions);
+
+  return {
+    buffer: response.rawBody,
+    contentType: response.headers["content-type"] ?? null,
+  };
+}
+
 export async function postHtml(
   url: string,
   form: Record<string, string>,

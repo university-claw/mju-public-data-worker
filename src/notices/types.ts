@@ -28,6 +28,19 @@ export interface NoticeAssetImage {
   sortOrder: number;
 }
 
+export type NoticeAssetDownloadStatus = "pending" | "succeeded" | "failed";
+
+export interface NoticeAssetProcessingUpdate {
+  storageProvider?: "local" | null;
+  storageKey?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  sha256?: string | null;
+  downloadedAt?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  errorMessage?: string | null;
+}
+
 export interface NoticeDetail extends NoticeListItem {
   bodyHtml: string;
   bodyText: string;

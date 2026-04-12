@@ -7,6 +7,7 @@ import type {
 } from "./types.js";
 import { LocalAssetStore, type StoredLocalAsset } from "../storage/local-asset-store.js";
 import { OcrRecognizer } from "./ocr-recognizer.js";
+import { buildCafeteriaImageFingerprint } from "./image-fingerprint.js";
 
 export interface CafeteriaPostAssetRepositoryLike {
   updateInstagramPostProcessing(
@@ -39,7 +40,11 @@ interface CafeteriaPostAssetProcessorDependencies {
 async function downloadImage(url: string): Promise<DownloadedImage> {
   const response = await httpClient.get(url, {
     headers: {
-      accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      /**
+       * 현재 fingerprint 계산은 Jimp의 JPEG/PNG 경로를 기준으로 검증되어 있다.
+       * 그래서 CDN이 AVIF/WEBP를 우선 주지 않도록 accept 헤더를 보수적으로 둔다.
+       */
+      accept: "image/jpeg,image/png,image/apng,image/*,*/*;q=0.8",
       referer: "https://www.instagram.com/",
     },
     responseType: "buffer",
@@ -105,11 +110,13 @@ export class CafeteriaPostAssetProcessor
       buffer: downloadedImage.buffer,
       contentType: downloadedImage.contentType,
     });
+    const fingerprint = await tryBuildImageFingerprint(downloadedImage.buffer);
 
     const shouldSkipOcr =
       persisted.imageSha256 === storedImage.sha256 &&
       persisted.ocrStatus === "succeeded" &&
-      persisted.imageStorageKey === storedImage.storageKey;
+      persisted.imageStorageKey === storedImage.storageKey &&
+      persisted.imagePerceptualHash === fingerprint;
 
     if (shouldSkipOcr) {
       return;
@@ -124,6 +131,7 @@ export class CafeteriaPostAssetProcessor
         persisted.cafeteriaInstagramPostId,
         buildProcessingUpdate({
           storedImage,
+          imagePerceptualHash: fingerprint,
           fetchedAt,
           ocrStatus: "succeeded",
           ocrText: ocrResult.text,
@@ -138,6 +146,7 @@ export class CafeteriaPostAssetProcessor
         persisted.cafeteriaInstagramPostId,
         buildProcessingUpdate({
           storedImage,
+          imagePerceptualHash: fingerprint,
           fetchedAt,
           ocrStatus: "failed",
           ocrText: null,
@@ -158,6 +167,7 @@ export class CafeteriaPostAssetProcessor
 
 function buildProcessingUpdate(params: {
   storedImage: StoredLocalAsset;
+  imagePerceptualHash: string | null;
   fetchedAt: string;
   ocrStatus: CafeteriaInstagramProcessingUpdate["ocrStatus"];
   ocrText: string | null;
@@ -172,6 +182,7 @@ function buildProcessingUpdate(params: {
     imageContentType: params.storedImage.contentType,
     imageSizeBytes: params.storedImage.sizeBytes,
     imageSha256: params.storedImage.sha256,
+    imagePerceptualHash: params.imagePerceptualHash,
     imageDownloadedAt: params.fetchedAt,
     ocrStatus: params.ocrStatus,
     ocrText: params.ocrText,
@@ -180,6 +191,22 @@ function buildProcessingUpdate(params: {
     ocrExtractedAt: params.ocrExtractedAt,
     ocrErrorMessage: params.ocrErrorMessage,
   };
+}
+
+async function tryBuildImageFingerprint(
+  buffer: Buffer,
+): Promise<string | null> {
+  try {
+    const fingerprint = await buildCafeteriaImageFingerprint(buffer);
+    return fingerprint.perceptualHash;
+  } catch {
+    /**
+     * 이미지 fingerprint는 식단표 감지의 보조 신호다. 여기서 실패해도 OCR과
+     * 나머지 텍스트 신호만으로 계속 처리할 수 있어야 하므로, 수집 전체를
+     * 중단시키지 않고 null로 내려 보낸다.
+     */
+    return null;
+  }
 }
 
 export function createCafeteriaPostAssetProcessor(params: {

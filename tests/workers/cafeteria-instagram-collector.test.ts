@@ -53,6 +53,7 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
   getInstagramPostSnapshot: ReturnType<typeof vi.fn>;
   syncInstagramPostClassification: ReturnType<typeof vi.fn>;
   updateInstagramPostProcessing: ReturnType<typeof vi.fn>;
+  listMenuSheetReferenceHashes: ReturnType<typeof vi.fn>;
 } {
   const defaultUpsertResult: CafeteriaInstagramUpsertResult = {
     cafeteriaInstagramPostId: 1,
@@ -60,8 +61,9 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
     imageStorageProvider: null,
     imageStorageKey: null,
     imageSha256: null,
-    ocrStatus: "pending",
-  };
+      ocrStatus: "pending",
+      imagePerceptualHash: null,
+    };
 
   return {
     ensureInstagramSources: vi.fn(async () => undefined),
@@ -75,7 +77,9 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
       postedAt: "2026-04-12T06:20:08.000Z",
       caption: "다음주 식단 나왔어요",
       ocrText: "학생회관 주중식단표",
+      imagePerceptualHash: "10101010",
     } satisfies CafeteriaInstagramPostSnapshot)),
+    listMenuSheetReferenceHashes: vi.fn(async () => []),
     syncInstagramPostClassification: vi.fn(async () => undefined),
     updateInstagramPostProcessing: vi.fn(async () => undefined),
   };
@@ -136,6 +140,7 @@ describe("cafeteria-instagram-collector", () => {
       1,
       expect.objectContaining({
         postKind: "menu_sheet",
+        score: expect.any(Number),
       } satisfies Partial<CafeteriaPostClassificationResult>),
       expect.objectContaining({
         documentScope: "weekday",
@@ -154,6 +159,7 @@ describe("cafeteria-instagram-collector", () => {
         imageStorageProvider: null,
         imageStorageKey: null,
         imageSha256: null,
+        imagePerceptualHash: null,
         ocrStatus: "pending",
       })
       .mockRejectedValueOnce(new Error("db write failed"))
@@ -163,6 +169,7 @@ describe("cafeteria-instagram-collector", () => {
         imageStorageProvider: null,
         imageStorageKey: null,
         imageSha256: null,
+        imagePerceptualHash: null,
         ocrStatus: "pending",
       });
 
@@ -331,7 +338,7 @@ describe("cafeteria-instagram-collector", () => {
     );
   });
 
-  it("passes undefined document structure for non-menu posts", async () => {
+  it("passes undefined document structure for ignored posts", async () => {
     const repository = createRepositoryMock();
     repository.getInstagramPostSnapshot = vi
       .fn()
@@ -341,6 +348,7 @@ describe("cafeteria-instagram-collector", () => {
         postedAt: "2026-03-15T09:09:59.000Z",
         caption: "명진당 백반집 운영시간 확장 안내입니다",
         ocrText: "운영시간 확장안내 월~목요일 14:15 금요일 14:00",
+        imagePerceptualHash: null,
       } satisfies CafeteriaInstagramPostSnapshot)
       .mockResolvedValueOnce({
         id: 2,
@@ -348,6 +356,7 @@ describe("cafeteria-instagram-collector", () => {
         postedAt: "2026-04-12T06:20:08.000Z",
         caption: "다음주 식단 나왔어요",
         ocrText: "학생회관 주중식단표",
+        imagePerceptualHash: null,
       } satisfies CafeteriaInstagramPostSnapshot);
 
     const scrapePosts = vi
@@ -378,7 +387,7 @@ describe("cafeteria-instagram-collector", () => {
       1,
       1,
       expect.objectContaining({
-        postKind: "non_menu",
+        postKind: "ignored",
       } satisfies Partial<CafeteriaPostClassificationResult>),
       undefined,
     );

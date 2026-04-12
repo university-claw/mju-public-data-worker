@@ -75,6 +75,10 @@ export interface CafeteriaCollectorRepositoryLike {
   getInstagramPostSnapshot(
     postId: number,
   ): Promise<CafeteriaInstagramPostSnapshot>;
+  listMenuSheetReferenceHashes(
+    menuImageGroup: string,
+    excludePostId?: number,
+  ): Promise<string[]>;
   syncInstagramPostClassification(
     postId: number,
     classification: CafeteriaPostClassificationResult,
@@ -284,7 +288,15 @@ async function collectSingleCafeteriaSource(
       const snapshot = await repository.getInstagramPostSnapshot(
         upsertResult.cafeteriaInstagramPostId,
       );
-      const classification = classifyCafeteriaInstagramPost(snapshot);
+      const referenceHashes = await repository.listMenuSheetReferenceHashes(
+        source.menuImageGroup,
+        upsertResult.cafeteriaInstagramPostId,
+      );
+      const classification = classifyCafeteriaInstagramPost({
+        source,
+        snapshot,
+        referenceHashes,
+      });
       const documentStructure =
         classification.postKind === "menu_sheet"
           ? structureCafeteriaMenuDocument(source, snapshot)

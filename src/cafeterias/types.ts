@@ -22,8 +22,7 @@ export interface CafeteriaInstagramPost {
 
 export type CafeteriaInstagramPostKind =
   | "menu_sheet"
-  | "non_menu"
-  | "unknown";
+  | "ignored";
 
 export type CafeteriaMenuDocumentScope =
   | "weekday"
@@ -42,6 +41,7 @@ export interface CafeteriaInstagramUpsertResult {
   imageStorageProvider?: string | null;
   imageStorageKey?: string | null;
   imageSha256?: string | null;
+  imagePerceptualHash?: string | null;
   ocrStatus?: CafeteriaInstagramOcrStatus | null;
 }
 
@@ -51,6 +51,7 @@ export interface CafeteriaInstagramPostSnapshot {
   postedAt: string;
   caption?: string | null;
   ocrText?: string | null;
+  imagePerceptualHash?: string | null;
 }
 
 export interface CafeteriaInstagramProcessingUpdate {
@@ -59,6 +60,7 @@ export interface CafeteriaInstagramProcessingUpdate {
   imageContentType?: string | null;
   imageSizeBytes?: number | null;
   imageSha256?: string | null;
+  imagePerceptualHash?: string | null;
   imageDownloadedAt?: string | null;
   ocrStatus: CafeteriaInstagramOcrStatus;
   ocrText?: string | null;
@@ -70,8 +72,16 @@ export interface CafeteriaInstagramProcessingUpdate {
 
 export interface CafeteriaPostClassificationResult {
   postKind: CafeteriaInstagramPostKind;
+  score: number;
   confidence: number;
   reason: string;
+  signals: string[];
+}
+
+export interface CafeteriaMenuSheetDetectionInput {
+  source: CafeteriaInstagramSource;
+  snapshot: CafeteriaInstagramPostSnapshot;
+  referenceHashes: string[];
 }
 
 export interface CafeteriaMenuDocumentStructureResult {

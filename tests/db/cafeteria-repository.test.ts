@@ -57,8 +57,10 @@ describe("cafeteria repository", () => {
 
     await repository.syncInstagramPostClassification(7, {
       postKind: "menu_sheet",
+      score: 8,
       confidence: 0.95,
-      reason: "matched menu keyword: 식단표",
+      reason: "caption-keyword:strong(식단표), date-range",
+      signals: ["caption-keyword:strong(식단표)", "date-range"],
     }, {
       documentScope: "weekday",
       scopeConfidence: 0.94,
@@ -75,6 +77,14 @@ describe("cafeteria repository", () => {
     expect(String(query.mock.calls[1]![0])).toContain(
       "UPDATE public_data.cafeteria_instagram_posts",
     );
+    expect(query.mock.calls[1]![1]).toEqual([
+      7,
+      "menu_sheet",
+      0.95,
+      8,
+      "caption-keyword:strong(식단표), date-range",
+      ["caption-keyword:strong(식단표)", "date-range"],
+    ]);
     expect(String(query.mock.calls[2]![0])).toContain(
       "INSERT INTO public_data.cafeteria_menu_documents",
     );
@@ -93,14 +103,16 @@ describe("cafeteria repository", () => {
     expect(release).toHaveBeenCalledTimes(1);
   });
 
-  it("removes an existing menu document when the post becomes non-menu", async () => {
+  it("removes an existing menu document only when ignored classification has a strong ignore hint", async () => {
     const { pool, query, release } = createConnectedPoolMock();
     const repository = new CafeteriaRepository(pool, "public_data");
 
     await repository.syncInstagramPostClassification(9, {
-      postKind: "non_menu",
-      confidence: 0.82,
-      reason: "matched non-menu keyword: 운영시간 확장 안내",
+      postKind: "ignored",
+      score: -2,
+      confidence: 0.62,
+      reason: "ignored-hint(운영시간 안내)",
+      signals: ["ignored-hint(운영시간 안내)"],
     });
 
     expect(query.mock.calls).toHaveLength(4);
@@ -111,21 +123,23 @@ describe("cafeteria repository", () => {
     expect(release).toHaveBeenCalledTimes(1);
   });
 
-  it("removes any existing menu document when the post remains unknown", async () => {
+  it("keeps an existing menu document when ignored classification is only low-confidence", async () => {
     const { pool, query, release } = createConnectedPoolMock();
     const repository = new CafeteriaRepository(pool, "public_data");
 
-    await repository.syncInstagramPostClassification(11, {
-      postKind: "unknown",
-      confidence: 0.4,
-      reason: "no strong menu or non-menu signal detected",
+    await repository.syncInstagramPostClassification(10, {
+      postKind: "ignored",
+      score: 4,
+      confidence: 0.45,
+      reason: "caption-keyword:medium(다음 주 식단), image-phash:medium(0.078)",
+      signals: [
+        "caption-keyword:medium(다음 주 식단)",
+        "image-phash:medium(0.078)",
+      ],
     });
 
-    expect(query.mock.calls).toHaveLength(4);
-    expect(String(query.mock.calls[2]![0])).toContain(
-      "DELETE FROM public_data.cafeteria_menu_documents",
-    );
-    expect(String(query.mock.calls[3]![0])).toContain("COMMIT");
+    expect(query.mock.calls).toHaveLength(3);
+    expect(String(query.mock.calls[2]![0])).toContain("COMMIT");
     expect(release).toHaveBeenCalledTimes(1);
   });
 
@@ -150,8 +164,10 @@ describe("cafeteria repository", () => {
     await expect(
       repository.syncInstagramPostClassification(12, {
         postKind: "menu_sheet",
+        score: 8,
         confidence: 0.95,
-        reason: "matched menu keyword: 식단표",
+        reason: "caption-keyword:strong(식단표), date-range",
+        signals: ["caption-keyword:strong(식단표)", "date-range"],
       }, {
         documentScope: "weekday",
         scopeConfidence: 0.94,
@@ -175,13 +191,36 @@ describe("cafeteria repository", () => {
     await expect(
       repository.syncInstagramPostClassification(13, {
         postKind: "menu_sheet",
+        score: 8,
         confidence: 0.95,
-        reason: "matched menu keyword: 식단표",
+        reason: "caption-keyword:strong(식단표), date-range",
+        signals: ["caption-keyword:strong(식단표)", "date-range"],
       }),
     ).rejects.toThrow(
       "menu_sheet classification requires structured menu document metadata",
     );
 
     expect(connect).not.toHaveBeenCalled();
+  });
+
+  it("only uses high-confidence structured menu sheets as perceptual hash references", async () => {
+    const pool = {
+      query: vi.fn(async () => ({
+        rows: [{ image_perceptual_hash: "1010" }],
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    const hashes = await repository.listMenuSheetReferenceHashes(
+      "student-hall-myeongjin",
+      99,
+    );
+
+    expect(hashes).toEqual(["1010"]);
+    const [sql, values] = vi.mocked(pool.query).mock.calls[0]!;
+    expect(String(sql)).toContain("p.ocr_status = 'succeeded'");
+    expect(String(sql)).toContain("coalesce(p.post_kind_score, 0) >= 8");
+    expect(String(sql)).toContain("d.service_start_date IS NOT NULL");
+    expect(values).toEqual(["student-hall-myeongjin", 99]);
   });
 });

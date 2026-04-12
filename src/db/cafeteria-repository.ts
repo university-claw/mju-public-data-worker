@@ -166,6 +166,7 @@ export class CafeteriaRepository {
       image_storage_provider: string | null;
       image_storage_key: string | null;
       image_sha256: string | null;
+      image_perceptual_hash: string | null;
       ocr_status: string | null;
     }>(
       `
@@ -217,6 +218,7 @@ export class CafeteriaRepository {
           image_storage_provider,
           image_storage_key,
           image_sha256,
+          image_perceptual_hash,
           ocr_status
       `,
       [
@@ -239,6 +241,7 @@ export class CafeteriaRepository {
       imageStorageProvider: result.rows[0]!.image_storage_provider,
       imageStorageKey: result.rows[0]!.image_storage_key,
       imageSha256: result.rows[0]!.image_sha256,
+      imagePerceptualHash: result.rows[0]!.image_perceptual_hash,
       ocrStatus:
         (result.rows[0]!.ocr_status as CafeteriaInstagramUpsertResult["ocrStatus"]) ??
         null,
@@ -276,6 +279,9 @@ export class CafeteriaRepository {
     }
     if ("imageSha256" in update) {
       appendAssignment("image_sha256", update.imageSha256 ?? null);
+    }
+    if ("imagePerceptualHash" in update) {
+      appendAssignment("image_perceptual_hash", update.imagePerceptualHash ?? null);
     }
     if ("imageDownloadedAt" in update) {
       appendAssignment("image_downloaded_at", update.imageDownloadedAt ?? null);
@@ -320,6 +326,7 @@ export class CafeteriaRepository {
       posted_at: string;
       caption: string | null;
       ocr_text: string | null;
+      image_perceptual_hash: string | null;
     }>(
       `
         SELECT
@@ -327,7 +334,8 @@ export class CafeteriaRepository {
           source_id,
           posted_at,
           caption,
-          ocr_text
+          ocr_text,
+          image_perceptual_hash
         FROM ${this.schema}.cafeteria_instagram_posts
         WHERE id = $1
       `,
@@ -345,7 +353,44 @@ export class CafeteriaRepository {
       postedAt: row.posted_at,
       caption: row.caption,
       ocrText: row.ocr_text,
+      imagePerceptualHash: row.image_perceptual_hash,
     };
+  }
+
+  async listMenuSheetReferenceHashes(
+    menuImageGroup: string,
+    excludePostId?: number,
+  ): Promise<string[]> {
+    const values: Array<string | number> = [menuImageGroup];
+    let excludeClause = "";
+
+    if (excludePostId) {
+      values.push(excludePostId);
+      excludeClause = "AND p.id <> $2";
+    }
+
+    const result = await this.pool.query<{
+      image_perceptual_hash: string;
+    }>(
+      `
+        SELECT DISTINCT p.image_perceptual_hash
+        FROM ${this.schema}.cafeteria_instagram_posts p
+        INNER JOIN ${this.schema}.cafeteria_instagram_sources s
+          ON s.id = p.source_id
+        INNER JOIN ${this.schema}.cafeteria_menu_documents d
+          ON d.source_post_id = p.id
+        WHERE s.menu_image_group = $1
+          AND p.post_kind = 'menu_sheet'
+          AND p.image_perceptual_hash IS NOT NULL
+          AND p.ocr_status = 'succeeded'
+          AND coalesce(p.post_kind_score, 0) >= 8
+          AND d.service_start_date IS NOT NULL
+          ${excludeClause}
+      `,
+      values,
+    );
+
+    return result.rows.map((row) => row.image_perceptual_hash);
   }
 
   async syncInstagramPostClassification(
@@ -369,7 +414,9 @@ export class CafeteriaRepository {
           SET
             post_kind = $2,
             post_kind_confidence = $3,
-            post_kind_reason = $4,
+            post_kind_score = $4,
+            post_kind_reason = $5,
+            post_kind_signals = $6,
             classified_at = now(),
             updated_at = now()
           WHERE id = $1
@@ -378,7 +425,9 @@ export class CafeteriaRepository {
           postId,
           classification.postKind,
           classification.confidence,
+          classification.score,
           classification.reason,
+          classification.signals,
         ],
       );
 
@@ -446,7 +495,7 @@ export class CafeteriaRepository {
             documentStructure?.dinnerAvailable ?? false,
           ],
         );
-      } else {
+      } else if (shouldDeleteExistingMenuDocument(classification)) {
         await client.query(
           `
             DELETE FROM ${this.schema}.cafeteria_menu_documents
@@ -464,4 +513,20 @@ export class CafeteriaRepository {
       client.release();
     }
   }
+}
+
+function shouldDeleteExistingMenuDocument(
+  classification: CafeteriaPostClassificationResult,
+): boolean {
+  /**
+   * 이번 감지기는 "식단표가 아닌 것 같다"와 "확실히 식단표가 아니다"를 모두
+   * ignored로 모은다. 그래서 애매한 ignored 한 번만으로 기존 menu document를
+   * 지워버리면 OCR 흔들림에 너무 취약해진다. 강한 ignored 신호가 명시적으로
+   * 잡힌 경우에만 기존 문서를 제거하고, 그 외 ignored는 보류 상태로 둔다.
+   */
+  return (
+    classification.postKind === "ignored" &&
+    classification.score <= 0 &&
+    classification.signals.some((signal) => signal.startsWith("ignored-hint("))
+  );
 }

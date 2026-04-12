@@ -133,6 +133,7 @@ describe("list-scraper pure parsers", () => {
     expect(items).toHaveLength(3);
     expect(items[0]).toMatchObject({
       externalId: "230921",
+      title: "2026학년도 1학기 수강정정 안내",
       categoryLabel: "학사",
       author: "학사지원팀",
       publishedAt: "2026-04-07T00:00:00.000Z",
@@ -158,6 +159,7 @@ describe("list-scraper pure parsers", () => {
       </rss>`;
 
     const items = parseRssItems(xml, SOURCE, "https://www.mju.ac.kr");
+    expect(items[0]?.title).toBe("[장애학생지원센터] 제 46회 장애인의 날 기념 행사 안내");
     expect(items[0]?.categoryLabel).toBeUndefined();
   });
 
@@ -173,6 +175,19 @@ describe("list-scraper pure parsers", () => {
     expect(deduped.find((item) => item.externalId === "230921")?.categoryLabel).toBe(
       "학사",
     );
+  });
+
+  it("keeps the same canonical title even if RSS arrives before HTML", async () => {
+    const html = await fs.readFile(fixture("board-list.html"), "utf-8");
+    const xml = await fs.readFile(fixture("notice-rss.xml"), "utf-8");
+    const htmlItems = parseHtmlListItems(html, SOURCE, "https://www.mju.ac.kr");
+    const rssItems = parseRssItems(xml, SOURCE, "https://www.mju.ac.kr");
+
+    const deduped = dedupeItems([...rssItems, ...htmlItems]);
+    expect(deduped.find((item) => item.externalId === "230921")).toMatchObject({
+      title: "2026학년도 1학기 수강정정 안내",
+      categoryLabel: "학사",
+    });
   });
 });
 

@@ -12,10 +12,6 @@ const ALLOWED_CATEGORY_LABELS = new Set([
   "취업",
   "진로",
   "창업",
-  "채용",
-  "모집",
-  "국제",
-  "학생",
 ]);
 
 export function extractExternalIdFromOnclick(onclick?: string): string | undefined {
@@ -86,8 +82,8 @@ export function extractExternalId(detailUrl: string): string {
 
 /**
  * RSS 제목 앞의 대괄호 접두사 중에서도, 실제 분류 의미가 있는 값만
- * category_label로 남긴다. 부서명·캠퍼스명·사업단명처럼 제목 꾸밈 역할만 하는
- * 긴 접두사는 버려서 `category_label`이 진짜 분류 필드에 가깝게 유지되도록 한다.
+ * category_label로 남긴다. 부서명·캠퍼스명·사업단명처럼 제목의 일부로 읽히는
+ * 긴 접두사는 분류값으로 승격하지 않는다.
  */
 export function parseLeadingBracketCategory(title: string): string | undefined {
   const match = /^\[([^\]]+)\]/.exec(title);
@@ -97,6 +93,14 @@ export function parseLeadingBracketCategory(title: string): string | undefined {
   }
 
   return ALLOWED_CATEGORY_LABELS.has(candidate) ? candidate : undefined;
+}
+
+function stripLeadingBracketCategory(title: string, categoryLabel?: string): string {
+  if (!categoryLabel) {
+    return title;
+  }
+
+  return title.replace(/^\[[^\]]+\]\s*/, "").trim();
 }
 
 /**
@@ -216,25 +220,30 @@ export function parseRssItems(
 
   $("item").each((_, element) => {
     const entry = $(element);
-    const title = collapseWhitespace(entry.find("title").first().text());
+    const rawTitle = collapseWhitespace(entry.find("title").first().text());
     const linkText = collapseWhitespace(entry.find("link").first().text());
     const pubDateRaw = collapseWhitespace(entry.find("pubDate").first().text());
     const author = collapseWhitespace(entry.find("author").first().text()) || undefined;
-    if (!title || !linkText || !pubDateRaw) {
+    if (!rawTitle || !linkText || !pubDateRaw) {
       return;
     }
 
     const detailUrl = new URL(linkText, origin).toString();
+    const categoryLabel = parseLeadingBracketCategory(rawTitle);
+    /**
+     * allowlist 밖의 대괄호 접두사는 제목 일부로 간주한다. 예를 들어
+     * `[장애학생지원센터]` 같은 값은 분류가 아니라 발행 주체/행사명에 가까우므로
+     * category_label에는 넣지 않되, 제목에서는 보존한다.
+     */
     const item: NoticeListItem = {
       sourceId: source.id,
       externalId: extractExternalId(detailUrl),
-      title,
+      title: stripLeadingBracketCategory(rawTitle, categoryLabel),
       detailUrl,
       publishedAt: parseKoreanDateToIso(pubDateRaw),
       publishedAtRaw: pubDateRaw,
     };
 
-    const categoryLabel = parseLeadingBracketCategory(title);
     if (categoryLabel) {
       item.categoryLabel = categoryLabel;
     }

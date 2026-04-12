@@ -1,5 +1,6 @@
 import type { Pool } from "pg";
 import { classifyCafeteriaInstagramPost } from "../cafeterias/post-classifier.js";
+import { structureCafeteriaMenuDocument } from "../cafeterias/menu-document-structurer.js";
 import { CAFETERIA_INSTAGRAM_SOURCES } from "../cafeterias/sources.js";
 import {
   createCafeteriaPostAssetProcessor,
@@ -12,6 +13,7 @@ import type {
   CafeteriaInstagramPostSnapshot,
   CafeteriaInstagramSource,
   CafeteriaInstagramUpsertResult,
+  CafeteriaMenuDocumentStructureResult,
   CafeteriaPostClassificationResult,
 } from "../cafeterias/types.js";
 import { CafeteriaRepository } from "../db/cafeteria-repository.js";
@@ -76,6 +78,7 @@ export interface CafeteriaCollectorRepositoryLike {
   syncInstagramPostClassification(
     postId: number,
     classification: CafeteriaPostClassificationResult,
+    documentStructure?: CafeteriaMenuDocumentStructureResult,
   ): Promise<void>;
   updateInstagramPostProcessing(
     postId: number,
@@ -282,9 +285,14 @@ async function collectSingleCafeteriaSource(
         upsertResult.cafeteriaInstagramPostId,
       );
       const classification = classifyCafeteriaInstagramPost(snapshot);
+      const documentStructure =
+        classification.postKind === "menu_sheet"
+          ? structureCafeteriaMenuDocument(source, snapshot)
+          : undefined;
       await repository.syncInstagramPostClassification(
         upsertResult.cafeteriaInstagramPostId,
         classification,
+        documentStructure,
       );
       metrics.processedCount += 1;
 

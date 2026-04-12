@@ -72,6 +72,7 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
     getInstagramPostSnapshot: vi.fn(async (postId: number) => ({
       id: postId,
       sourceId: "student-hall",
+      postedAt: "2026-04-12T06:20:08.000Z",
       caption: "다음주 식단 나왔어요",
       ocrText: "학생회관 주중식단표",
     } satisfies CafeteriaInstagramPostSnapshot)),
@@ -136,6 +137,10 @@ describe("cafeteria-instagram-collector", () => {
       expect.objectContaining({
         postKind: "menu_sheet",
       } satisfies Partial<CafeteriaPostClassificationResult>),
+      expect.objectContaining({
+        documentScope: "weekday",
+        lunchAvailable: true,
+      }),
     );
   });
 
@@ -323,6 +328,59 @@ describe("cafeteria-instagram-collector", () => {
         status: "success",
         processedCount: 1,
       }),
+    );
+  });
+
+  it("passes undefined document structure for non-menu posts", async () => {
+    const repository = createRepositoryMock();
+    repository.getInstagramPostSnapshot = vi
+      .fn()
+      .mockResolvedValueOnce({
+        id: 1,
+        sourceId: "student-hall",
+        postedAt: "2026-03-15T09:09:59.000Z",
+        caption: "명진당 백반집 운영시간 확장 안내입니다",
+        ocrText: "운영시간 확장안내 월~목요일 14:15 금요일 14:00",
+      } satisfies CafeteriaInstagramPostSnapshot)
+      .mockResolvedValueOnce({
+        id: 2,
+        sourceId: "student-hall",
+        postedAt: "2026-04-12T06:20:08.000Z",
+        caption: "다음주 식단 나왔어요",
+        ocrText: "학생회관 주중식단표",
+      } satisfies CafeteriaInstagramPostSnapshot);
+
+    const scrapePosts = vi
+      .fn<() => Promise<CafeteriaInstagramPost[]>>()
+      .mockResolvedValueOnce([makePost("student-hall", "code-1")])
+      .mockResolvedValueOnce([makePost("myeongjin", "code-2")]);
+    const assetProcessor = {
+      processPost: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+    };
+
+    await collectCafeteriaInstagramPostsWithDependencies(
+      {
+        repository,
+        sources: SOURCES,
+        scrapePosts,
+        assetProcessor,
+      },
+      {
+        limit: 1,
+        triggerReason: "manual",
+        storageLocalRoot: "C:/tmp/assets",
+        ocrLanguages: ["kor", "eng"],
+      },
+    );
+
+    expect(repository.syncInstagramPostClassification).toHaveBeenNthCalledWith(
+      1,
+      1,
+      expect.objectContaining({
+        postKind: "non_menu",
+      } satisfies Partial<CafeteriaPostClassificationResult>),
+      undefined,
     );
   });
 });

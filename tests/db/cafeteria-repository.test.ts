@@ -59,6 +59,15 @@ describe("cafeteria repository", () => {
       postKind: "menu_sheet",
       confidence: 0.95,
       reason: "matched menu keyword: 식단표",
+    }, {
+      documentScope: "weekday",
+      scopeConfidence: 0.94,
+      scopeReason: "date range 2026-04-06~2026-04-10 maps to Monday-Friday",
+      serviceStartDate: "2026-04-06",
+      serviceEndDate: "2026-04-10",
+      breakfastAvailable: false,
+      lunchAvailable: true,
+      dinnerAvailable: true,
     });
 
     expect(query.mock.calls).toHaveLength(4);
@@ -69,6 +78,17 @@ describe("cafeteria repository", () => {
     expect(String(query.mock.calls[2]![0])).toContain(
       "INSERT INTO public_data.cafeteria_menu_documents",
     );
+    expect(query.mock.calls[2]![1]).toEqual([
+      7,
+      "weekday",
+      0.94,
+      "date range 2026-04-06~2026-04-10 maps to Monday-Friday",
+      "2026-04-06",
+      "2026-04-10",
+      false,
+      true,
+      true,
+    ]);
     expect(String(query.mock.calls[3]![0])).toContain("COMMIT");
     expect(release).toHaveBeenCalledTimes(1);
   });
@@ -132,10 +152,36 @@ describe("cafeteria repository", () => {
         postKind: "menu_sheet",
         confidence: 0.95,
         reason: "matched menu keyword: 식단표",
+      }, {
+        documentScope: "weekday",
+        scopeConfidence: 0.94,
+        scopeReason: "date range 2026-04-06~2026-04-10 maps to Monday-Friday",
+        serviceStartDate: "2026-04-06",
+        serviceEndDate: "2026-04-10",
+        breakfastAvailable: false,
+        lunchAvailable: true,
+        dinnerAvailable: true,
       }),
     ).rejects.toThrow("document sync failed");
 
     expect(String(query.mock.calls[3]![0])).toContain("ROLLBACK");
     expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects menu_sheet classifications that are missing document structure", async () => {
+    const { pool, connect } = createConnectedPoolMock();
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await expect(
+      repository.syncInstagramPostClassification(13, {
+        postKind: "menu_sheet",
+        confidence: 0.95,
+        reason: "matched menu keyword: 식단표",
+      }),
+    ).rejects.toThrow(
+      "menu_sheet classification requires structured menu document metadata",
+    );
+
+    expect(connect).not.toHaveBeenCalled();
   });
 });

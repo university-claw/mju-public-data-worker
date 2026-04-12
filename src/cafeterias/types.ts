@@ -25,6 +25,11 @@ export type CafeteriaInstagramPostKind =
   | "non_menu"
   | "unknown";
 
+export type CafeteriaMenuDocumentScope =
+  | "weekday"
+  | "weekend"
+  | "unknown";
+
 export type CafeteriaInstagramOcrStatus =
   | "pending"
   | "succeeded"
@@ -43,6 +48,7 @@ export interface CafeteriaInstagramUpsertResult {
 export interface CafeteriaInstagramPostSnapshot {
   id: number;
   sourceId: string;
+  postedAt: string;
   caption?: string | null;
   ocrText?: string | null;
 }
@@ -66,4 +72,15 @@ export interface CafeteriaPostClassificationResult {
   postKind: CafeteriaInstagramPostKind;
   confidence: number;
   reason: string;
+}
+
+export interface CafeteriaMenuDocumentStructureResult {
+  documentScope: CafeteriaMenuDocumentScope;
+  scopeConfidence: number;
+  scopeReason: string;
+  serviceStartDate?: string | null;
+  serviceEndDate?: string | null;
+  breakfastAvailable: boolean;
+  lunchAvailable: boolean;
+  dinnerAvailable: boolean;
 }

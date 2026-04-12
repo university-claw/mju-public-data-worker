@@ -1,5 +1,6 @@
 import type { Pool } from "pg";
 import type {
+  CafeteriaMenuDocumentStructureResult,
   CafeteriaInstagramProcessingUpdate,
   CafeteriaInstagramPost,
   CafeteriaInstagramPostSnapshot,
@@ -316,6 +317,7 @@ export class CafeteriaRepository {
     const result = await this.pool.query<{
       id: number;
       source_id: string;
+      posted_at: string;
       caption: string | null;
       ocr_text: string | null;
     }>(
@@ -323,6 +325,7 @@ export class CafeteriaRepository {
         SELECT
           id,
           source_id,
+          posted_at,
           caption,
           ocr_text
         FROM ${this.schema}.cafeteria_instagram_posts
@@ -339,6 +342,7 @@ export class CafeteriaRepository {
     return {
       id: Number(row.id),
       sourceId: row.source_id,
+      postedAt: row.posted_at,
       caption: row.caption,
       ocrText: row.ocr_text,
     };
@@ -347,7 +351,14 @@ export class CafeteriaRepository {
   async syncInstagramPostClassification(
     postId: number,
     classification: CafeteriaPostClassificationResult,
+    documentStructure?: CafeteriaMenuDocumentStructureResult,
   ): Promise<void> {
+    if (classification.postKind === "menu_sheet" && !documentStructure) {
+      throw new Error(
+        "menu_sheet classification requires structured menu document metadata",
+      );
+    }
+
     const client = await this.pool.connect();
 
     try {
@@ -379,6 +390,15 @@ export class CafeteriaRepository {
               source_id,
               document_type,
               detection_method,
+              document_scope,
+              scope_confidence,
+              scope_reason,
+              service_start_date,
+              service_end_date,
+              breakfast_available,
+              lunch_available,
+              dinner_available,
+              structured_at,
               updated_at
             )
             SELECT
@@ -386,6 +406,15 @@ export class CafeteriaRepository {
               source_id,
               'menu_sheet',
               'rule_based',
+              $2,
+              $3,
+              $4,
+              $5,
+              $6,
+              $7,
+              $8,
+              $9,
+              now(),
               now()
             FROM ${this.schema}.cafeteria_instagram_posts
             WHERE id = $1
@@ -394,9 +423,28 @@ export class CafeteriaRepository {
               source_id = EXCLUDED.source_id,
               document_type = EXCLUDED.document_type,
               detection_method = EXCLUDED.detection_method,
+              document_scope = EXCLUDED.document_scope,
+              scope_confidence = EXCLUDED.scope_confidence,
+              scope_reason = EXCLUDED.scope_reason,
+              service_start_date = EXCLUDED.service_start_date,
+              service_end_date = EXCLUDED.service_end_date,
+              breakfast_available = EXCLUDED.breakfast_available,
+              lunch_available = EXCLUDED.lunch_available,
+              dinner_available = EXCLUDED.dinner_available,
+              structured_at = EXCLUDED.structured_at,
               updated_at = now()
           `,
-          [postId],
+          [
+            postId,
+            documentStructure?.documentScope ?? "unknown",
+            documentStructure?.scopeConfidence ?? null,
+            documentStructure?.scopeReason ?? null,
+            documentStructure?.serviceStartDate ?? null,
+            documentStructure?.serviceEndDate ?? null,
+            documentStructure?.breakfastAvailable ?? false,
+            documentStructure?.lunchAvailable ?? false,
+            documentStructure?.dinnerAvailable ?? false,
+          ],
         );
       } else {
         await client.query(

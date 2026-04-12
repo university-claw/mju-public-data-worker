@@ -1,5 +1,7 @@
 import type { Pool } from "pg";
 import type {
+  CafeteriaMenuNormalizationContext,
+  CafeteriaMenuNormalizationResult,
   CafeteriaMenuDocumentStructureResult,
   CafeteriaInstagramProcessingUpdate,
   CafeteriaInstagramPost,
@@ -472,6 +474,10 @@ export class CafeteriaRepository {
               source_id = EXCLUDED.source_id,
               document_type = EXCLUDED.document_type,
               detection_method = EXCLUDED.detection_method,
+              normalization_status = 'pending',
+              normalization_confidence = null,
+              normalization_reason = null,
+              normalization_error_message = null,
               document_scope = EXCLUDED.document_scope,
               scope_confidence = EXCLUDED.scope_confidence,
               scope_reason = EXCLUDED.scope_reason,
@@ -503,6 +509,204 @@ export class CafeteriaRepository {
           `,
           [postId],
         );
+      }
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getMenuNormalizationContext(
+    postId: number,
+  ): Promise<CafeteriaMenuNormalizationContext> {
+    const result = await this.pool.query<{
+      source_document_id: number;
+      source_post_id: number;
+      source_id: string;
+      source_name: string;
+      source_description: string;
+      profile_url: string;
+      instagram_username: string;
+      menu_image_group: string;
+      supports_weekend_menu: boolean;
+      image_storage_key: string | null;
+      document_scope: "weekday" | "weekend" | "unknown";
+      service_start_date: string | null;
+      service_end_date: string | null;
+      breakfast_available: boolean;
+      lunch_available: boolean;
+      dinner_available: boolean;
+    }>(
+      `
+        SELECT
+          d.id AS source_document_id,
+          p.id AS source_post_id,
+          s.id AS source_id,
+          s.name AS source_name,
+          s.description AS source_description,
+          s.profile_url,
+          s.instagram_username,
+          s.menu_image_group,
+          s.supports_weekend_menu,
+          p.image_storage_key,
+          d.document_scope,
+          d.service_start_date::text,
+          d.service_end_date::text,
+          d.breakfast_available,
+          d.lunch_available,
+          d.dinner_available
+        FROM ${this.schema}.cafeteria_menu_documents d
+        INNER JOIN ${this.schema}.cafeteria_instagram_posts p
+          ON p.id = d.source_post_id
+        INNER JOIN ${this.schema}.cafeteria_instagram_sources s
+          ON s.id = d.source_id
+        WHERE p.id = $1
+      `,
+      [postId],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error(`cafeteria menu document not found for source post: ${postId}`);
+    }
+
+    if (!row.image_storage_key) {
+      throw new Error(
+        `cafeteria menu document is missing image_storage_key for source post: ${postId}`,
+      );
+    }
+
+    return {
+      sourceDocumentId: Number(row.source_document_id),
+      sourcePostId: Number(row.source_post_id),
+      source: {
+        id: row.source_id,
+        name: row.source_name,
+        description: row.source_description,
+        profileUrl: row.profile_url,
+        instagramUsername: row.instagram_username,
+        menuImageGroup: row.menu_image_group,
+        supportsWeekendMenu: row.supports_weekend_menu,
+      },
+      imageStorageKey: row.image_storage_key,
+      documentScope: row.document_scope,
+      serviceStartDate: row.service_start_date,
+      serviceEndDate: row.service_end_date,
+      breakfastAvailable: row.breakfast_available,
+      lunchAvailable: row.lunch_available,
+      dinnerAvailable: row.dinner_available,
+    };
+  }
+
+  async syncMenuNormalization(
+    context: CafeteriaMenuNormalizationContext,
+    result: CafeteriaMenuNormalizationResult,
+  ): Promise<void> {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      const existingResult = await client.query<{
+        count: number;
+      }>(
+        `
+          SELECT count(*)::int AS count
+          FROM ${this.schema}.cafeteria_menu_entries
+          WHERE source_document_id = $1
+        `,
+        [context.sourceDocumentId],
+      );
+      const existingEntryCount = Number(existingResult.rows[0]?.count ?? 0);
+      const shouldReplaceEntries =
+        result.status === "succeeded" ||
+        (result.status === "partial" && existingEntryCount === 0);
+      const activeEntryCount = shouldReplaceEntries
+        ? result.entries.length
+        : existingEntryCount;
+      const normalizedReason =
+        shouldReplaceEntries || existingEntryCount === 0
+          ? result.reason
+          : `${result.reason} (preserved ${existingEntryCount} existing entries)`;
+
+      await client.query(
+        `
+          UPDATE ${this.schema}.cafeteria_menu_documents
+          SET
+            normalization_status = $2,
+            normalization_confidence = $3,
+            normalization_reason = $4,
+            normalized_entry_count = $5,
+            normalized_at = now(),
+            normalization_error_message = $6,
+            updated_at = now()
+          WHERE id = $1
+        `,
+        [
+          context.sourceDocumentId,
+          result.status,
+          result.confidence,
+          normalizedReason,
+          activeEntryCount,
+          result.errorMessage ?? null,
+        ],
+      );
+
+      if (shouldReplaceEntries) {
+        await client.query(
+          `
+            DELETE FROM ${this.schema}.cafeteria_menu_entries
+            WHERE source_document_id = $1
+          `,
+          [context.sourceDocumentId],
+        );
+
+        for (const entry of result.entries) {
+          await client.query(
+            `
+              INSERT INTO ${this.schema}.cafeteria_menu_entries (
+                source_document_id,
+                source_post_id,
+                source_id,
+                service_date,
+                meal_type,
+                is_closed,
+                menu_text,
+                menu_items,
+                normalization_confidence,
+                normalization_method,
+                updated_at
+              )
+              VALUES (
+                $1,
+                $2,
+                $3,
+                $4,
+                $5,
+                $6,
+                $7,
+                $8::jsonb,
+                $9,
+                'cell_ocr',
+                now()
+              )
+            `,
+            [
+              context.sourceDocumentId,
+              context.sourcePostId,
+              context.source.id,
+              entry.serviceDate,
+              entry.mealType,
+              entry.isClosed,
+              entry.menuText,
+              JSON.stringify(entry.menuItems),
+              entry.confidence,
+            ],
+          );
+        }
       }
 
       await client.query("COMMIT");

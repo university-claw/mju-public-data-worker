@@ -29,6 +29,11 @@ export type CafeteriaMenuDocumentScope =
   | "weekend"
   | "unknown";
 
+export type CafeteriaMenuMealType =
+  | "breakfast"
+  | "lunch"
+  | "dinner";
+
 export type CafeteriaInstagramOcrStatus =
   | "pending"
   | "succeeded"
@@ -93,4 +98,40 @@ export interface CafeteriaMenuDocumentStructureResult {
   breakfastAvailable: boolean;
   lunchAvailable: boolean;
   dinnerAvailable: boolean;
+}
+
+export type CafeteriaMenuNormalizationStatus =
+  | "pending"
+  | "succeeded"
+  | "partial"
+  | "failed";
+
+export interface CafeteriaMenuNormalizationContext {
+  sourceDocumentId: number;
+  sourcePostId: number;
+  source: CafeteriaInstagramSource;
+  imageStorageKey: string;
+  documentScope: CafeteriaMenuDocumentScope;
+  serviceStartDate?: string | null;
+  serviceEndDate?: string | null;
+  breakfastAvailable: boolean;
+  lunchAvailable: boolean;
+  dinnerAvailable: boolean;
+}
+
+export interface CafeteriaNormalizedMenuEntry {
+  serviceDate: string;
+  mealType: CafeteriaMenuMealType;
+  isClosed: boolean;
+  menuText: string;
+  menuItems: string[];
+  confidence: number;
+}
+
+export interface CafeteriaMenuNormalizationResult {
+  status: CafeteriaMenuNormalizationStatus;
+  confidence: number;
+  reason: string;
+  entries: CafeteriaNormalizedMenuEntry[];
+  errorMessage?: string | null;
 }

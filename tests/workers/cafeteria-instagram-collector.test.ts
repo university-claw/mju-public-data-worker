@@ -4,6 +4,8 @@ import type {
   CafeteriaInstagramPostSnapshot,
   CafeteriaInstagramSource,
   CafeteriaInstagramUpsertResult,
+  CafeteriaMenuNormalizationContext,
+  CafeteriaMenuNormalizationResult,
   CafeteriaPostClassificationResult,
 } from "../../src/cafeterias/types.js";
 import {
@@ -54,6 +56,8 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
   syncInstagramPostClassification: ReturnType<typeof vi.fn>;
   updateInstagramPostProcessing: ReturnType<typeof vi.fn>;
   listMenuSheetReferenceHashes: ReturnType<typeof vi.fn>;
+  getMenuNormalizationContext: ReturnType<typeof vi.fn>;
+  syncMenuNormalization: ReturnType<typeof vi.fn>;
 } {
   const defaultUpsertResult: CafeteriaInstagramUpsertResult = {
     cafeteriaInstagramPostId: 1,
@@ -81,6 +85,19 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
     } satisfies CafeteriaInstagramPostSnapshot)),
     listMenuSheetReferenceHashes: vi.fn(async () => []),
     syncInstagramPostClassification: vi.fn(async () => undefined),
+    getMenuNormalizationContext: vi.fn(async () => ({
+      sourceDocumentId: 100,
+      sourcePostId: 1,
+      source: SOURCES[0]!,
+      imageStorageKey: "cafeterias/student-hall/code-1/original.jpg",
+      documentScope: "weekday",
+      serviceStartDate: "2026-04-13",
+      serviceEndDate: "2026-04-17",
+      breakfastAvailable: true,
+      lunchAvailable: true,
+      dinnerAvailable: false,
+    } satisfies CafeteriaMenuNormalizationContext)),
+    syncMenuNormalization: vi.fn(async () => undefined),
     updateInstagramPostProcessing: vi.fn(async () => undefined),
   };
 }
@@ -99,6 +116,25 @@ describe("cafeteria-instagram-collector", () => {
       processPost: vi.fn(async () => undefined),
       close: vi.fn(async () => undefined),
     };
+    const menuNormalizer = {
+      normalizeDocument: vi.fn(async () => ({
+        status: "succeeded",
+        confidence: 0.8,
+        reason: "normalized 2/2 menu entries",
+        errorMessage: null,
+        entries: [
+          {
+            serviceDate: "2026-04-13",
+            mealType: "breakfast",
+            isClosed: false,
+            menuText: "삼계탕",
+            menuItems: ["삼계탕"],
+            confidence: 0.81,
+          },
+        ],
+      } satisfies CafeteriaMenuNormalizationResult)),
+      close: vi.fn(async () => undefined),
+    };
 
     const result = await collectCafeteriaInstagramPostsWithDependencies(
       {
@@ -106,6 +142,7 @@ describe("cafeteria-instagram-collector", () => {
         sources: SOURCES,
         scrapePosts,
         assetProcessor,
+        menuNormalizer,
       },
       {
         limit: 3,
@@ -134,8 +171,11 @@ describe("cafeteria-instagram-collector", () => {
     expect(repository.recordInstagramSourceRun).toHaveBeenCalledTimes(2);
     expect(assetProcessor.processPost).toHaveBeenCalledTimes(3);
     expect(assetProcessor.close).toHaveBeenCalledTimes(1);
+    expect(menuNormalizer.close).toHaveBeenCalledTimes(1);
     expect(repository.getInstagramPostSnapshot).toHaveBeenCalledTimes(3);
     expect(repository.syncInstagramPostClassification).toHaveBeenCalledTimes(3);
+    expect(repository.getMenuNormalizationContext).toHaveBeenCalledTimes(3);
+    expect(repository.syncMenuNormalization).toHaveBeenCalledTimes(3);
     expect(repository.syncInstagramPostClassification).toHaveBeenCalledWith(
       1,
       expect.objectContaining({
@@ -184,6 +224,16 @@ describe("cafeteria-instagram-collector", () => {
       processPost: vi.fn(async () => undefined),
       close: vi.fn(async () => undefined),
     };
+    const menuNormalizer = {
+      normalizeDocument: vi.fn(async () => ({
+        status: "succeeded",
+        confidence: 0.8,
+        reason: "normalized 1/1 menu entries",
+        errorMessage: null,
+        entries: [],
+      })),
+      close: vi.fn(async () => undefined),
+    };
 
     await expect(
       collectCafeteriaInstagramPostsWithDependencies(
@@ -192,6 +242,7 @@ describe("cafeteria-instagram-collector", () => {
           sources: SOURCES,
           scrapePosts,
           assetProcessor,
+          menuNormalizer,
         },
         {
           limit: 3,
@@ -235,6 +286,7 @@ describe("cafeteria-instagram-collector", () => {
     );
     expect(assetProcessor.processPost).toHaveBeenCalledTimes(2);
     expect(assetProcessor.close).toHaveBeenCalledTimes(1);
+    expect(menuNormalizer.close).toHaveBeenCalledTimes(1);
   });
 
   it("treats post-processing failure as a source failure after the row upsert", async () => {
@@ -250,6 +302,16 @@ describe("cafeteria-instagram-collector", () => {
         .mockResolvedValueOnce(undefined),
       close: vi.fn(async () => undefined),
     };
+    const menuNormalizer = {
+      normalizeDocument: vi.fn(async () => ({
+        status: "succeeded",
+        confidence: 0.8,
+        reason: "normalized 1/1 menu entries",
+        errorMessage: null,
+        entries: [],
+      })),
+      close: vi.fn(async () => undefined),
+    };
 
     await expect(
       collectCafeteriaInstagramPostsWithDependencies(
@@ -258,6 +320,7 @@ describe("cafeteria-instagram-collector", () => {
           sources: SOURCES,
           scrapePosts,
           assetProcessor,
+          menuNormalizer,
         },
         {
           limit: 1,
@@ -302,6 +365,16 @@ describe("cafeteria-instagram-collector", () => {
       processPost: vi.fn(async () => undefined),
       close: vi.fn(async () => undefined),
     };
+    const menuNormalizer = {
+      normalizeDocument: vi.fn(async () => ({
+        status: "succeeded",
+        confidence: 0.8,
+        reason: "normalized 1/1 menu entries",
+        errorMessage: null,
+        entries: [],
+      })),
+      close: vi.fn(async () => undefined),
+    };
 
     await expect(
       collectCafeteriaInstagramPostsWithDependencies(
@@ -310,6 +383,7 @@ describe("cafeteria-instagram-collector", () => {
           sources: SOURCES,
           scrapePosts,
           assetProcessor,
+          menuNormalizer,
         },
         {
           limit: 1,
@@ -367,6 +441,16 @@ describe("cafeteria-instagram-collector", () => {
       processPost: vi.fn(async () => undefined),
       close: vi.fn(async () => undefined),
     };
+    const menuNormalizer = {
+      normalizeDocument: vi.fn(async () => ({
+        status: "succeeded",
+        confidence: 0.8,
+        reason: "normalized 1/1 menu entries",
+        errorMessage: null,
+        entries: [],
+      })),
+      close: vi.fn(async () => undefined),
+    };
 
     await collectCafeteriaInstagramPostsWithDependencies(
       {
@@ -374,6 +458,7 @@ describe("cafeteria-instagram-collector", () => {
         sources: SOURCES,
         scrapePosts,
         assetProcessor,
+        menuNormalizer,
       },
       {
         limit: 1,
@@ -390,6 +475,61 @@ describe("cafeteria-instagram-collector", () => {
         postKind: "ignored",
       } satisfies Partial<CafeteriaPostClassificationResult>),
       undefined,
+    );
+    expect(repository.getMenuNormalizationContext).toHaveBeenCalledTimes(1);
+    expect(menuNormalizer.normalizeDocument).toHaveBeenCalledTimes(1);
+    expect(repository.syncMenuNormalization).toHaveBeenCalledTimes(1);
+  });
+
+  it("records a failed normalization result instead of aborting the whole source when the normalizer throws", async () => {
+    const repository = createRepositoryMock();
+    const scrapePosts = vi
+      .fn<() => Promise<CafeteriaInstagramPost[]>>()
+      .mockResolvedValueOnce([makePost("student-hall", "code-1")])
+      .mockResolvedValueOnce([makePost("myeongjin", "code-2")]);
+    const assetProcessor = {
+      processPost: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+    };
+    const menuNormalizer = {
+      normalizeDocument: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("ocr crop failed"))
+        .mockResolvedValueOnce({
+          status: "succeeded",
+          confidence: 0.8,
+          reason: "normalized 1/1 menu entries",
+          errorMessage: null,
+          entries: [],
+        } satisfies CafeteriaMenuNormalizationResult),
+      close: vi.fn(async () => undefined),
+    };
+
+    await collectCafeteriaInstagramPostsWithDependencies(
+      {
+        repository,
+        sources: SOURCES,
+        scrapePosts,
+        assetProcessor,
+        menuNormalizer,
+      },
+      {
+        limit: 1,
+        triggerReason: "manual",
+        storageLocalRoot: "C:/tmp/assets",
+        ocrLanguages: ["kor", "eng"],
+      },
+    );
+
+    expect(repository.syncMenuNormalization).toHaveBeenNthCalledWith(
+      1,
+      expect.any(Object),
+      expect.objectContaining({
+        status: "failed",
+        confidence: 0.1,
+        entries: [],
+        errorMessage: "ocr crop failed",
+      } satisfies Partial<CafeteriaMenuNormalizationResult>),
     );
   });
 });

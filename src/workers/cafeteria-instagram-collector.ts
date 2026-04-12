@@ -1,5 +1,9 @@
 import type { Pool } from "pg";
 import { classifyCafeteriaInstagramPost } from "../cafeterias/post-classifier.js";
+import {
+  createCafeteriaMenuNormalizer,
+  type CafeteriaMenuNormalizer,
+} from "../cafeterias/menu-normalizer.js";
 import { structureCafeteriaMenuDocument } from "../cafeterias/menu-document-structurer.js";
 import { CAFETERIA_INSTAGRAM_SOURCES } from "../cafeterias/sources.js";
 import {
@@ -13,6 +17,8 @@ import type {
   CafeteriaInstagramPostSnapshot,
   CafeteriaInstagramSource,
   CafeteriaInstagramUpsertResult,
+  CafeteriaMenuNormalizationContext,
+  CafeteriaMenuNormalizationResult,
   CafeteriaMenuDocumentStructureResult,
   CafeteriaPostClassificationResult,
 } from "../cafeterias/types.js";
@@ -84,6 +90,13 @@ export interface CafeteriaCollectorRepositoryLike {
     classification: CafeteriaPostClassificationResult,
     documentStructure?: CafeteriaMenuDocumentStructureResult,
   ): Promise<void>;
+  getMenuNormalizationContext(
+    postId: number,
+  ): Promise<CafeteriaMenuNormalizationContext>;
+  syncMenuNormalization(
+    context: CafeteriaMenuNormalizationContext,
+    result: CafeteriaMenuNormalizationResult,
+  ): Promise<void>;
   updateInstagramPostProcessing(
     postId: number,
     update: CafeteriaInstagramProcessingUpdate,
@@ -98,6 +111,7 @@ interface CafeteriaCollectorDependencies {
     limit: number,
   ) => Promise<CafeteriaInstagramPost[]>;
   assetProcessor: CafeteriaPostAssetProcessorLike;
+  menuNormalizer: Pick<CafeteriaMenuNormalizer, "normalizeDocument" | "close">;
 }
 
 class CafeteriaCollectError extends Error {
@@ -126,14 +140,18 @@ export async function collectCafeteriaInstagramPosts(
       repository,
       sources: CAFETERIA_INSTAGRAM_SOURCES,
       scrapePosts: scrapeCafeteriaInstagramPosts,
-      assetProcessor: createCafeteriaPostAssetProcessor({
-        repository,
-        storageLocalRoot: options.storageLocalRoot,
-        ocrLanguages: options.ocrLanguages,
-      }),
-    },
-    options,
-  );
+        assetProcessor: createCafeteriaPostAssetProcessor({
+          repository,
+          storageLocalRoot: options.storageLocalRoot,
+          ocrLanguages: options.ocrLanguages,
+        }),
+        menuNormalizer: createCafeteriaMenuNormalizer({
+          storageLocalRoot: options.storageLocalRoot,
+          ocrLanguages: options.ocrLanguages,
+        }),
+      },
+      options,
+    );
 }
 
 export async function collectCafeteriaInstagramPostsWithDependencies(
@@ -164,6 +182,7 @@ export async function collectCafeteriaInstagramPostsWithDependencies(
           dependencies.repository,
           dependencies.scrapePosts,
           dependencies.assetProcessor,
+          dependencies.menuNormalizer,
           source,
           options.limit,
         );
@@ -249,6 +268,7 @@ export async function collectCafeteriaInstagramPostsWithDependencies(
     throw error;
   } finally {
     await dependencies.assetProcessor.close();
+    await dependencies.menuNormalizer.close();
   }
 }
 
@@ -269,6 +289,7 @@ async function collectSingleCafeteriaSource(
     limit: number,
   ) => Promise<CafeteriaInstagramPost[]>,
   assetProcessor: CafeteriaPostAssetProcessorLike,
+  menuNormalizer: Pick<CafeteriaMenuNormalizer, "normalizeDocument">,
   source: CafeteriaInstagramSource,
   limit: number,
 ): Promise<CafeteriaCollectMetrics> {
@@ -306,6 +327,21 @@ async function collectSingleCafeteriaSource(
         classification,
         documentStructure,
       );
+
+      if (classification.postKind === "menu_sheet") {
+        const normalizationContext = await repository.getMenuNormalizationContext(
+          upsertResult.cafeteriaInstagramPostId,
+        );
+        const normalizationResult = await safelyNormalizeMenuDocument(
+          menuNormalizer,
+          normalizationContext,
+        );
+        await repository.syncMenuNormalization(
+          normalizationContext,
+          normalizationResult,
+        );
+      }
+
       metrics.processedCount += 1;
 
       if (upsertResult.wasInserted) {
@@ -323,4 +359,21 @@ async function collectSingleCafeteriaSource(
   }
 
   return metrics;
+}
+
+async function safelyNormalizeMenuDocument(
+  menuNormalizer: Pick<CafeteriaMenuNormalizer, "normalizeDocument">,
+  context: CafeteriaMenuNormalizationContext,
+): Promise<CafeteriaMenuNormalizationResult> {
+  try {
+    return await menuNormalizer.normalizeDocument(context);
+  } catch (error) {
+    return {
+      status: "failed",
+      confidence: 0.1,
+      reason: "unexpected error while normalizing cafeteria menu document",
+      entries: [],
+      errorMessage: error instanceof Error ? error.message : String(error),
+    };
+  }
 }

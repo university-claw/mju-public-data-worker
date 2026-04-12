@@ -19,3 +19,33 @@ export interface CafeteriaInstagramPost {
   imageUrl?: string;
   rawItem: unknown;
 }
+
+export type CafeteriaInstagramOcrStatus =
+  | "pending"
+  | "succeeded"
+  | "failed"
+  | "skipped";
+
+export interface CafeteriaInstagramUpsertResult {
+  cafeteriaInstagramPostId: number;
+  wasInserted: boolean;
+  imageStorageProvider?: string | null;
+  imageStorageKey?: string | null;
+  imageSha256?: string | null;
+  ocrStatus?: CafeteriaInstagramOcrStatus | null;
+}
+
+export interface CafeteriaInstagramProcessingUpdate {
+  imageStorageProvider?: string | null;
+  imageStorageKey?: string | null;
+  imageContentType?: string | null;
+  imageSizeBytes?: number | null;
+  imageSha256?: string | null;
+  imageDownloadedAt?: string | null;
+  ocrStatus: CafeteriaInstagramOcrStatus;
+  ocrText?: string | null;
+  ocrConfidence?: number | null;
+  ocrLanguage?: string | null;
+  ocrExtractedAt?: string | null;
+  ocrErrorMessage?: string | null;
+}

@@ -48,11 +48,44 @@ export interface AppConfig {
   pgUser: string;
   pgPassword: string;
   pgSchema: string;
+  storageProvider: "local";
+  storageLocalRoot?: string;
+  ocrLanguages: string[];
+}
+
+function parseStorageProvider(raw: string): "local" {
+  if (raw !== "local") {
+    throw new Error(
+      `STORAGE_PROVIDER must be "local" for the current slice, received: ${raw}`,
+    );
+  }
+
+  return raw;
+}
+
+function parseOcrLanguages(raw: string): string[] {
+  const languages = raw
+    .split("+")
+    .map((language) => language.trim())
+    .filter(Boolean);
+
+  if (languages.length === 0) {
+    throw new Error("OCR_LANGUAGES must contain at least one language code");
+  }
+
+  return languages;
 }
 
 export function loadConfig(): AppConfig {
   const pgPort = parsePositiveInteger("PGPORT", requireEnv("PGPORT"));
   const pgSchema = validateSchemaIdentifier(requireEnv("PGSCHEMA"));
+  const storageProvider = parseStorageProvider(
+    process.env.STORAGE_PROVIDER?.trim() || "local",
+  );
+  const storageLocalRoot = process.env.STORAGE_LOCAL_ROOT?.trim() || undefined;
+  const ocrLanguages = parseOcrLanguages(
+    process.env.OCR_LANGUAGES?.trim() || "kor+eng",
+  );
 
   return {
     pgHost: requireEnv("PGHOST"),
@@ -61,5 +94,8 @@ export function loadConfig(): AppConfig {
     pgUser: requireEnv("PGUSER"),
     pgPassword: requireEnv("PGPASSWORD"),
     pgSchema,
+    storageProvider,
+    ...(storageLocalRoot ? { storageLocalRoot } : {}),
+    ocrLanguages,
   };
 }

@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { CafeteriaInstagramPost, CafeteriaInstagramSource } from "../../src/cafeterias/types.js";
+import type {
+  CafeteriaInstagramPost,
+  CafeteriaInstagramSource,
+  CafeteriaInstagramUpsertResult,
+} from "../../src/cafeterias/types.js";
 import {
   collectCafeteriaInstagramPostsWithDependencies,
   type CafeteriaCollectorRepositoryLike,
@@ -44,13 +48,24 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
   finishScrapeRun: ReturnType<typeof vi.fn>;
   recordInstagramSourceRun: ReturnType<typeof vi.fn>;
   upsertInstagramPost: ReturnType<typeof vi.fn>;
+  updateInstagramPostProcessing: ReturnType<typeof vi.fn>;
 } {
+  const defaultUpsertResult: CafeteriaInstagramUpsertResult = {
+    cafeteriaInstagramPostId: 1,
+    wasInserted: true,
+    imageStorageProvider: null,
+    imageStorageKey: null,
+    imageSha256: null,
+    ocrStatus: "pending",
+  };
+
   return {
     ensureInstagramSources: vi.fn(async () => undefined),
     createScrapeRun: vi.fn(async () => 77),
     finishScrapeRun: vi.fn(async () => undefined),
     recordInstagramSourceRun: vi.fn(async () => undefined),
-    upsertInstagramPost: vi.fn(async () => ({ wasInserted: true })),
+    upsertInstagramPost: vi.fn(async () => defaultUpsertResult),
+    updateInstagramPostProcessing: vi.fn(async () => undefined),
   };
 }
 
@@ -64,16 +79,23 @@ describe("cafeteria-instagram-collector", () => {
         makePost("student-hall", "code-2"),
       ])
       .mockResolvedValueOnce([makePost("myeongjin", "code-3")]);
+    const assetProcessor = {
+      processPost: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+    };
 
     const result = await collectCafeteriaInstagramPostsWithDependencies(
       {
         repository,
         sources: SOURCES,
         scrapePosts,
+        assetProcessor,
       },
       {
         limit: 3,
         triggerReason: "manual",
+        storageLocalRoot: "C:/tmp/assets",
+        ocrLanguages: ["kor", "eng"],
       },
     );
 
@@ -94,15 +116,31 @@ describe("cafeteria-instagram-collector", () => {
       undefined,
     );
     expect(repository.recordInstagramSourceRun).toHaveBeenCalledTimes(2);
+    expect(assetProcessor.processPost).toHaveBeenCalledTimes(3);
+    expect(assetProcessor.close).toHaveBeenCalledTimes(1);
   });
 
   it("keeps partial metrics when a post upsert fails mid-source", async () => {
     const repository = createRepositoryMock();
     repository.upsertInstagramPost = vi
       .fn()
-      .mockResolvedValueOnce({ wasInserted: true })
+      .mockResolvedValueOnce({
+        cafeteriaInstagramPostId: 1,
+        wasInserted: true,
+        imageStorageProvider: null,
+        imageStorageKey: null,
+        imageSha256: null,
+        ocrStatus: "pending",
+      })
       .mockRejectedValueOnce(new Error("db write failed"))
-      .mockResolvedValueOnce({ wasInserted: false });
+      .mockResolvedValueOnce({
+        cafeteriaInstagramPostId: 2,
+        wasInserted: false,
+        imageStorageProvider: null,
+        imageStorageKey: null,
+        imageSha256: null,
+        ocrStatus: "pending",
+      });
 
     const scrapePosts = vi
       .fn<() => Promise<CafeteriaInstagramPost[]>>()
@@ -111,6 +149,10 @@ describe("cafeteria-instagram-collector", () => {
         makePost("student-hall", "code-2"),
       ])
       .mockResolvedValueOnce([makePost("myeongjin", "code-3")]);
+    const assetProcessor = {
+      processPost: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+    };
 
     await expect(
       collectCafeteriaInstagramPostsWithDependencies(
@@ -118,10 +160,13 @@ describe("cafeteria-instagram-collector", () => {
           repository,
           sources: SOURCES,
           scrapePosts,
+          assetProcessor,
         },
         {
           limit: 3,
           triggerReason: "manual",
+          storageLocalRoot: "C:/tmp/assets",
+          ocrLanguages: ["kor", "eng"],
         },
       ),
     ).rejects.toThrow(/one or more cafeteria instagram sources failed/);
@@ -156,6 +201,58 @@ describe("cafeteria-instagram-collector", () => {
       1,
       1,
       "one or more cafeteria instagram sources failed",
+    );
+    expect(assetProcessor.processPost).toHaveBeenCalledTimes(2);
+    expect(assetProcessor.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats post-processing failure as a source failure after the row upsert", async () => {
+    const repository = createRepositoryMock();
+    const scrapePosts = vi
+      .fn<() => Promise<CafeteriaInstagramPost[]>>()
+      .mockResolvedValueOnce([makePost("student-hall", "code-1")])
+      .mockResolvedValueOnce([makePost("myeongjin", "code-2")]);
+    const assetProcessor = {
+      processPost: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("ocr failed"))
+        .mockResolvedValueOnce(undefined),
+      close: vi.fn(async () => undefined),
+    };
+
+    await expect(
+      collectCafeteriaInstagramPostsWithDependencies(
+        {
+          repository,
+          sources: SOURCES,
+          scrapePosts,
+          assetProcessor,
+        },
+        {
+          limit: 1,
+          triggerReason: "manual",
+          storageLocalRoot: "C:/tmp/assets",
+          ocrLanguages: ["kor", "eng"],
+        },
+      ),
+    ).rejects.toThrow(/one or more cafeteria instagram sources failed/);
+
+    expect(repository.recordInstagramSourceRun).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        sourceId: "student-hall",
+        status: "failed",
+        scrapedCount: 1,
+        processedCount: 0,
+      }),
+    );
+    expect(repository.recordInstagramSourceRun).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        sourceId: "myeongjin",
+        status: "success",
+        processedCount: 1,
+      }),
     );
   });
 });

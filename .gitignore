@@ -23,6 +23,7 @@ tmp/
 temp/
 .cache/
 data/
+*.traineddata
 
 # OS / editor
 .DS_Store

@@ -1,13 +1,10 @@
 import type { Pool } from "pg";
 import type {
+  CafeteriaInstagramProcessingUpdate,
   CafeteriaInstagramPost,
   CafeteriaInstagramSource,
+  CafeteriaInstagramUpsertResult,
 } from "../cafeterias/types.js";
-
-export interface CafeteriaInstagramUpsertResult {
-  cafeteriaInstagramPostId: number;
-  wasInserted: boolean;
-}
 
 export class CafeteriaRepository {
   constructor(
@@ -160,7 +157,14 @@ export class CafeteriaRepository {
     post: CafeteriaInstagramPost,
     fetchedAt: string,
   ): Promise<CafeteriaInstagramUpsertResult> {
-    const result = await this.pool.query<{ id: number; inserted: boolean }>(
+    const result = await this.pool.query<{
+      id: number;
+      inserted: boolean;
+      image_storage_provider: string | null;
+      image_storage_key: string | null;
+      image_sha256: string | null;
+      ocr_status: string | null;
+    }>(
       `
         INSERT INTO ${this.schema}.cafeteria_instagram_posts (
           source_id,
@@ -204,7 +208,13 @@ export class CafeteriaRepository {
           last_seen_at = EXCLUDED.last_seen_at,
           last_scraped_at = EXCLUDED.last_scraped_at,
           updated_at = now()
-        RETURNING id, (xmax = 0) AS inserted
+        RETURNING
+          id,
+          (xmax = 0) AS inserted,
+          image_storage_provider,
+          image_storage_key,
+          image_sha256,
+          ocr_status
       `,
       [
         post.sourceId,
@@ -223,6 +233,78 @@ export class CafeteriaRepository {
     return {
       cafeteriaInstagramPostId: Number(result.rows[0]!.id),
       wasInserted: result.rows[0]!.inserted,
+      imageStorageProvider: result.rows[0]!.image_storage_provider,
+      imageStorageKey: result.rows[0]!.image_storage_key,
+      imageSha256: result.rows[0]!.image_sha256,
+      ocrStatus:
+        (result.rows[0]!.ocr_status as CafeteriaInstagramUpsertResult["ocrStatus"]) ??
+        null,
     };
+  }
+
+  async updateInstagramPostProcessing(
+    postId: number,
+    update: CafeteriaInstagramProcessingUpdate,
+  ): Promise<void> {
+    const assignments: string[] = [];
+    const values: Array<string | number | null> = [postId];
+    let parameterIndex = 2;
+
+    const appendAssignment = (
+      columnName: string,
+      value: string | number | null,
+    ) => {
+      assignments.push(`${columnName} = $${parameterIndex}`);
+      values.push(value);
+      parameterIndex += 1;
+    };
+
+    if ("imageStorageProvider" in update) {
+      appendAssignment("image_storage_provider", update.imageStorageProvider ?? null);
+    }
+    if ("imageStorageKey" in update) {
+      appendAssignment("image_storage_key", update.imageStorageKey ?? null);
+    }
+    if ("imageContentType" in update) {
+      appendAssignment("image_content_type", update.imageContentType ?? null);
+    }
+    if ("imageSizeBytes" in update) {
+      appendAssignment("image_size_bytes", update.imageSizeBytes ?? null);
+    }
+    if ("imageSha256" in update) {
+      appendAssignment("image_sha256", update.imageSha256 ?? null);
+    }
+    if ("imageDownloadedAt" in update) {
+      appendAssignment("image_downloaded_at", update.imageDownloadedAt ?? null);
+    }
+
+    appendAssignment("ocr_status", update.ocrStatus);
+
+    if ("ocrText" in update) {
+      appendAssignment("ocr_text", update.ocrText ?? null);
+    }
+    if ("ocrConfidence" in update) {
+      appendAssignment("ocr_confidence", update.ocrConfidence ?? null);
+    }
+    if ("ocrLanguage" in update) {
+      appendAssignment("ocr_language", update.ocrLanguage ?? null);
+    }
+    if ("ocrExtractedAt" in update) {
+      appendAssignment("ocr_extracted_at", update.ocrExtractedAt ?? null);
+    }
+    if ("ocrErrorMessage" in update) {
+      appendAssignment("ocr_error_message", update.ocrErrorMessage ?? null);
+    }
+
+    await this.pool.query(
+      `
+        UPDATE ${this.schema}.cafeteria_instagram_posts
+        SET
+          ${assignments.join(",\n          ")},
+          updated_at = now()
+        WHERE id = $1
+      `,
+      values,
+    );
   }
 }

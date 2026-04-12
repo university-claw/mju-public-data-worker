@@ -110,9 +110,15 @@ async function runCollect(args: string[]): Promise<void> {
     }
 
     if (target === "cafeterias") {
+      if (!config.storageLocalRoot) {
+        throw new Error("collect cafeterias requires STORAGE_LOCAL_ROOT");
+      }
+
       const result = await collectCafeteriaInstagramPosts(pool, config.pgSchema, {
         limit: parseLimit(args, 6),
         triggerReason: "manual",
+        storageLocalRoot: config.storageLocalRoot,
+        ocrLanguages: config.ocrLanguages,
       });
 
       console.log(

@@ -1,15 +1,23 @@
 import type { Pool } from "pg";
 import { CAFETERIA_INSTAGRAM_SOURCES } from "../cafeterias/sources.js";
+import {
+  createCafeteriaPostAssetProcessor,
+  type CafeteriaPostAssetProcessorLike,
+} from "../cafeterias/post-asset-processor.js";
 import { scrapeCafeteriaInstagramPosts } from "../cafeterias/instagram-scraper.js";
 import type {
+  CafeteriaInstagramProcessingUpdate,
   CafeteriaInstagramPost,
   CafeteriaInstagramSource,
+  CafeteriaInstagramUpsertResult,
 } from "../cafeterias/types.js";
 import { CafeteriaRepository } from "../db/cafeteria-repository.js";
 
 export interface CollectCafeteriaInstagramOptions {
   limit: number;
   triggerReason: string;
+  storageLocalRoot: string;
+  ocrLanguages: string[];
 }
 
 export interface CafeteriaCollectMetrics {
@@ -58,7 +66,11 @@ export interface CafeteriaCollectorRepositoryLike {
   upsertInstagramPost(
     post: CafeteriaInstagramPost,
     fetchedAt: string,
-  ): Promise<{ wasInserted: boolean }>;
+  ): Promise<CafeteriaInstagramUpsertResult>;
+  updateInstagramPostProcessing(
+    postId: number,
+    update: CafeteriaInstagramProcessingUpdate,
+  ): Promise<void>;
 }
 
 interface CafeteriaCollectorDependencies {
@@ -68,6 +80,7 @@ interface CafeteriaCollectorDependencies {
     source: CafeteriaInstagramSource,
     limit: number,
   ) => Promise<CafeteriaInstagramPost[]>;
+  assetProcessor: CafeteriaPostAssetProcessorLike;
 }
 
 class CafeteriaCollectError extends Error {
@@ -96,6 +109,11 @@ export async function collectCafeteriaInstagramPosts(
       repository,
       sources: CAFETERIA_INSTAGRAM_SOURCES,
       scrapePosts: scrapeCafeteriaInstagramPosts,
+      assetProcessor: createCafeteriaPostAssetProcessor({
+        repository,
+        storageLocalRoot: options.storageLocalRoot,
+        ocrLanguages: options.ocrLanguages,
+      }),
     },
     options,
   );
@@ -128,6 +146,7 @@ export async function collectCafeteriaInstagramPostsWithDependencies(
         const metrics = await collectSingleCafeteriaSource(
           dependencies.repository,
           dependencies.scrapePosts,
+          dependencies.assetProcessor,
           source,
           options.limit,
         );
@@ -211,6 +230,8 @@ export async function collectCafeteriaInstagramPostsWithDependencies(
     }
 
     throw error;
+  } finally {
+    await dependencies.assetProcessor.close();
   }
 }
 
@@ -230,6 +251,7 @@ async function collectSingleCafeteriaSource(
     source: CafeteriaInstagramSource,
     limit: number,
   ) => Promise<CafeteriaInstagramPost[]>,
+  assetProcessor: CafeteriaPostAssetProcessorLike,
   source: CafeteriaInstagramSource,
   limit: number,
 ): Promise<CafeteriaCollectMetrics> {
@@ -245,6 +267,7 @@ async function collectSingleCafeteriaSource(
   for (const post of posts) {
     try {
       const upsertResult = await repository.upsertInstagramPost(post, fetchedAt);
+      await assetProcessor.processPost(post, upsertResult, fetchedAt);
       metrics.processedCount += 1;
 
       if (upsertResult.wasInserted) {

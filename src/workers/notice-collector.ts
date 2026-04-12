@@ -316,12 +316,5 @@ async function collectSingleSource(
     }
   }
 
-  if (metrics.noticeImageOcrFailedCount > 0) {
-    throw new SourceCollectError(
-      `source "${source.id}" completed with ${metrics.noticeImageOcrFailedCount} notice image OCR failures`,
-      metrics,
-    );
-  }
-
   return metrics;
 }

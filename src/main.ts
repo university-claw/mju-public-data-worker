@@ -7,6 +7,7 @@ import { checkReachability } from "./http/client.js";
 import { NOTICE_SOURCES } from "./notices/sources.js";
 import { collectCafeteriaInstagramPosts } from "./workers/cafeteria-instagram-collector.js";
 import { collectNotices } from "./workers/notice-collector.js";
+import { runSchedulerTick } from "./workers/scheduler-tick.js";
 
 function parseLimit(args: string[], defaultLimit: number): number {
   const index = args.findIndex((arg) => arg === "--limit");
@@ -44,6 +45,10 @@ function parseLimit(args: string[], defaultLimit: number): number {
   }
 
   return defaultLimit;
+}
+
+function hasFlag(args: string[], flag: string): boolean {
+  return args.includes(flag);
 }
 
 async function runDoctor(): Promise<void> {
@@ -162,6 +167,39 @@ async function runCollect(args: string[]): Promise<void> {
   }
 }
 
+async function runSchedule(args: string[]): Promise<void> {
+  const target = args[1];
+  if (target !== "tick") {
+    throw new Error(
+      `unsupported schedule target: ${target ?? "(missing)"} (expected: tick)`,
+    );
+  }
+
+  const config = loadConfig();
+  const pool = createPool(config);
+  const dryRun = hasFlag(args, "--dry-run");
+
+  try {
+    if (!dryRun) {
+      await runMigrations(pool, config.pgSchema);
+    }
+
+    if (!config.storageLocalRoot) {
+      throw new Error("schedule tick requires STORAGE_LOCAL_ROOT");
+    }
+
+    const result = await runSchedulerTick(pool, config.pgSchema, {
+      storageLocalRoot: config.storageLocalRoot,
+      ocrLanguages: config.ocrLanguages,
+      dryRun,
+    });
+
+    console.log(JSON.stringify(result, null, 2));
+  } finally {
+    await pool.end();
+  }
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const command = args[0];
@@ -185,9 +223,12 @@ async function main(): Promise<void> {
     case "collect":
       await runCollect(args);
       return;
+    case "schedule":
+      await runSchedule(args);
+      return;
     default:
       throw new Error(
-        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias)`,
+        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias | schedule tick)`,
       );
   }
 }

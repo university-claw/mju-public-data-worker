@@ -395,6 +395,29 @@ export class CafeteriaRepository {
     return result.rows.map((row) => row.image_perceptual_hash);
   }
 
+  async listExistingInstagramPostCodes(
+    sourceId: string,
+    postCodes: string[],
+  ): Promise<string[]> {
+    if (postCodes.length === 0) {
+      return [];
+    }
+
+    const result = await this.pool.query<{
+      instagram_post_code: string;
+    }>(
+      `
+        SELECT instagram_post_code
+        FROM ${this.schema}.cafeteria_instagram_posts
+        WHERE source_id = $1
+          AND instagram_post_code = ANY($2::text[])
+      `,
+      [sourceId, postCodes],
+    );
+
+    return result.rows.map((row) => row.instagram_post_code);
+  }
+
   async syncInstagramPostClassification(
     postId: number,
     classification: CafeteriaPostClassificationResult,

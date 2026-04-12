@@ -29,6 +29,7 @@ export interface CollectCafeteriaInstagramOptions {
   triggerReason: string;
   storageLocalRoot: string;
   ocrLanguages: string[];
+  sourceIds?: string[];
 }
 
 export interface CafeteriaCollectMetrics {
@@ -135,10 +136,20 @@ export async function collectCafeteriaInstagramPosts(
   options: CollectCafeteriaInstagramOptions,
 ): Promise<CollectCafeteriaInstagramResult> {
   const repository = new CafeteriaRepository(pool, schema);
+  const sources = options.sourceIds?.length
+    ? CAFETERIA_INSTAGRAM_SOURCES.filter((source) =>
+        options.sourceIds?.includes(source.id),
+      )
+    : CAFETERIA_INSTAGRAM_SOURCES;
+
+  if (sources.length === 0) {
+    throw new Error("no cafeteria instagram sources matched the requested sourceIds");
+  }
+
   return collectCafeteriaInstagramPostsWithDependencies(
     {
       repository,
-      sources: CAFETERIA_INSTAGRAM_SOURCES,
+      sources,
       scrapePosts: scrapeCafeteriaInstagramPosts,
         assetProcessor: createCafeteriaPostAssetProcessor({
           repository,

@@ -288,7 +288,7 @@ describe("notice collector", () => {
     );
   });
 
-  it("fails the source when notice image ocr errors occur", async () => {
+  it("keeps the source successful but records notice image ocr failures", async () => {
     const { collectNotices } = await import("../../src/workers/notice-collector.js");
     const { scrapeNoticeList } = await import("../../src/notices/list-scraper.js");
     const { scrapeNoticeDetail } = await import("../../src/notices/detail-scraper.js");
@@ -332,26 +332,25 @@ describe("notice collector", () => {
       skippedCount: 0,
     });
 
-    await expect(
-      collectNotices({} as never, "public_data", {
-        limit: 1,
-        triggerReason: "manual",
-        storageLocalRoot: "C:/tmp/assets",
-        ocrLanguages: ["kor", "eng"],
-      }),
-    ).rejects.toThrow("one or more notice sources failed during collection");
+    const result = await collectNotices({} as never, "public_data", {
+      limit: 1,
+      triggerReason: "manual",
+      storageLocalRoot: "C:/tmp/assets",
+      ocrLanguages: ["kor", "eng"],
+    });
 
+    expect(result.noticeImageOcrFailedCount).toBe(1);
     expect(repositoryMock.recordSourceRun).toHaveBeenCalledWith(
       expect.objectContaining({
         scrapeRunId: 101,
         sourceId: "general",
-        status: "failed",
+        status: "success",
         noticeImageOcrFailedCount: 1,
       }),
     );
     expect(repositoryMock.finishScrapeRun).toHaveBeenCalledWith(
       101,
-      "failed",
+      "success",
       1,
       1,
       1,
@@ -362,7 +361,7 @@ describe("notice collector", () => {
       0,
       0,
       1,
-      "one or more sources failed",
+      undefined,
     );
   });
 

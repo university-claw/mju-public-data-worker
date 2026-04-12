@@ -11,6 +11,7 @@
     "doctor": "tsx src/main.ts doctor",
     "collect:cafeterias": "tsx src/main.ts collect cafeterias",
     "collect:notices": "tsx src/main.ts collect notices",
+    "schedule:tick": "tsx src/main.ts schedule tick",
     "test": "vitest run",
     "test:watch": "vitest"
   },

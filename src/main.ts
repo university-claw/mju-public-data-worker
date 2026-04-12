@@ -95,6 +95,7 @@ async function runCollect(args: string[]): Promise<void> {
         limit: parseLimit(args, 30),
         triggerReason: "manual",
         storageLocalRoot: config.storageLocalRoot,
+        ocrLanguages: config.ocrLanguages,
       });
 
       console.log(
@@ -105,6 +106,18 @@ async function runCollect(args: string[]): Promise<void> {
             totalProcessedCount: result.processedCount,
             totalInsertedCount: result.insertedCount,
             totalUpdatedCount: result.updatedCount,
+            totalAttachmentExtractionSucceededCount:
+              result.attachmentExtractionSucceededCount,
+            totalAttachmentExtractionUnsupportedCount:
+              result.attachmentExtractionUnsupportedCount,
+            totalAttachmentExtractionFailedCount:
+              result.attachmentExtractionFailedCount,
+            totalNoticeImageOcrSucceededCount:
+              result.noticeImageOcrSucceededCount,
+            totalNoticeImageOcrUnsupportedCount:
+              result.noticeImageOcrUnsupportedCount,
+            totalNoticeImageOcrFailedCount:
+              result.noticeImageOcrFailedCount,
             sources: result.sources,
           },
           null,

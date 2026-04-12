@@ -37,6 +37,11 @@ export type NoticeAttachmentExtractionStatus =
   | "unsupported";
 
 export type NoticeAttachmentExtractorType = "pdf" | "docx" | "hwpx";
+export type NoticeImageOcrStatus =
+  | "pending"
+  | "succeeded"
+  | "failed"
+  | "unsupported";
 
 export interface NoticeAssetProcessingUpdate {
   storageProvider?: "local" | null;
@@ -60,6 +65,17 @@ export interface NoticeAttachmentExtractionUpdate {
   errorMessage?: string | null;
 }
 
+export interface NoticeImageOcrUpdate {
+  imageSha256?: string | null;
+  ocrStatus: NoticeImageOcrStatus;
+  ocrText?: string | null;
+  textSha256?: string | null;
+  ocrConfidence?: number | null;
+  ocrLanguage?: string | null;
+  ocrExtractedAt?: string | null;
+  errorMessage?: string | null;
+}
+
 export interface StoredNoticeAttachment {
   id: number;
   fileName: string;
@@ -70,6 +86,19 @@ export interface StoredNoticeAttachment {
   downloadStatus: NoticeAssetDownloadStatus;
   existingExtractionStatus?: NoticeAttachmentExtractionStatus | null;
   existingAttachmentSha256?: string | null;
+}
+
+export interface StoredNoticeImage {
+  id: number;
+  imageUrl: string;
+  altText?: string | null;
+  storageKey?: string | null;
+  contentType?: string | null;
+  sha256?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  existingOcrStatus?: NoticeImageOcrStatus | null;
+  existingImageSha256?: string | null;
+  existingOcrLanguage?: string | null;
 }
 
 export interface NoticeDetail extends NoticeListItem {

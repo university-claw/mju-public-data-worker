@@ -8,6 +8,10 @@ import {
   createNoticeAttachmentExtractionProcessor,
   type NoticeAttachmentExtractionProcessor,
 } from "../notices/attachment-extraction-processor.js";
+import {
+  createNoticeImageOcrProcessor,
+  type NoticeImageOcrProcessor,
+} from "../notices/image-ocr-processor.js";
 import { scrapeNoticeDetail } from "../notices/detail-scraper.js";
 import { scrapeNoticeList } from "../notices/list-scraper.js";
 import { NOTICE_SOURCES } from "../notices/sources.js";
@@ -17,6 +21,7 @@ export interface CollectNoticesOptions {
   limit: number;
   triggerReason: string;
   storageLocalRoot: string;
+  ocrLanguages: string[];
 }
 
 export interface SourceCollectMetrics {
@@ -27,6 +32,9 @@ export interface SourceCollectMetrics {
   attachmentExtractionSucceededCount: number;
   attachmentExtractionUnsupportedCount: number;
   attachmentExtractionFailedCount: number;
+  noticeImageOcrSucceededCount: number;
+  noticeImageOcrUnsupportedCount: number;
+  noticeImageOcrFailedCount: number;
 }
 
 export interface SourceCollectResult extends SourceCollectMetrics {
@@ -69,6 +77,11 @@ export async function collectNotices(
     repository,
     storageLocalRoot: options.storageLocalRoot,
   });
+  const imageOcrProcessor = createNoticeImageOcrProcessor({
+    repository,
+    storageLocalRoot: options.storageLocalRoot,
+    ocrLanguages: options.ocrLanguages,
+  });
   await repository.ensureSources(NOTICE_SOURCES);
 
   const scrapeRunId = await repository.createScrapeRun(
@@ -85,6 +98,9 @@ export async function collectNotices(
     attachmentExtractionSucceededCount: 0,
     attachmentExtractionUnsupportedCount: 0,
     attachmentExtractionFailedCount: 0,
+    noticeImageOcrSucceededCount: 0,
+    noticeImageOcrUnsupportedCount: 0,
+    noticeImageOcrFailedCount: 0,
   };
 
   try {
@@ -96,6 +112,7 @@ export async function collectNotices(
           repository,
           assetProcessor,
           attachmentExtractionProcessor,
+          imageOcrProcessor,
           source,
           options.limit,
         );
@@ -126,6 +143,9 @@ export async function collectNotices(
               attachmentExtractionSucceededCount: 0,
               attachmentExtractionUnsupportedCount: 0,
               attachmentExtractionFailedCount: 0,
+              noticeImageOcrSucceededCount: 0,
+              noticeImageOcrUnsupportedCount: 0,
+              noticeImageOcrFailedCount: 0,
             };
         const errorMessage =
           error instanceof Error ? error.message : String(error);
@@ -160,6 +180,9 @@ export async function collectNotices(
       totals.attachmentExtractionSucceededCount,
       totals.attachmentExtractionUnsupportedCount,
       totals.attachmentExtractionFailedCount,
+      totals.noticeImageOcrSucceededCount,
+      totals.noticeImageOcrUnsupportedCount,
+      totals.noticeImageOcrFailedCount,
       hasFailure ? "one or more sources failed" : undefined,
     );
 
@@ -184,12 +207,27 @@ export async function collectNotices(
         totals.attachmentExtractionSucceededCount,
         totals.attachmentExtractionUnsupportedCount,
         totals.attachmentExtractionFailedCount,
+        totals.noticeImageOcrSucceededCount,
+        totals.noticeImageOcrUnsupportedCount,
+        totals.noticeImageOcrFailedCount,
         error instanceof Error ? error.message : String(error),
       );
     }
     throw error;
   } finally {
-    await assetProcessor.close();
+    await safeCloseProcessor(assetProcessor.close.bind(assetProcessor));
+    await safeCloseProcessor(imageOcrProcessor.close.bind(imageOcrProcessor));
+  }
+}
+
+async function safeCloseProcessor(close: () => Promise<void>): Promise<void> {
+  try {
+    await close();
+  } catch (error) {
+    console.warn(
+      "notice collector cleanup failed:",
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
@@ -207,12 +245,16 @@ function accumulateMetrics(
     source.attachmentExtractionUnsupportedCount;
   target.attachmentExtractionFailedCount +=
     source.attachmentExtractionFailedCount;
+  target.noticeImageOcrSucceededCount += source.noticeImageOcrSucceededCount;
+  target.noticeImageOcrUnsupportedCount += source.noticeImageOcrUnsupportedCount;
+  target.noticeImageOcrFailedCount += source.noticeImageOcrFailedCount;
 }
 
 async function collectSingleSource(
   repository: NoticeRepository,
   assetProcessor: NoticeAssetProcessor,
   attachmentExtractionProcessor: NoticeAttachmentExtractionProcessor,
+  imageOcrProcessor: NoticeImageOcrProcessor,
   source: NoticeSource,
   limit: number,
 ): Promise<SourceCollectMetrics> {
@@ -226,6 +268,9 @@ async function collectSingleSource(
     attachmentExtractionSucceededCount: 0,
     attachmentExtractionUnsupportedCount: 0,
     attachmentExtractionFailedCount: 0,
+    noticeImageOcrSucceededCount: 0,
+    noticeImageOcrUnsupportedCount: 0,
+    noticeImageOcrFailedCount: 0,
   };
 
   // 오케스트레이터가 나중에 DB만 보고 답할 수 있으려면, 첫 슬라이스부터
@@ -244,11 +289,18 @@ async function collectSingleSource(
         upsertResult.noticeItemId,
         fetchedAt,
       );
+      const imageOcrSummary = await imageOcrProcessor.processNotice(
+        upsertResult.noticeItemId,
+        fetchedAt,
+      );
 
       metrics.processedCount += 1;
       metrics.attachmentExtractionSucceededCount += extractionSummary.succeededCount;
       metrics.attachmentExtractionUnsupportedCount += extractionSummary.unsupportedCount;
       metrics.attachmentExtractionFailedCount += extractionSummary.failedCount;
+      metrics.noticeImageOcrSucceededCount += imageOcrSummary.succeededCount;
+      metrics.noticeImageOcrUnsupportedCount += imageOcrSummary.unsupportedCount;
+      metrics.noticeImageOcrFailedCount += imageOcrSummary.failedCount;
       if (upsertResult.wasInserted) {
         metrics.insertedCount += 1;
       } else {
@@ -262,6 +314,13 @@ async function collectSingleSource(
         metrics,
       );
     }
+  }
+
+  if (metrics.noticeImageOcrFailedCount > 0) {
+    throw new SourceCollectError(
+      `source "${source.id}" completed with ${metrics.noticeImageOcrFailedCount} notice image OCR failures`,
+      metrics,
+    );
   }
 
   return metrics;

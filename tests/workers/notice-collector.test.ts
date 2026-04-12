@@ -25,6 +25,16 @@ const attachmentExtractionProcessorMock = {
   })),
 };
 
+const imageOcrProcessorMock = {
+  processNotice: vi.fn(async () => ({
+    succeededCount: 1,
+    unsupportedCount: 0,
+    failedCount: 0,
+    skippedCount: 0,
+  })),
+  close: vi.fn(async () => undefined),
+};
+
 vi.mock("../../src/db/notice-repository.js", () => ({
   NoticeRepository: vi.fn(
     class MockNoticeRepository {
@@ -43,6 +53,10 @@ vi.mock("../../src/notices/attachment-extraction-processor.js", () => ({
   createNoticeAttachmentExtractionProcessor: vi.fn(
     () => attachmentExtractionProcessorMock,
   ),
+}));
+
+vi.mock("../../src/notices/image-ocr-processor.js", () => ({
+  createNoticeImageOcrProcessor: vi.fn(() => imageOcrProcessorMock),
 }));
 
 vi.mock("../../src/notices/list-scraper.js", () => ({
@@ -100,6 +114,7 @@ describe("notice collector", () => {
       limit: 1,
       triggerReason: "manual",
       storageLocalRoot: "C:/tmp/assets",
+      ocrLanguages: ["kor", "eng"],
     });
 
     expect(result.scrapeRunId).toBe(101);
@@ -116,7 +131,12 @@ describe("notice collector", () => {
       1,
       expect.any(String),
     );
+    expect(imageOcrProcessorMock.processNotice).toHaveBeenCalledWith(
+      1,
+      expect.any(String),
+    );
     expect(assetProcessorMock.close).toHaveBeenCalledTimes(1);
+    expect(imageOcrProcessorMock.close).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the source successful when asset processing reports failures without throwing", async () => {
@@ -167,6 +187,7 @@ describe("notice collector", () => {
       limit: 1,
       triggerReason: "manual",
       storageLocalRoot: "C:/tmp/assets",
+      ocrLanguages: ["kor", "eng"],
     });
 
     expect(result.scrapeRunId).toBe(101);
@@ -187,9 +208,13 @@ describe("notice collector", () => {
       0,
       0,
       0,
+      1,
+      0,
+      0,
       undefined,
     );
     expect(assetProcessorMock.close).toHaveBeenCalledTimes(1);
+    expect(imageOcrProcessorMock.close).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the source successful but records extraction failure counts", async () => {
@@ -234,6 +259,7 @@ describe("notice collector", () => {
       limit: 1,
       triggerReason: "manual",
       storageLocalRoot: "C:/tmp/assets",
+      ocrLanguages: ["kor", "eng"],
     });
 
     expect(result.attachmentExtractionFailedCount).toBe(1);
@@ -255,7 +281,134 @@ describe("notice collector", () => {
       0,
       0,
       1,
+      1,
+      0,
+      0,
       undefined,
     );
+  });
+
+  it("fails the source when notice image ocr errors occur", async () => {
+    const { collectNotices } = await import("../../src/workers/notice-collector.js");
+    const { scrapeNoticeList } = await import("../../src/notices/list-scraper.js");
+    const { scrapeNoticeDetail } = await import("../../src/notices/detail-scraper.js");
+
+    vi.mocked(scrapeNoticeList).mockResolvedValueOnce([
+      {
+        sourceId: "general",
+        externalId: "231000",
+        title: "목록 제목",
+        detailUrl: "https://example.com/detail/231000",
+        publishedAt: "2026-04-12T00:00:00.000Z",
+        publishedAtRaw: "2026.04.12",
+      },
+    ]);
+    vi.mocked(scrapeNoticeList)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    vi.mocked(scrapeNoticeDetail).mockResolvedValueOnce({
+      sourceId: "general",
+      externalId: "231000",
+      title: "상세 제목",
+      detailUrl: "https://example.com/detail/231000",
+      publishedAt: "2026-04-12T00:00:00.000Z",
+      publishedAtRaw: "2026.04.12",
+      bodyHtml: "<p>본문</p>",
+      bodyText: "본문",
+      contentHash: "hash",
+      attachments: [],
+      images: [],
+    });
+    attachmentExtractionProcessorMock.processNotice.mockResolvedValueOnce({
+      succeededCount: 0,
+      unsupportedCount: 0,
+      failedCount: 0,
+    });
+    imageOcrProcessorMock.processNotice.mockResolvedValueOnce({
+      succeededCount: 0,
+      unsupportedCount: 0,
+      failedCount: 1,
+      skippedCount: 0,
+    });
+
+    await expect(
+      collectNotices({} as never, "public_data", {
+        limit: 1,
+        triggerReason: "manual",
+        storageLocalRoot: "C:/tmp/assets",
+        ocrLanguages: ["kor", "eng"],
+      }),
+    ).rejects.toThrow("one or more notice sources failed during collection");
+
+    expect(repositoryMock.recordSourceRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scrapeRunId: 101,
+        sourceId: "general",
+        status: "failed",
+        noticeImageOcrFailedCount: 1,
+      }),
+    );
+    expect(repositoryMock.finishScrapeRun).toHaveBeenCalledWith(
+      101,
+      "failed",
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      "one or more sources failed",
+    );
+  });
+
+  it("does not flip a successful run to failure when ocr processor close throws", async () => {
+    const { collectNotices } = await import("../../src/workers/notice-collector.js");
+    const { scrapeNoticeList } = await import("../../src/notices/list-scraper.js");
+
+    vi.mocked(scrapeNoticeList)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    imageOcrProcessorMock.close.mockRejectedValueOnce(
+      new Error("terminate failed"),
+    );
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const result = await collectNotices({} as never, "public_data", {
+      limit: 1,
+      triggerReason: "manual",
+      storageLocalRoot: "C:/tmp/assets",
+      ocrLanguages: ["kor", "eng"],
+    });
+
+    expect(result.scrapeRunId).toBe(101);
+    expect(repositoryMock.finishScrapeRun).toHaveBeenCalledWith(
+      101,
+      "success",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      undefined,
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      "notice collector cleanup failed:",
+      "terminate failed",
+    );
+
+    warnSpy.mockRestore();
   });
 });

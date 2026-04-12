@@ -49,6 +49,7 @@ describe("notice repository", () => {
 
     const [sql, values] = vi.mocked(pool.query).mock.calls[0]!;
     expect(String(sql)).toContain("UPDATE public_data.notice_images");
+    expect(String(sql)).toContain("COALESCE($3, storage_provider)");
     expect(values).toEqual([
       9,
       "https://example.com/image.png",
@@ -132,6 +133,80 @@ describe("notice repository", () => {
       "본문",
       "abc",
       2,
+      "2026-04-12T07:00:00.000Z",
+      null,
+    ]);
+  });
+
+  it("lists stored images in sort order for ocr", async () => {
+    const pool = {
+      query: vi.fn(async () => ({
+        rows: [
+          {
+            id: 9,
+            image_url: "https://example.com/poster.png",
+            alt_text: "포스터",
+            storage_key: "notices/general/231000/images/00.png",
+            content_type: "image/png",
+            sha256: "image-hash",
+            download_status: "succeeded",
+            existing_ocr_status: "succeeded",
+            existing_image_sha256: "image-hash",
+            existing_ocr_language: "kor+eng",
+          },
+        ],
+      })),
+    } as unknown as ConstructorParameters<typeof NoticeRepository>[0];
+    const repository = new NoticeRepository(pool, "public_data");
+
+    const images = await repository.listStoredImagesForNotice(11);
+
+    expect(images).toEqual([
+      {
+        id: 9,
+        imageUrl: "https://example.com/poster.png",
+        altText: "포스터",
+        storageKey: "notices/general/231000/images/00.png",
+        contentType: "image/png",
+        sha256: "image-hash",
+        downloadStatus: "succeeded",
+        existingOcrStatus: "succeeded",
+        existingImageSha256: "image-hash",
+        existingOcrLanguage: "kor+eng",
+      },
+    ]);
+    expect(String(vi.mocked(pool.query).mock.calls[0]![0])).toContain("SELECT");
+  });
+
+  it("upserts image ocr results", async () => {
+    const pool = {
+      query: vi.fn(async () => ({ rows: [] })),
+    } as unknown as ConstructorParameters<typeof NoticeRepository>[0];
+    const repository = new NoticeRepository(pool, "public_data");
+
+    await repository.upsertImageOcr(9, {
+      imageSha256: "image-hash",
+      ocrStatus: "succeeded",
+      ocrText: "장학 포스터",
+      textSha256: "ocr-hash",
+      ocrConfidence: 88.76,
+      ocrLanguage: "kor+eng",
+      ocrExtractedAt: "2026-04-12T07:00:00.000Z",
+      errorMessage: null,
+    });
+
+    const [sql, values] = vi.mocked(pool.query).mock.calls[0]!;
+    expect(String(sql)).toContain(
+      "INSERT INTO public_data.notice_image_ocr_results",
+    );
+    expect(values).toEqual([
+      9,
+      "image-hash",
+      "succeeded",
+      "장학 포스터",
+      "ocr-hash",
+      88.76,
+      "kor+eng",
       "2026-04-12T07:00:00.000Z",
       null,
     ]);

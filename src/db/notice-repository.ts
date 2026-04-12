@@ -3,10 +3,12 @@ import type {
   NoticeAssetImage,
   NoticeAssetProcessingUpdate,
   NoticeAttachmentExtractionUpdate,
+  NoticeImageOcrUpdate,
   NoticeAttachment,
   NoticeDetail,
   NoticeSource,
   StoredNoticeAttachment,
+  StoredNoticeImage,
 } from "../notices/types.js";
 
 export interface NoticeUpsertInput extends NoticeDetail {
@@ -81,6 +83,9 @@ export class NoticeRepository {
     totalAttachmentExtractionSucceededCount: number,
     totalAttachmentExtractionUnsupportedCount: number,
     totalAttachmentExtractionFailedCount: number,
+    totalNoticeImageOcrSucceededCount: number,
+    totalNoticeImageOcrUnsupportedCount: number,
+    totalNoticeImageOcrFailedCount: number,
     errorMessage?: string,
   ): Promise<void> {
     await this.pool.query(
@@ -97,7 +102,10 @@ export class NoticeRepository {
           total_attachment_extraction_succeeded_count = $7,
           total_attachment_extraction_unsupported_count = $8,
           total_attachment_extraction_failed_count = $9,
-          error_message = $10
+          total_notice_image_ocr_succeeded_count = $10,
+          total_notice_image_ocr_unsupported_count = $11,
+          total_notice_image_ocr_failed_count = $12,
+          error_message = $13
         WHERE id = $1
       `,
       [
@@ -110,6 +118,9 @@ export class NoticeRepository {
         totalAttachmentExtractionSucceededCount,
         totalAttachmentExtractionUnsupportedCount,
         totalAttachmentExtractionFailedCount,
+        totalNoticeImageOcrSucceededCount,
+        totalNoticeImageOcrUnsupportedCount,
+        totalNoticeImageOcrFailedCount,
         errorMessage ?? null,
       ],
     );
@@ -126,6 +137,9 @@ export class NoticeRepository {
     attachmentExtractionSucceededCount: number;
     attachmentExtractionUnsupportedCount: number;
     attachmentExtractionFailedCount: number;
+    noticeImageOcrSucceededCount: number;
+    noticeImageOcrUnsupportedCount: number;
+    noticeImageOcrFailedCount: number;
     startedAt: string;
     errorMessage?: string;
   }): Promise<void> {
@@ -145,9 +159,12 @@ export class NoticeRepository {
           attachment_extraction_succeeded_count,
           attachment_extraction_unsupported_count,
           attachment_extraction_failed_count,
+          notice_image_ocr_succeeded_count,
+          notice_image_ocr_unsupported_count,
+          notice_image_ocr_failed_count,
           error_message
         )
-        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12)
+        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       `,
       [
         params.scrapeRunId,
@@ -161,6 +178,9 @@ export class NoticeRepository {
         params.attachmentExtractionSucceededCount,
         params.attachmentExtractionUnsupportedCount,
         params.attachmentExtractionFailedCount,
+        params.noticeImageOcrSucceededCount,
+        params.noticeImageOcrUnsupportedCount,
+        params.noticeImageOcrFailedCount,
         params.errorMessage ?? null,
       ],
     );
@@ -243,12 +263,12 @@ export class NoticeRepository {
       `
         UPDATE ${this.schema}.notice_images
         SET
-          storage_provider = $3,
-          storage_key = $4,
-          content_type = $5,
-          size_bytes = $6,
-          sha256 = $7,
-          downloaded_at = $8,
+          storage_provider = COALESCE($3, storage_provider),
+          storage_key = COALESCE($4, storage_key),
+          content_type = COALESCE($5, content_type),
+          size_bytes = COALESCE($6, size_bytes),
+          sha256 = COALESCE($7, sha256),
+          downloaded_at = COALESCE($8, downloaded_at),
           download_status = $9,
           error_message = $10,
           updated_at = now()
@@ -356,6 +376,100 @@ export class NoticeRepository {
         update.textSha256 ?? null,
         update.extractedCharCount ?? null,
         update.extractedAt ?? null,
+        update.errorMessage ?? null,
+      ],
+    );
+  }
+
+  async listStoredImagesForNotice(
+    noticeItemId: number,
+  ): Promise<StoredNoticeImage[]> {
+    const result = await this.pool.query<{
+      id: number;
+      image_url: string;
+      alt_text: string | null;
+      storage_key: string | null;
+      content_type: string | null;
+      sha256: string | null;
+      download_status: "pending" | "succeeded" | "failed";
+      existing_ocr_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+      existing_image_sha256: string | null;
+      existing_ocr_language: string | null;
+    }>(
+      `
+        SELECT
+          ni.id,
+          ni.image_url,
+          ni.alt_text,
+          ni.storage_key,
+          ni.content_type,
+          ni.sha256,
+          ni.download_status,
+          nior.ocr_status AS existing_ocr_status,
+          nior.image_sha256 AS existing_image_sha256,
+          nior.ocr_language AS existing_ocr_language
+        FROM ${this.schema}.notice_images ni
+        LEFT JOIN ${this.schema}.notice_image_ocr_results nior
+          ON nior.image_id = ni.id
+        WHERE ni.notice_item_id = $1
+        ORDER BY ni.sort_order ASC
+      `,
+      [noticeItemId],
+    );
+
+    return result.rows.map((row) => ({
+      id: Number(row.id),
+      imageUrl: row.image_url,
+      altText: row.alt_text,
+      storageKey: row.storage_key,
+      contentType: row.content_type,
+      sha256: row.sha256,
+      downloadStatus: row.download_status,
+      existingOcrStatus: row.existing_ocr_status,
+      existingImageSha256: row.existing_image_sha256,
+      existingOcrLanguage: row.existing_ocr_language,
+    }));
+  }
+
+  async upsertImageOcr(
+    imageId: number,
+    update: NoticeImageOcrUpdate,
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        INSERT INTO ${this.schema}.notice_image_ocr_results (
+          image_id,
+          image_sha256,
+          ocr_status,
+          ocr_text,
+          text_sha256,
+          ocr_confidence,
+          ocr_language,
+          ocr_extracted_at,
+          error_message
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (image_id) DO UPDATE
+        SET
+          image_sha256 = EXCLUDED.image_sha256,
+          ocr_status = EXCLUDED.ocr_status,
+          ocr_text = EXCLUDED.ocr_text,
+          text_sha256 = EXCLUDED.text_sha256,
+          ocr_confidence = EXCLUDED.ocr_confidence,
+          ocr_language = EXCLUDED.ocr_language,
+          ocr_extracted_at = EXCLUDED.ocr_extracted_at,
+          error_message = EXCLUDED.error_message,
+          updated_at = now()
+      `,
+      [
+        imageId,
+        update.imageSha256 ?? null,
+        update.ocrStatus,
+        update.ocrText ?? null,
+        update.textSha256 ?? null,
+        update.ocrConfidence ?? null,
+        update.ocrLanguage ?? null,
+        update.ocrExtractedAt ?? null,
         update.errorMessage ?? null,
       ],
     );

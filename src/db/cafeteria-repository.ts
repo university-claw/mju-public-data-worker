@@ -2,8 +2,10 @@ import type { Pool } from "pg";
 import type {
   CafeteriaInstagramProcessingUpdate,
   CafeteriaInstagramPost,
+  CafeteriaInstagramPostSnapshot,
   CafeteriaInstagramSource,
   CafeteriaInstagramUpsertResult,
+  CafeteriaPostClassificationResult,
 } from "../cafeterias/types.js";
 
 export class CafeteriaRepository {
@@ -306,5 +308,112 @@ export class CafeteriaRepository {
       `,
       values,
     );
+  }
+
+  async getInstagramPostSnapshot(
+    postId: number,
+  ): Promise<CafeteriaInstagramPostSnapshot> {
+    const result = await this.pool.query<{
+      id: number;
+      source_id: string;
+      caption: string | null;
+      ocr_text: string | null;
+    }>(
+      `
+        SELECT
+          id,
+          source_id,
+          caption,
+          ocr_text
+        FROM ${this.schema}.cafeteria_instagram_posts
+        WHERE id = $1
+      `,
+      [postId],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error(`cafeteria instagram post not found: ${postId}`);
+    }
+
+    return {
+      id: Number(row.id),
+      sourceId: row.source_id,
+      caption: row.caption,
+      ocrText: row.ocr_text,
+    };
+  }
+
+  async syncInstagramPostClassification(
+    postId: number,
+    classification: CafeteriaPostClassificationResult,
+  ): Promise<void> {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        `
+          UPDATE ${this.schema}.cafeteria_instagram_posts
+          SET
+            post_kind = $2,
+            post_kind_confidence = $3,
+            post_kind_reason = $4,
+            classified_at = now(),
+            updated_at = now()
+          WHERE id = $1
+        `,
+        [
+          postId,
+          classification.postKind,
+          classification.confidence,
+          classification.reason,
+        ],
+      );
+
+      if (classification.postKind === "menu_sheet") {
+        await client.query(
+          `
+            INSERT INTO ${this.schema}.cafeteria_menu_documents (
+              source_post_id,
+              source_id,
+              document_type,
+              detection_method,
+              updated_at
+            )
+            SELECT
+              id,
+              source_id,
+              'menu_sheet',
+              'rule_based',
+              now()
+            FROM ${this.schema}.cafeteria_instagram_posts
+            WHERE id = $1
+            ON CONFLICT (source_post_id) DO UPDATE
+            SET
+              source_id = EXCLUDED.source_id,
+              document_type = EXCLUDED.document_type,
+              detection_method = EXCLUDED.detection_method,
+              updated_at = now()
+          `,
+          [postId],
+        );
+      } else {
+        await client.query(
+          `
+            DELETE FROM ${this.schema}.cafeteria_menu_documents
+            WHERE source_post_id = $1
+          `,
+          [postId],
+        );
+      }
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }

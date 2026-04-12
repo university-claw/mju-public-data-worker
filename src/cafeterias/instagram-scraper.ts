@@ -102,6 +102,25 @@ function parseFeedItems(
   return posts;
 }
 
+function buildFeedRetryLimits(limit: number): number[] {
+  const normalizedLimit = Math.max(1, Math.trunc(limit));
+  const limits: number[] = [];
+
+  for (let current = normalizedLimit; current >= 1; current -= 1) {
+    limits.push(current);
+  }
+
+  return limits;
+}
+
+function isRetryableFeedCountError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return /status code 401|status code 403/i.test(error.message);
+}
+
 /**
  * 1차 슬라이스에서는 "프로필 URL만 알고 있어도 최신 게시물을 찾을 수 있는가"를
  * 실제 worker 흐름으로 굳히는 것이 목표다. 그래서 프로필 접근 확인과 피드 호출을
@@ -177,18 +196,40 @@ export async function scrapeCafeteriaInstagramPostsWithClient(
     throw new Error(`instagram profile returned an empty body: ${source.profileUrl}`);
   }
 
-  const feedUrl = buildFeedUrl(source, limit);
-  const payload = await client.get(feedUrl).json<InstagramFeedResponse>();
-  const posts = parseFeedItems(source, payload);
-  if (posts.length === 0) {
-    throw new Error(`parsed 0 instagram posts for cafeteria source "${source.id}"`);
+  let lastError: unknown;
+
+  /**
+   * 공개 인스타 피드는 같은 계정이어도 count 값이 조금 커지면 401/403을 내는 경우가 있다.
+   * 이럴 때 worker 전체를 깨뜨리기보다, 더 작은 count로 한 단계씩 줄여서
+   * "지금 가져올 수 있는 최신 게시물"만이라도 확보하는 쪽이 운영상 더 안전하다.
+   */
+  for (const feedCount of buildFeedRetryLimits(limit)) {
+    try {
+      const feedUrl = buildFeedUrl(source, feedCount);
+      const payload = await client.get(feedUrl).json<InstagramFeedResponse>();
+      const posts = parseFeedItems(source, payload);
+      if (posts.length === 0) {
+        throw new Error(`parsed 0 instagram posts for cafeteria source "${source.id}"`);
+      }
+
+      return posts.slice(0, limit);
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableFeedCountError(error) || feedCount === 1) {
+        throw error;
+      }
+    }
   }
 
-  return posts.slice(0, limit);
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`failed to fetch instagram feed for cafeteria source "${source.id}"`);
 }
 
 export const instagramFeedTestHelpers = {
   buildFeedUrl,
+  buildFeedRetryLimits,
+  isRetryableFeedCountError,
   parseFeedItems,
   parsePostedAt,
   toInstagramPermalink,

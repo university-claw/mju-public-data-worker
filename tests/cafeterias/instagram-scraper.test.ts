@@ -113,6 +113,54 @@ describe("instagram-scraper helpers", () => {
     ]);
   });
 
+  it("retries with a smaller feed count when the larger count is rejected", async () => {
+    const calls: string[] = [];
+    let feedAttempt = 0;
+    const client: InstagramClientLike = {
+      get(url: string) {
+        calls.push(url);
+        return {
+          async text() {
+            return "<html>profile ok</html>";
+          },
+          async json() {
+            feedAttempt += 1;
+            if (feedAttempt === 1) {
+              throw new Error(
+                "Request failed with status code 401 (Unauthorized): GET https://www.instagram.com/api/v1/feed/user/mjhs_yongin/username/?count=3",
+              );
+            }
+
+            return {
+              items: [
+                {
+                  code: "DW99EJ0E3mb",
+                  taken_at: 1775860429,
+                  caption: { text: "다음주 식단" },
+                  image_versions2: {
+                    candidates: [{ url: "https://cdn.example.com/latest.jpg" }],
+                  },
+                },
+                {
+                  code: "DW980ijE2YL",
+                  taken_at: 1775860325,
+                },
+              ],
+            };
+          },
+        };
+      },
+    };
+
+    const posts = await scrapeCafeteriaInstagramPostsWithClient(client, SOURCE, 3);
+    expect(posts).toHaveLength(2);
+    expect(calls).toEqual([
+      "https://www.instagram.com/mjhs_yongin/",
+      "https://www.instagram.com/api/v1/feed/user/mjhs_yongin/username/?count=3",
+      "https://www.instagram.com/api/v1/feed/user/mjhs_yongin/username/?count=2",
+    ]);
+  });
+
   it("fails fast when the instagram profile body is empty", async () => {
     const client: InstagramClientLike = {
       get() {

@@ -1,4 +1,5 @@
 import type { Pool } from "pg";
+import { classifyCafeteriaInstagramPost } from "../cafeterias/post-classifier.js";
 import { CAFETERIA_INSTAGRAM_SOURCES } from "../cafeterias/sources.js";
 import {
   createCafeteriaPostAssetProcessor,
@@ -8,8 +9,10 @@ import { scrapeCafeteriaInstagramPosts } from "../cafeterias/instagram-scraper.j
 import type {
   CafeteriaInstagramProcessingUpdate,
   CafeteriaInstagramPost,
+  CafeteriaInstagramPostSnapshot,
   CafeteriaInstagramSource,
   CafeteriaInstagramUpsertResult,
+  CafeteriaPostClassificationResult,
 } from "../cafeterias/types.js";
 import { CafeteriaRepository } from "../db/cafeteria-repository.js";
 
@@ -67,6 +70,13 @@ export interface CafeteriaCollectorRepositoryLike {
     post: CafeteriaInstagramPost,
     fetchedAt: string,
   ): Promise<CafeteriaInstagramUpsertResult>;
+  getInstagramPostSnapshot(
+    postId: number,
+  ): Promise<CafeteriaInstagramPostSnapshot>;
+  syncInstagramPostClassification(
+    postId: number,
+    classification: CafeteriaPostClassificationResult,
+  ): Promise<void>;
   updateInstagramPostProcessing(
     postId: number,
     update: CafeteriaInstagramProcessingUpdate,
@@ -268,6 +278,14 @@ async function collectSingleCafeteriaSource(
     try {
       const upsertResult = await repository.upsertInstagramPost(post, fetchedAt);
       await assetProcessor.processPost(post, upsertResult, fetchedAt);
+      const snapshot = await repository.getInstagramPostSnapshot(
+        upsertResult.cafeteriaInstagramPostId,
+      );
+      const classification = classifyCafeteriaInstagramPost(snapshot);
+      await repository.syncInstagramPostClassification(
+        upsertResult.cafeteriaInstagramPostId,
+        classification,
+      );
       metrics.processedCount += 1;
 
       if (upsertResult.wasInserted) {

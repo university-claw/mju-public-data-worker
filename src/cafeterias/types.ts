@@ -20,6 +20,11 @@ export interface CafeteriaInstagramPost {
   rawItem: unknown;
 }
 
+export type CafeteriaInstagramPostKind =
+  | "menu_sheet"
+  | "non_menu"
+  | "unknown";
+
 export type CafeteriaInstagramOcrStatus =
   | "pending"
   | "succeeded"
@@ -35,6 +40,13 @@ export interface CafeteriaInstagramUpsertResult {
   ocrStatus?: CafeteriaInstagramOcrStatus | null;
 }
 
+export interface CafeteriaInstagramPostSnapshot {
+  id: number;
+  sourceId: string;
+  caption?: string | null;
+  ocrText?: string | null;
+}
+
 export interface CafeteriaInstagramProcessingUpdate {
   imageStorageProvider?: string | null;
   imageStorageKey?: string | null;
@@ -48,4 +60,10 @@ export interface CafeteriaInstagramProcessingUpdate {
   ocrLanguage?: string | null;
   ocrExtractedAt?: string | null;
   ocrErrorMessage?: string | null;
+}
+
+export interface CafeteriaPostClassificationResult {
+  postKind: CafeteriaInstagramPostKind;
+  confidence: number;
+  reason: string;
 }

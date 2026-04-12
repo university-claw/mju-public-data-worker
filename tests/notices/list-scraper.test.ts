@@ -157,4 +157,12 @@ describe("scrapeNoticeList", () => {
     expect(items.at(-1)?.externalId).toBe("230916");
     expect(fetchHtmlMock).toHaveBeenCalledTimes(2);
   });
+
+  it("throws when no usable items survive and there is no RSS fallback", async () => {
+    const html = await fs.readFile(fixture("empty-board.html"), "utf-8");
+    fetchHtmlMock.mockResolvedValueOnce(html);
+
+    await expect(scrapeNoticeList(SOURCE, 1)).rejects.toThrow(/parsed 0 notice items/);
+    expect(fetchHtmlMock).toHaveBeenCalledTimes(1);
+  });
 });

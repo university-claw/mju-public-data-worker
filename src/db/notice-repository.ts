@@ -2,9 +2,11 @@ import type { Pool, PoolClient } from "pg";
 import type {
   NoticeAssetImage,
   NoticeAssetProcessingUpdate,
+  NoticeAttachmentExtractionUpdate,
   NoticeAttachment,
   NoticeDetail,
   NoticeSource,
+  StoredNoticeAttachment,
 } from "../notices/types.js";
 
 export interface NoticeUpsertInput extends NoticeDetail {
@@ -76,6 +78,9 @@ export class NoticeRepository {
     totalProcessedCount: number,
     totalInsertedCount: number,
     totalUpdatedCount: number,
+    totalAttachmentExtractionSucceededCount: number,
+    totalAttachmentExtractionUnsupportedCount: number,
+    totalAttachmentExtractionFailedCount: number,
     errorMessage?: string,
   ): Promise<void> {
     await this.pool.query(
@@ -89,7 +94,10 @@ export class NoticeRepository {
           total_processed_count = $4,
           total_inserted_count = $5,
           total_updated_count = $6,
-          error_message = $7
+          total_attachment_extraction_succeeded_count = $7,
+          total_attachment_extraction_unsupported_count = $8,
+          total_attachment_extraction_failed_count = $9,
+          error_message = $10
         WHERE id = $1
       `,
       [
@@ -99,6 +107,9 @@ export class NoticeRepository {
         totalProcessedCount,
         totalInsertedCount,
         totalUpdatedCount,
+        totalAttachmentExtractionSucceededCount,
+        totalAttachmentExtractionUnsupportedCount,
+        totalAttachmentExtractionFailedCount,
         errorMessage ?? null,
       ],
     );
@@ -112,6 +123,9 @@ export class NoticeRepository {
     processedCount: number;
     insertedCount: number;
     updatedCount: number;
+    attachmentExtractionSucceededCount: number;
+    attachmentExtractionUnsupportedCount: number;
+    attachmentExtractionFailedCount: number;
     startedAt: string;
     errorMessage?: string;
   }): Promise<void> {
@@ -128,9 +142,12 @@ export class NoticeRepository {
           processed_count,
           inserted_count,
           updated_count,
+          attachment_extraction_succeeded_count,
+          attachment_extraction_unsupported_count,
+          attachment_extraction_failed_count,
           error_message
         )
-        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9)
+        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12)
       `,
       [
         params.scrapeRunId,
@@ -141,6 +158,9 @@ export class NoticeRepository {
         params.processedCount,
         params.insertedCount,
         params.updatedCount,
+        params.attachmentExtractionSucceededCount,
+        params.attachmentExtractionUnsupportedCount,
+        params.attachmentExtractionFailedCount,
         params.errorMessage ?? null,
       ],
     );
@@ -245,6 +265,97 @@ export class NoticeRepository {
         update.sha256 ?? null,
         update.downloadedAt ?? null,
         update.downloadStatus,
+        update.errorMessage ?? null,
+      ],
+    );
+  }
+
+  async listStoredAttachmentsForNotice(
+    noticeItemId: number,
+  ): Promise<StoredNoticeAttachment[]> {
+    const result = await this.pool.query<{
+      id: number;
+      file_name: string;
+      download_url: string;
+      storage_key: string | null;
+      content_type: string | null;
+      sha256: string | null;
+      download_status: "pending" | "succeeded" | "failed";
+      existing_extraction_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+      existing_attachment_sha256: string | null;
+    }>(
+      `
+        SELECT
+          na.id,
+          na.file_name,
+          na.download_url,
+          na.storage_key,
+          na.content_type,
+          na.sha256,
+          na.download_status,
+          nae.extraction_status AS existing_extraction_status,
+          nae.attachment_sha256 AS existing_attachment_sha256
+        FROM ${this.schema}.notice_attachments na
+        LEFT JOIN ${this.schema}.notice_attachment_extractions nae
+          ON nae.attachment_id = na.id
+        WHERE na.notice_item_id = $1
+        ORDER BY na.sort_order ASC
+      `,
+      [noticeItemId],
+    );
+
+    return result.rows.map((row) => ({
+      id: Number(row.id),
+      fileName: row.file_name,
+      downloadUrl: row.download_url,
+      storageKey: row.storage_key,
+      contentType: row.content_type,
+      sha256: row.sha256,
+      downloadStatus: row.download_status,
+      existingExtractionStatus: row.existing_extraction_status,
+      existingAttachmentSha256: row.existing_attachment_sha256,
+    }));
+  }
+
+  async upsertAttachmentExtraction(
+    attachmentId: number,
+    update: NoticeAttachmentExtractionUpdate,
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        INSERT INTO ${this.schema}.notice_attachment_extractions (
+          attachment_id,
+          attachment_sha256,
+          extractor_type,
+          extraction_status,
+          extracted_text,
+          text_sha256,
+          extracted_char_count,
+          extracted_at,
+          error_message
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (attachment_id) DO UPDATE
+        SET
+          attachment_sha256 = EXCLUDED.attachment_sha256,
+          extractor_type = EXCLUDED.extractor_type,
+          extraction_status = EXCLUDED.extraction_status,
+          extracted_text = EXCLUDED.extracted_text,
+          text_sha256 = EXCLUDED.text_sha256,
+          extracted_char_count = EXCLUDED.extracted_char_count,
+          extracted_at = EXCLUDED.extracted_at,
+          error_message = EXCLUDED.error_message,
+          updated_at = now()
+      `,
+      [
+        attachmentId,
+        update.attachmentSha256 ?? null,
+        update.extractorType ?? null,
+        update.extractionStatus,
+        update.extractedText ?? null,
+        update.textSha256 ?? null,
+        update.extractedCharCount ?? null,
+        update.extractedAt ?? null,
         update.errorMessage ?? null,
       ],
     );

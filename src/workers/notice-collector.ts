@@ -4,6 +4,10 @@ import {
   createNoticeAssetProcessor,
   type NoticeAssetProcessor,
 } from "../notices/asset-processor.js";
+import {
+  createNoticeAttachmentExtractionProcessor,
+  type NoticeAttachmentExtractionProcessor,
+} from "../notices/attachment-extraction-processor.js";
 import { scrapeNoticeDetail } from "../notices/detail-scraper.js";
 import { scrapeNoticeList } from "../notices/list-scraper.js";
 import { NOTICE_SOURCES } from "../notices/sources.js";
@@ -20,6 +24,9 @@ export interface SourceCollectMetrics {
   processedCount: number;
   insertedCount: number;
   updatedCount: number;
+  attachmentExtractionSucceededCount: number;
+  attachmentExtractionUnsupportedCount: number;
+  attachmentExtractionFailedCount: number;
 }
 
 export interface SourceCollectResult extends SourceCollectMetrics {
@@ -58,6 +65,10 @@ export async function collectNotices(
     repository,
     storageLocalRoot: options.storageLocalRoot,
   });
+  const attachmentExtractionProcessor = createNoticeAttachmentExtractionProcessor({
+    repository,
+    storageLocalRoot: options.storageLocalRoot,
+  });
   await repository.ensureSources(NOTICE_SOURCES);
 
   const scrapeRunId = await repository.createScrapeRun(
@@ -71,6 +82,9 @@ export async function collectNotices(
     processedCount: 0,
     insertedCount: 0,
     updatedCount: 0,
+    attachmentExtractionSucceededCount: 0,
+    attachmentExtractionUnsupportedCount: 0,
+    attachmentExtractionFailedCount: 0,
   };
 
   try {
@@ -81,6 +95,7 @@ export async function collectNotices(
         const metrics = await collectSingleSource(
           repository,
           assetProcessor,
+          attachmentExtractionProcessor,
           source,
           options.limit,
         );
@@ -104,11 +119,14 @@ export async function collectNotices(
           error instanceof SourceCollectError
             ? error.metrics
             : {
-                scrapedCount: 0,
-                processedCount: 0,
-                insertedCount: 0,
-                updatedCount: 0,
-              };
+              scrapedCount: 0,
+              processedCount: 0,
+              insertedCount: 0,
+              updatedCount: 0,
+              attachmentExtractionSucceededCount: 0,
+              attachmentExtractionUnsupportedCount: 0,
+              attachmentExtractionFailedCount: 0,
+            };
         const errorMessage =
           error instanceof Error ? error.message : String(error);
 
@@ -139,6 +157,9 @@ export async function collectNotices(
       totals.processedCount,
       totals.insertedCount,
       totals.updatedCount,
+      totals.attachmentExtractionSucceededCount,
+      totals.attachmentExtractionUnsupportedCount,
+      totals.attachmentExtractionFailedCount,
       hasFailure ? "one or more sources failed" : undefined,
     );
 
@@ -160,6 +181,9 @@ export async function collectNotices(
         totals.processedCount,
         totals.insertedCount,
         totals.updatedCount,
+        totals.attachmentExtractionSucceededCount,
+        totals.attachmentExtractionUnsupportedCount,
+        totals.attachmentExtractionFailedCount,
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -177,11 +201,18 @@ function accumulateMetrics(
   target.processedCount += source.processedCount;
   target.insertedCount += source.insertedCount;
   target.updatedCount += source.updatedCount;
+  target.attachmentExtractionSucceededCount +=
+    source.attachmentExtractionSucceededCount;
+  target.attachmentExtractionUnsupportedCount +=
+    source.attachmentExtractionUnsupportedCount;
+  target.attachmentExtractionFailedCount +=
+    source.attachmentExtractionFailedCount;
 }
 
 async function collectSingleSource(
   repository: NoticeRepository,
   assetProcessor: NoticeAssetProcessor,
+  attachmentExtractionProcessor: NoticeAttachmentExtractionProcessor,
   source: NoticeSource,
   limit: number,
 ): Promise<SourceCollectMetrics> {
@@ -192,6 +223,9 @@ async function collectSingleSource(
     processedCount: 0,
     insertedCount: 0,
     updatedCount: 0,
+    attachmentExtractionSucceededCount: 0,
+    attachmentExtractionUnsupportedCount: 0,
+    attachmentExtractionFailedCount: 0,
   };
 
   // 오케스트레이터가 나중에 DB만 보고 답할 수 있으려면, 첫 슬라이스부터
@@ -206,8 +240,15 @@ async function collectSingleSource(
         fetchedAt,
       });
       await assetProcessor.processNotice(detail, upsertResult, fetchedAt);
+      const extractionSummary = await attachmentExtractionProcessor.processNotice(
+        upsertResult.noticeItemId,
+        fetchedAt,
+      );
 
       metrics.processedCount += 1;
+      metrics.attachmentExtractionSucceededCount += extractionSummary.succeededCount;
+      metrics.attachmentExtractionUnsupportedCount += extractionSummary.unsupportedCount;
+      metrics.attachmentExtractionFailedCount += extractionSummary.failedCount;
       if (upsertResult.wasInserted) {
         metrics.insertedCount += 1;
       } else {

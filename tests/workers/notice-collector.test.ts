@@ -17,6 +17,14 @@ const assetProcessorMock = {
   close: vi.fn(async () => undefined),
 };
 
+const attachmentExtractionProcessorMock = {
+  processNotice: vi.fn(async () => ({
+    succeededCount: 1,
+    unsupportedCount: 0,
+    failedCount: 0,
+  })),
+};
+
 vi.mock("../../src/db/notice-repository.js", () => ({
   NoticeRepository: vi.fn(
     class MockNoticeRepository {
@@ -29,6 +37,12 @@ vi.mock("../../src/db/notice-repository.js", () => ({
 
 vi.mock("../../src/notices/asset-processor.js", () => ({
   createNoticeAssetProcessor: vi.fn(() => assetProcessorMock),
+}));
+
+vi.mock("../../src/notices/attachment-extraction-processor.js", () => ({
+  createNoticeAttachmentExtractionProcessor: vi.fn(
+    () => attachmentExtractionProcessorMock,
+  ),
 }));
 
 vi.mock("../../src/notices/list-scraper.js", () => ({
@@ -76,6 +90,11 @@ describe("notice collector", () => {
       attachments: [],
       images: [],
     });
+    attachmentExtractionProcessorMock.processNotice.mockResolvedValueOnce({
+      succeededCount: 0,
+      unsupportedCount: 0,
+      failedCount: 0,
+    });
 
     const result = await collectNotices({} as never, "public_data", {
       limit: 1,
@@ -91,6 +110,10 @@ describe("notice collector", () => {
         externalId: "231000",
       }),
       { noticeItemId: 1, wasInserted: true, obsoleteStorageKeys: [] },
+      expect.any(String),
+    );
+    expect(attachmentExtractionProcessorMock.processNotice).toHaveBeenCalledWith(
+      1,
       expect.any(String),
     );
     expect(assetProcessorMock.close).toHaveBeenCalledTimes(1);
@@ -134,6 +157,11 @@ describe("notice collector", () => {
         imageFailures: 0,
       },
     );
+    attachmentExtractionProcessorMock.processNotice.mockResolvedValueOnce({
+      succeededCount: 0,
+      unsupportedCount: 0,
+      failedCount: 0,
+    });
 
     const result = await collectNotices({} as never, "public_data", {
       limit: 1,
@@ -156,8 +184,78 @@ describe("notice collector", () => {
       1,
       1,
       0,
+      0,
+      0,
+      0,
       undefined,
     );
     expect(assetProcessorMock.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the source successful but records extraction failure counts", async () => {
+    const { collectNotices } = await import("../../src/workers/notice-collector.js");
+    const { scrapeNoticeList } = await import("../../src/notices/list-scraper.js");
+    const { scrapeNoticeDetail } = await import("../../src/notices/detail-scraper.js");
+
+    vi.mocked(scrapeNoticeList).mockResolvedValueOnce([
+      {
+        sourceId: "general",
+        externalId: "231000",
+        title: "목록 제목",
+        detailUrl: "https://example.com/detail/231000",
+        publishedAt: "2026-04-12T00:00:00.000Z",
+        publishedAtRaw: "2026.04.12",
+      },
+    ]);
+    vi.mocked(scrapeNoticeList)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    vi.mocked(scrapeNoticeDetail).mockResolvedValueOnce({
+      sourceId: "general",
+      externalId: "231000",
+      title: "상세 제목",
+      detailUrl: "https://example.com/detail/231000",
+      publishedAt: "2026-04-12T00:00:00.000Z",
+      publishedAtRaw: "2026.04.12",
+      bodyHtml: "<p>본문</p>",
+      bodyText: "본문",
+      contentHash: "hash",
+      attachments: [],
+      images: [],
+    });
+    attachmentExtractionProcessorMock.processNotice.mockResolvedValueOnce({
+      succeededCount: 0,
+      unsupportedCount: 0,
+      failedCount: 1,
+    });
+
+    const result = await collectNotices({} as never, "public_data", {
+      limit: 1,
+      triggerReason: "manual",
+      storageLocalRoot: "C:/tmp/assets",
+    });
+
+    expect(result.attachmentExtractionFailedCount).toBe(1);
+    expect(repositoryMock.recordSourceRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scrapeRunId: 101,
+        sourceId: "general",
+        status: "success",
+        attachmentExtractionFailedCount: 1,
+      }),
+    );
+    expect(repositoryMock.finishScrapeRun).toHaveBeenCalledWith(
+      101,
+      "success",
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      undefined,
+    );
   });
 });

@@ -1,11 +1,14 @@
 import { loadConfig } from "./config/env.js";
+import { CAFETERIA_INSTAGRAM_SOURCES } from "./cafeterias/sources.js";
+import { checkCafeteriaInstagramSourceReachability } from "./cafeterias/instagram-scraper.js";
 import { createPool } from "./db/client.js";
 import { runMigrations } from "./db/migrator.js";
 import { checkReachability } from "./http/client.js";
 import { NOTICE_SOURCES } from "./notices/sources.js";
+import { collectCafeteriaInstagramPosts } from "./workers/cafeteria-instagram-collector.js";
 import { collectNotices } from "./workers/notice-collector.js";
 
-function parseLimit(args: string[]): number {
+function parseLimit(args: string[], defaultLimit: number): number {
   const index = args.findIndex((arg) => arg === "--limit");
   if (index !== -1) {
     const raw = args[index + 1];
@@ -40,7 +43,7 @@ function parseLimit(args: string[]): number {
     return trailingParsed;
   }
 
-  return 30;
+  return defaultLimit;
 }
 
 async function runDoctor(): Promise<void> {
@@ -65,6 +68,11 @@ async function runDoctor(): Promise<void> {
       const result = await checkReachability(source.listUrl);
       console.log(source.id, result);
     }
+
+    for (const source of CAFETERIA_INSTAGRAM_SOURCES) {
+      const result = await checkCafeteriaInstagramSourceReachability(source);
+      console.log(source.id, result);
+    }
   } finally {
     await pool.end();
   }
@@ -72,35 +80,59 @@ async function runDoctor(): Promise<void> {
 
 async function runCollect(args: string[]): Promise<void> {
   const target = args[1];
-  if (target !== "notices") {
-    throw new Error(`unsupported collect target: ${target ?? "(missing)"}`);
-  }
-
-  const limit = parseLimit(args);
   const config = loadConfig();
   const pool = createPool(config);
 
   try {
     await runMigrations(pool, config.pgSchema);
-    const result = await collectNotices(pool, config.pgSchema, {
-      limit,
-      triggerReason: "manual",
-    });
 
-    console.log(
-      JSON.stringify(
-        {
-          scrapeRunId: result.scrapeRunId,
-          totalScrapedCount: result.scrapedCount,
-          totalProcessedCount: result.processedCount,
-          totalInsertedCount: result.insertedCount,
-          totalUpdatedCount: result.updatedCount,
-          sources: result.sources,
-        },
-        null,
-        2,
-      ),
-    );
+    if (target === "notices") {
+      const result = await collectNotices(pool, config.pgSchema, {
+        limit: parseLimit(args, 30),
+        triggerReason: "manual",
+      });
+
+      console.log(
+        JSON.stringify(
+          {
+            scrapeRunId: result.scrapeRunId,
+            totalScrapedCount: result.scrapedCount,
+            totalProcessedCount: result.processedCount,
+            totalInsertedCount: result.insertedCount,
+            totalUpdatedCount: result.updatedCount,
+            sources: result.sources,
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+
+    if (target === "cafeterias") {
+      const result = await collectCafeteriaInstagramPosts(pool, config.pgSchema, {
+        limit: parseLimit(args, 6),
+        triggerReason: "manual",
+      });
+
+      console.log(
+        JSON.stringify(
+          {
+            scrapeRunId: result.scrapeRunId,
+            totalScrapedCount: result.scrapedCount,
+            totalProcessedCount: result.processedCount,
+            totalInsertedCount: result.insertedCount,
+            totalUpdatedCount: result.updatedCount,
+            sources: result.sources,
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+
+    throw new Error(`unsupported collect target: ${target ?? "(missing)"}`);
   } finally {
     await pool.end();
   }
@@ -131,7 +163,7 @@ async function main(): Promise<void> {
       return;
     default:
       throw new Error(
-        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices)`,
+        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias)`,
       );
   }
 }

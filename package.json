@@ -9,6 +9,7 @@
     "check": "tsc --noEmit",
     "migrate": "tsx src/main.ts migrate",
     "doctor": "tsx src/main.ts doctor",
+    "collect:cafeterias": "tsx src/main.ts collect cafeterias",
     "collect:notices": "tsx src/main.ts collect notices",
     "test": "vitest run",
     "test:watch": "vitest"

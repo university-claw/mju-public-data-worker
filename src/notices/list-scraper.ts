@@ -4,6 +4,20 @@ import { parseKoreanDateToIso } from "../shared/date.js";
 import { collapseWhitespace } from "../shared/text.js";
 import type { NoticeListItem, NoticeSource } from "./types.js";
 
+const ALLOWED_CATEGORY_LABELS = new Set([
+  "학사",
+  "행정",
+  "장학",
+  "행사",
+  "취업",
+  "진로",
+  "창업",
+  "채용",
+  "모집",
+  "국제",
+  "학생",
+]);
+
 export function extractExternalIdFromOnclick(onclick?: string): string | undefined {
   if (!onclick) {
     return undefined;
@@ -70,23 +84,46 @@ export function extractExternalId(detailUrl: string): string {
   return match[1]!;
 }
 
-export function extractCategoryLabel(
-  anchorText: string,
-  strongText: string,
-): string | undefined {
-  const normalizedAnchor = collapseWhitespace(anchorText);
-  if (!normalizedAnchor || normalizedAnchor === strongText) {
+/**
+ * RSS 제목 앞의 대괄호 접두사 중에서도, 실제 분류 의미가 있는 값만
+ * category_label로 남긴다. 부서명·캠퍼스명·사업단명처럼 제목 꾸밈 역할만 하는
+ * 긴 접두사는 버려서 `category_label`이 진짜 분류 필드에 가깝게 유지되도록 한다.
+ */
+export function parseLeadingBracketCategory(title: string): string | undefined {
+  const match = /^\[([^\]]+)\]/.exec(title);
+  const candidate = match?.[1]?.trim();
+  if (!candidate) {
     return undefined;
   }
 
-  const label = normalizedAnchor.replace(strongText, "").replace(/\[|\]/g, " ");
-  const collapsed = collapseWhitespace(label);
-  return collapsed || undefined;
+  return ALLOWED_CATEGORY_LABELS.has(candidate) ? candidate : undefined;
 }
 
-export function parseLeadingBracketCategory(title: string): string | undefined {
-  const match = /^\[([^\]]+)\]/.exec(title);
-  return match?.[1]?.trim();
+/**
+ * 목록 HTML에는 제목 옆에 `새글` 같은 상태 배지가 같이 렌더링되지만, 이 값은
+ * 분류 라벨이 아니라 화면 표시용 상태다. 따라서 HTML 파싱 단계에서는
+ * category_label을 만들지 않고, RSS 제목의 `[학사]` 같은 분류 정보만 별도로
+ * 병합해서 보존한다.
+ */
+function mergeListItem(
+  existing: NoticeListItem,
+  incoming: NoticeListItem,
+): NoticeListItem {
+  const merged: NoticeListItem = {
+    ...existing,
+  };
+
+  const mergedCategoryLabel = existing.categoryLabel ?? incoming.categoryLabel;
+  if (mergedCategoryLabel) {
+    merged.categoryLabel = mergedCategoryLabel;
+  }
+
+  const mergedAuthor = existing.author ?? incoming.author;
+  if (mergedAuthor) {
+    merged.author = mergedAuthor;
+  }
+
+  return merged;
 }
 
 /**
@@ -137,7 +174,6 @@ export function parseHtmlListItems(
 
     const publishedAtRaw = collapseWhitespace($(tds[3]).text());
     const author = collapseWhitespace($(tds[2]).text()) || undefined;
-    const categoryLabel = extractCategoryLabel(anchor.text(), title);
 
     const item: NoticeListItem = {
       sourceId: source.id,
@@ -148,10 +184,6 @@ export function parseHtmlListItems(
       publishedAt: parseKoreanDateToIso(publishedAtRaw),
       publishedAtRaw,
     };
-
-    if (categoryLabel) {
-      item.categoryLabel = categoryLabel;
-    }
 
     if (author) {
       item.author = author;
@@ -221,9 +253,13 @@ export function dedupeItems(items: NoticeListItem[]): NoticeListItem[] {
   const deduped = new Map<string, NoticeListItem>();
 
   for (const item of items) {
-    if (!deduped.has(item.externalId)) {
+    const existing = deduped.get(item.externalId);
+    if (!existing) {
       deduped.set(item.externalId, item);
+      continue;
     }
+
+    deduped.set(item.externalId, mergeListItem(existing, item));
   }
 
   return [...deduped.values()];

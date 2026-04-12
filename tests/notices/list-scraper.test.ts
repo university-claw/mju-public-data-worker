@@ -74,6 +74,31 @@ describe("list-scraper pure parsers", () => {
     );
   });
 
+  it("does not store the 새글 status badge as a category label", () => {
+    const html = `
+      <table class="artclTable">
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td class="td-subject">
+              <a href="#" onclick="jf_viewArtcl('mjukr','141','230921','t');return false;">
+                <strong>2026학년도 1학기 수강정정 안내</strong>
+                <span class="newArtcl">새글</span>
+              </a>
+            </td>
+            <td>학사지원팀</td>
+            <td>2026.04.07</td>
+            <td></td>
+            <td>10</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const items = parseHtmlListItems(html, SOURCE, "https://www.mju.ac.kr");
+    expect(items[0]?.categoryLabel).toBeUndefined();
+  });
+
   it("treats javascript placeholder href as non-navigable and falls back to onclick", () => {
     const html = `
       <table class="artclTable">
@@ -119,6 +144,23 @@ describe("list-scraper pure parsers", () => {
     });
   });
 
+  it("ignores bracket prefixes that are not classification labels", () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0">
+        <channel>
+          <item>
+            <title>[장애학생지원센터] 제 46회 장애인의 날 기념 행사 안내</title>
+            <link>https://www.mju.ac.kr/bbs/mjukr/141/230925/artclView.do</link>
+            <pubDate>Fri, 10 Apr 2026 09:00:00 +0900</pubDate>
+            <author>학생지원팀</author>
+          </item>
+        </channel>
+      </rss>`;
+
+    const items = parseRssItems(xml, SOURCE, "https://www.mju.ac.kr");
+    expect(items[0]?.categoryLabel).toBeUndefined();
+  });
+
   it("deduplicates merged list items by external id", async () => {
     const html = await fs.readFile(fixture("board-list.html"), "utf-8");
     const xml = await fs.readFile(fixture("notice-rss.xml"), "utf-8");
@@ -128,6 +170,9 @@ describe("list-scraper pure parsers", () => {
     const deduped = dedupeItems([...htmlItems, ...rssItems]);
     expect(deduped).toHaveLength(6);
     expect(deduped.filter((item) => item.externalId === "230921")).toHaveLength(1);
+    expect(deduped.find((item) => item.externalId === "230921")?.categoryLabel).toBe(
+      "학사",
+    );
   });
 });
 
@@ -155,6 +200,9 @@ describe("scrapeNoticeList", () => {
 
     expect(items).toHaveLength(6);
     expect(items.at(-1)?.externalId).toBe("230916");
+    expect(items.find((item) => item.externalId === "230921")?.categoryLabel).toBe(
+      "학사",
+    );
     expect(fetchHtmlMock).toHaveBeenCalledTimes(2);
   });
 

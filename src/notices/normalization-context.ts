@@ -12,7 +12,6 @@ import type {
 } from "./types.js";
 
 export const DEFAULT_NOTICE_NORMALIZATION_MAX_BODY_CHARS = 16_000;
-export const DEFAULT_NOTICE_NORMALIZATION_MAX_BODY_HTML_CHARS = 8_000;
 export const DEFAULT_NOTICE_NORMALIZATION_MAX_ATTACHMENT_CHARS = 12_000;
 export const DEFAULT_NOTICE_NORMALIZATION_MAX_IMAGE_CHARS = 8_000;
 export const DEFAULT_NOTICE_NORMALIZATION_MAX_ATTACHMENT_COUNT = 8;
@@ -31,8 +30,6 @@ export function createNoticeNormalizationContext(
 ): NoticeNormalizationContext {
   const maxBodyChars =
     options.maxBodyChars ?? DEFAULT_NOTICE_NORMALIZATION_MAX_BODY_CHARS;
-  const maxBodyHtmlChars =
-    options.maxBodyHtmlChars ?? DEFAULT_NOTICE_NORMALIZATION_MAX_BODY_HTML_CHARS;
   const maxAttachmentChars =
     options.maxAttachmentChars ?? DEFAULT_NOTICE_NORMALIZATION_MAX_ATTACHMENT_CHARS;
   const maxImageChars =
@@ -46,10 +43,9 @@ export function createNoticeNormalizationContext(
 
   let remainingBudget =
     options.maxTotalChars ?? DEFAULT_NOTICE_NORMALIZATION_MAX_TOTAL_CHARS;
-  const selectedAttachments = prioritizeAttachments(bundle.attachments).slice(
-    0,
-    maxAttachmentCount,
-  );
+  const selectedAttachments = prioritizeAttachments(
+    bundle.attachments,
+  ).slice(0, maxAttachmentCount);
   const selectedImages = prioritizeImages(bundle.images).slice(0, maxImageCount);
   const reservedAssetBudget = calculateReservedAssetBudget({
     attachments: selectedAttachments,
@@ -68,17 +64,7 @@ export function createNoticeNormalizationContext(
     0,
     bodyBudgetRemaining - bodyTextBlock.includedCharCount,
   );
-
-  const bodyHtmlBlock = toTextBlock(
-    bundle.notice.bodyHtml,
-    Math.min(maxBodyHtmlChars, bodyBudgetRemaining),
-  );
-  remainingBudget = Math.max(
-    0,
-    remainingBudget -
-      bodyTextBlock.includedCharCount -
-      bodyHtmlBlock.includedCharCount,
-  );
+  remainingBudget = Math.max(0, remainingBudget - bodyTextBlock.includedCharCount);
 
   const bodyLinks = extractBodyLinks(bundle.notice.bodyHtml, maxBodyLinkCount);
 
@@ -113,7 +99,6 @@ export function createNoticeNormalizationContext(
     source: bundle.source,
     notice: bundle.notice,
     bodyTextBlock,
-    bodyHtmlBlock,
     bodyLinks,
     attachments,
     images,
@@ -145,29 +130,8 @@ export function renderNoticeNormalizationContextPrompt(
 ): string {
   const lines: string[] = [];
 
-  lines.push("[NOTICE SOURCE]");
-  lines.push(`source_id: ${context.source.id}`);
-  lines.push(`source_name: ${context.source.name}`);
-  lines.push(`source_description: ${context.source.description}`);
-  lines.push(`source_list_url: ${context.source.listUrl}`);
-  lines.push("");
-
-  lines.push("[NOTICE CORE]");
-  lines.push(`notice_item_id: ${context.notice.noticeItemId}`);
-  lines.push(`external_id: ${context.notice.externalId}`);
+  lines.push("[NOTICE TITLE]");
   lines.push(`title: ${context.notice.title}`);
-  lines.push(`category_label: ${context.notice.categoryLabel ?? "(none)"}`);
-  lines.push(`detail_url: ${context.notice.detailUrl}`);
-  lines.push(`list_url: ${context.notice.listUrl}`);
-  lines.push(`author: ${context.notice.author ?? "(none)"}`);
-  lines.push(`published_at: ${context.notice.publishedAt}`);
-  lines.push(`published_at_raw: ${context.notice.publishedAtRaw}`);
-  lines.push(`attachments_count: ${context.notice.attachmentsCount}`);
-  lines.push(`images_count: ${context.notice.imagesCount}`);
-  lines.push(`content_hash: ${context.notice.contentHash ?? "(none)"}`);
-  lines.push(`first_seen_at: ${context.notice.firstSeenAt}`);
-  lines.push(`last_seen_at: ${context.notice.lastSeenAt}`);
-  lines.push(`last_scraped_at: ${context.notice.lastScrapedAt}`);
   lines.push("");
 
   lines.push("[NOTICE BODY TEXT]");
@@ -185,51 +149,36 @@ export function renderNoticeNormalizationContextPrompt(
   }
   lines.push("");
 
-  lines.push("[NOTICE BODY HTML EXCERPT]");
-  appendTextBlock(lines, context.bodyHtmlBlock);
-  lines.push("");
-
-  lines.push("[ATTACHMENT EXTRACTIONS]");
+  lines.push("[ATTACHMENT EXTRACTION TEXTS]");
   if (context.attachments.length === 0) {
     lines.push(
       context.stats.attachmentCount === 0
         ? "(no attachments)"
-        : "(no attachments selected for prompt input)",
+        : context.stats.attachmentTextAvailableCount === 0
+          ? "(no extracted attachment text)"
+          : "(no attachment extraction texts selected for prompt input)",
     );
   } else {
-    for (const attachment of context.attachments) {
-      appendAttachment(lines, attachment);
+    for (const [index, attachment] of context.attachments.entries()) {
+      appendAttachment(lines, attachment, index + 1);
     }
   }
   lines.push("");
 
-  lines.push("[NOTICE IMAGE OCR]");
+  lines.push("[NOTICE IMAGE OCR TEXTS]");
   if (context.images.length === 0) {
     lines.push(
       context.stats.imageCount === 0
         ? "(no notice images)"
-        : "(no notice images selected for prompt input)",
+        : context.stats.imageTextAvailableCount === 0
+          ? "(no image OCR text)"
+          : "(no image OCR texts selected for prompt input)",
     );
   } else {
-    for (const image of context.images) {
-      appendImage(lines, image);
+    for (const [index, image] of context.images.entries()) {
+      appendImage(lines, image, index + 1);
     }
   }
-  lines.push("");
-
-  lines.push("[CONTEXT SUMMARY]");
-  lines.push(`attachment_count: ${context.stats.attachmentCount}`);
-  lines.push(
-    `attachment_text_available_count: ${context.stats.attachmentTextAvailableCount}`,
-  );
-  lines.push(
-    `attachment_text_missing_count: ${context.stats.attachmentTextMissingCount}`,
-  );
-  lines.push(`attachment_omitted_count: ${context.stats.attachmentOmittedCount}`);
-  lines.push(`image_count: ${context.stats.imageCount}`);
-  lines.push(`image_text_available_count: ${context.stats.imageTextAvailableCount}`);
-  lines.push(`image_text_missing_count: ${context.stats.imageTextMissingCount}`);
-  lines.push(`image_omitted_count: ${context.stats.imageOmittedCount}`);
 
   return lines.join("\n").trim();
 }
@@ -237,29 +186,17 @@ export function renderNoticeNormalizationContextPrompt(
 function prioritizeAttachments(
   attachments: readonly NoticeNormalizationSourceAttachment[],
 ): NoticeNormalizationSourceAttachment[] {
-  return [...attachments].sort((left, right) => {
-    const leftScore = hasMeaningfulText(left.extractedText) ? 0 : 1;
-    const rightScore = hasMeaningfulText(right.extractedText) ? 0 : 1;
-    if (leftScore !== rightScore) {
-      return leftScore - rightScore;
-    }
-
-    return left.sortOrder - right.sortOrder;
-  });
+  return attachments
+    .filter((attachment) => hasMeaningfulText(attachment.extractedText))
+    .sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
 function prioritizeImages(
   images: readonly NoticeNormalizationSourceImage[],
 ): NoticeNormalizationSourceImage[] {
-  return [...images].sort((left, right) => {
-    const leftScore = hasMeaningfulText(left.ocrText) ? 0 : 1;
-    const rightScore = hasMeaningfulText(right.ocrText) ? 0 : 1;
-    if (leftScore !== rightScore) {
-      return leftScore - rightScore;
-    }
-
-    return left.sortOrder - right.sortOrder;
-  });
+  return images
+    .filter((image) => hasMeaningfulText(image.ocrText))
+    .sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
 function calculateReservedAssetBudget(params: {
@@ -443,10 +380,6 @@ function appendTextBlock(
   lines: string[],
   block: NoticeNormalizationContextTextBlock,
 ): void {
-  lines.push(`original_char_count: ${block.originalCharCount}`);
-  lines.push(`included_char_count: ${block.includedCharCount}`);
-  lines.push(`truncated: ${block.truncated ? "true" : "false"}`);
-  lines.push("text:");
   if (!block.text) {
     lines.push("(no text)");
     return;
@@ -460,20 +393,9 @@ function appendTextBlock(
 function appendAttachment(
   lines: string[],
   attachment: NoticeNormalizationContextAttachment,
+  displayIndex: number,
 ): void {
-  lines.push(
-    `## attachment sort_order=${attachment.sortOrder} id=${attachment.attachmentId}`,
-  );
-  lines.push(`file_name: ${attachment.fileName}`);
-  lines.push(`download_url: ${attachment.downloadUrl}`);
-  lines.push(`storage_key: ${attachment.storageKey ?? "(none)"}`);
-  lines.push(`content_type: ${attachment.contentType ?? "(none)"}`);
-  lines.push(`download_status: ${attachment.downloadStatus}`);
-  lines.push(`extraction_status: ${attachment.extractionStatus}`);
-  lines.push(`extractor_type: ${attachment.extractorType ?? "(none)"}`);
-  lines.push(`extracted_at: ${attachment.extractedAt ?? "(none)"}`);
-  lines.push(`error_message: ${attachment.errorMessage ?? "(none)"}`);
-  lines.push("text:");
+  lines.push(`## attachment_${displayIndex}`);
   appendTextBlock(
     lines,
     attachment.textBlock ?? {
@@ -489,19 +411,9 @@ function appendAttachment(
 function appendImage(
   lines: string[],
   image: NoticeNormalizationContextImage,
+  displayIndex: number,
 ): void {
-  lines.push(`## image sort_order=${image.sortOrder} id=${image.imageId}`);
-  lines.push(`image_url: ${image.imageUrl}`);
-  lines.push(`alt_text: ${image.altText ?? "(none)"}`);
-  lines.push(`storage_key: ${image.storageKey ?? "(none)"}`);
-  lines.push(`content_type: ${image.contentType ?? "(none)"}`);
-  lines.push(`download_status: ${image.downloadStatus}`);
-  lines.push(`ocr_status: ${image.ocrStatus}`);
-  lines.push(`ocr_confidence: ${image.ocrConfidence ?? "(none)"}`);
-  lines.push(`ocr_language: ${image.ocrLanguage ?? "(none)"}`);
-  lines.push(`ocr_extracted_at: ${image.ocrExtractedAt ?? "(none)"}`);
-  lines.push(`error_message: ${image.errorMessage ?? "(none)"}`);
-  lines.push("text:");
+  lines.push(`## image_ocr_${displayIndex}`);
   appendTextBlock(
     lines,
     image.textBlock ?? {

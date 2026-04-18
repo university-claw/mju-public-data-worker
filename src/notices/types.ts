@@ -338,7 +338,6 @@ export interface NoticeNormalizationContext {
   source: NoticeNormalizationSourceMetadata;
   notice: NoticeNormalizationSourceNotice;
   bodyTextBlock: NoticeNormalizationContextTextBlock;
-  bodyHtmlBlock: NoticeNormalizationContextTextBlock;
   bodyLinks: readonly NoticeNormalizationContextBodyLink[];
   attachments: readonly NoticeNormalizationContextAttachment[];
   images: readonly NoticeNormalizationContextImage[];
@@ -348,7 +347,6 @@ export interface NoticeNormalizationContext {
 
 export interface NoticeNormalizationContextOptions {
   maxBodyChars?: number;
-  maxBodyHtmlChars?: number;
   maxAttachmentChars?: number;
   maxImageChars?: number;
   maxAttachmentCount?: number;

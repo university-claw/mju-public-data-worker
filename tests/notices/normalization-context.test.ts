@@ -5,7 +5,7 @@ import {
 } from "../../src/notices/normalization-context.js";
 
 describe("notice normalization context", () => {
-  it("creates a prompt-ready context with per-section truncation and provenance labels", () => {
+  it("creates a prompt-ready context with only the lean LLM input sections", () => {
     const context = createNoticeNormalizationContext(
       {
         source: {
@@ -86,7 +86,6 @@ describe("notice normalization context", () => {
       },
       {
         maxBodyChars: 100,
-        maxBodyHtmlChars: 100,
         maxAttachmentChars: 10,
         maxImageChars: 100,
       },
@@ -106,29 +105,37 @@ describe("notice normalization context", () => {
     ]);
     expect(context.attachments[0]?.textBlock?.truncated).toBe(true);
     expect(context.attachments[0]?.textBlock?.includedCharCount).toBe(10);
-    expect(context.attachments[1]?.textBlock).toEqual({
-      text: null,
-      originalCharCount: 0,
-      includedCharCount: 0,
-      truncated: false,
-    });
+    expect(context.attachments).toHaveLength(1);
     expect(context.images[0]?.textBlock?.text).toBe("포스터 OCR 텍스트");
     expect(context.stats).toEqual({
       attachmentCount: 2,
       attachmentTextAvailableCount: 1,
       attachmentTextMissingCount: 1,
-      attachmentOmittedCount: 0,
+      attachmentOmittedCount: 1,
       imageCount: 1,
       imageTextAvailableCount: 1,
       imageTextMissingCount: 0,
       imageOmittedCount: 0,
     });
-    expect(context.promptInput).toContain("[NOTICE SOURCE]");
+    expect(context.promptInput).toContain("[NOTICE TITLE]");
+    expect(context.promptInput).toContain("title: 테스트 장학 공지");
     expect(context.promptInput).toContain("[NOTICE BODY LINKS]");
-    expect(context.promptInput).toContain("## attachment sort_order=0 id=77");
+    expect(context.promptInput).toContain("- link_1_href: https://example.com/apply");
+    expect(context.promptInput).toContain("link_1_text: 지원 링크");
+    expect(context.promptInput).toContain("[ATTACHMENT EXTRACTION TEXTS]");
+    expect(context.promptInput).toContain("## attachment_1");
     expect(context.promptInput).toContain("[TRUNCATED");
-    expect(context.promptInput).toContain("ocr_status: succeeded");
+    expect(context.promptInput).toContain("[NOTICE IMAGE OCR TEXTS]");
     expect(context.promptInput).toContain("<<<BEGIN_NOTICE_SOURCE_TEXT>>>");
+    expect(context.promptInput).not.toContain("[NOTICE SOURCE]");
+    expect(context.promptInput).not.toContain("[NOTICE CORE]");
+    expect(context.promptInput).not.toContain("[NOTICE BODY HTML EXCERPT]");
+    expect(context.promptInput).not.toContain("[CONTEXT SUMMARY]");
+    expect(context.promptInput).not.toContain("file_name:");
+    expect(context.promptInput).not.toContain("ocr_status:");
+    expect(context.promptInput).not.toContain("original_char_count:");
+    expect(context.promptInput).not.toContain("included_char_count:");
+    expect(context.promptInput).not.toContain("truncated:");
   });
 
   it("renders an existing context into a stable prompt string", () => {
@@ -165,12 +172,6 @@ describe("notice normalization context", () => {
         includedCharCount: 0,
         truncated: false,
       },
-      bodyHtmlBlock: {
-        text: null,
-        originalCharCount: 0,
-        includedCharCount: 0,
-        truncated: false,
-      },
       bodyLinks: [],
       attachments: [],
       images: [],
@@ -186,10 +187,65 @@ describe("notice normalization context", () => {
       },
     });
 
-    expect(prompt).toContain("category_label: 학사");
+    expect(prompt).toContain("[NOTICE TITLE]");
+    expect(prompt).toContain("title: 테스트 일반공지");
     expect(prompt).toContain("(no attachments)");
     expect(prompt).toContain("(no notice images)");
-    expect(prompt).toContain("text:\n(no text)");
+    expect(prompt).toContain("[NOTICE BODY TEXT]\n(no text)");
+    expect(prompt).not.toContain("category_label:");
+  });
+
+  it("renders empty-text assets with the lean sentinel strings", () => {
+    const prompt = renderNoticeNormalizationContextPrompt({
+      source: {
+        id: "career",
+        name: "진로공지",
+        description: "진로/취업 공지",
+        listUrl: "https://example.com/career",
+      },
+      notice: {
+        noticeItemId: 45,
+        sourceId: "career",
+        externalId: "231011",
+        title: "텍스트 없는 자산 공지",
+        categoryLabel: null,
+        detailUrl: "https://example.com/notices/231011",
+        listUrl: "https://example.com/career",
+        author: null,
+        publishedAt: "2026-04-18T10:00:00+09:00",
+        publishedAtRaw: "2026.04.18",
+        bodyText: null,
+        bodyHtml: null,
+        contentHash: null,
+        attachmentsCount: 2,
+        imagesCount: 1,
+        firstSeenAt: "2026-04-18T10:01:00+09:00",
+        lastSeenAt: "2026-04-18T10:01:00+09:00",
+        lastScrapedAt: "2026-04-18T10:01:00+09:00",
+      },
+      bodyTextBlock: {
+        text: null,
+        originalCharCount: 0,
+        includedCharCount: 0,
+        truncated: false,
+      },
+      bodyLinks: [],
+      attachments: [],
+      images: [],
+      stats: {
+        attachmentCount: 2,
+        attachmentTextAvailableCount: 0,
+        attachmentTextMissingCount: 2,
+        attachmentOmittedCount: 0,
+        imageCount: 1,
+        imageTextAvailableCount: 0,
+        imageTextMissingCount: 1,
+        imageOmittedCount: 0,
+      },
+    });
+
+    expect(prompt).toContain("(no extracted attachment text)");
+    expect(prompt).toContain("(no image OCR text)");
   });
 
   it("applies total budget and attachment selection before rendering prompt input", () => {

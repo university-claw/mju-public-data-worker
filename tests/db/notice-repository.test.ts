@@ -439,4 +439,142 @@ describe("notice repository", () => {
       updatedAt: "2026-04-18T16:10:01+09:00",
     });
   });
+
+  it("builds a normalization source bundle from notice body, attachment extraction, and image OCR rows", async () => {
+    const pool = {
+      query: vi
+        .fn()
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              notice_item_id: 184,
+              source_id: "scholarship",
+              source_name: "장학공지",
+              source_description: "장학/학자금 공지",
+              source_list_url: "https://example.com/scholarship",
+              external_id: "230100",
+              title: "테스트 장학 공지",
+              category_label: null,
+              detail_url: "https://example.com/notices/230100",
+              list_url: "https://example.com/scholarship",
+              author: "학생지원팀",
+              published_at: "2026-04-18T09:00:00+09:00",
+              published_at_raw: "2026.04.18",
+              body_text: "본문 핵심 내용",
+              body_html: "<p>본문 <a href=\"https://example.com/apply\">지원 링크</a></p>",
+              content_hash: "abc123",
+              attachments_count: 1,
+              images_count: 1,
+              first_seen_at: "2026-04-18T09:05:00+09:00",
+              last_seen_at: "2026-04-18T09:05:00+09:00",
+              last_scraped_at: "2026-04-18T09:05:00+09:00",
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              attachment_id: 77,
+              file_name: "안내문.pdf",
+              download_url: "https://example.com/guide.pdf",
+              sort_order: 0,
+              storage_key: "notices/scholarship/230100/attachments/00.pdf",
+              content_type: "application/pdf",
+              download_status: "succeeded",
+              extraction_status: "succeeded",
+              extractor_type: "pdf",
+              extracted_text: "첨부 추출 텍스트",
+              extracted_char_count: 9,
+              extracted_at: "2026-04-18T09:06:00+09:00",
+              error_message: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              image_id: 91,
+              image_url: "https://example.com/poster.png",
+              alt_text: "포스터",
+              sort_order: 0,
+              storage_key: "notices/scholarship/230100/images/00.png",
+              content_type: "image/png",
+              download_status: "succeeded",
+              ocr_status: "succeeded",
+              ocr_text: "포스터 OCR 텍스트",
+              ocr_confidence: "88.20",
+              ocr_language: "kor+eng",
+              ocr_extracted_at: "2026-04-18T09:07:00+09:00",
+              error_message: null,
+            },
+          ],
+        }),
+    } as unknown as ConstructorParameters<typeof NoticeRepository>[0];
+    const repository = new NoticeRepository(pool, "public_data");
+
+    const bundle = await repository.getNormalizationSourceBundle(184);
+
+    expect(bundle).toEqual({
+      source: {
+        id: "scholarship",
+        name: "장학공지",
+        description: "장학/학자금 공지",
+        listUrl: "https://example.com/scholarship",
+      },
+      notice: {
+        noticeItemId: 184,
+        sourceId: "scholarship",
+        externalId: "230100",
+        title: "테스트 장학 공지",
+        categoryLabel: null,
+        detailUrl: "https://example.com/notices/230100",
+        listUrl: "https://example.com/scholarship",
+        author: "학생지원팀",
+        publishedAt: "2026-04-18T09:00:00+09:00",
+        publishedAtRaw: "2026.04.18",
+        bodyText: "본문 핵심 내용",
+        bodyHtml: "<p>본문 <a href=\"https://example.com/apply\">지원 링크</a></p>",
+        contentHash: "abc123",
+        attachmentsCount: 1,
+        imagesCount: 1,
+        firstSeenAt: "2026-04-18T09:05:00+09:00",
+        lastSeenAt: "2026-04-18T09:05:00+09:00",
+        lastScrapedAt: "2026-04-18T09:05:00+09:00",
+      },
+      attachments: [
+        {
+          attachmentId: 77,
+          fileName: "안내문.pdf",
+          downloadUrl: "https://example.com/guide.pdf",
+          sortOrder: 0,
+          storageKey: "notices/scholarship/230100/attachments/00.pdf",
+          contentType: "application/pdf",
+          downloadStatus: "succeeded",
+          extractionStatus: "succeeded",
+          extractorType: "pdf",
+          extractedText: "첨부 추출 텍스트",
+          extractedCharCount: 9,
+          extractedAt: "2026-04-18T09:06:00+09:00",
+          errorMessage: null,
+        },
+      ],
+      images: [
+        {
+          imageId: 91,
+          imageUrl: "https://example.com/poster.png",
+          altText: "포스터",
+          sortOrder: 0,
+          storageKey: "notices/scholarship/230100/images/00.png",
+          contentType: "image/png",
+          downloadStatus: "succeeded",
+          ocrStatus: "succeeded",
+          ocrText: "포스터 OCR 텍스트",
+          ocrConfidence: 88.2,
+          ocrLanguage: "kor+eng",
+          ocrExtractedAt: "2026-04-18T09:07:00+09:00",
+          errorMessage: null,
+        },
+      ],
+    });
+  });
 });

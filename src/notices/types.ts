@@ -212,3 +212,147 @@ export interface NoticeReadModel extends NoticeReadModelUpsertInput {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface NoticeNormalizationSourceMetadata {
+  id: string;
+  name: string;
+  description: string;
+  listUrl: string;
+}
+
+export interface NoticeNormalizationSourceNotice {
+  noticeItemId: number;
+  sourceId: string;
+  externalId: string;
+  title: string;
+  categoryLabel?: string | null;
+  detailUrl: string;
+  listUrl: string;
+  author?: string | null;
+  publishedAt: string;
+  publishedAtRaw: string;
+  bodyText?: string | null;
+  bodyHtml?: string | null;
+  contentHash?: string | null;
+  attachmentsCount: number;
+  imagesCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  lastScrapedAt: string;
+}
+
+export interface NoticeNormalizationSourceAttachment {
+  attachmentId: number;
+  fileName: string;
+  downloadUrl: string;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  extractionStatus: NoticeAttachmentExtractionStatus;
+  extractorType?: NoticeAttachmentExtractorType | null;
+  extractedText?: string | null;
+  extractedCharCount?: number | null;
+  extractedAt?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface NoticeNormalizationSourceImage {
+  imageId: number;
+  imageUrl: string;
+  altText?: string | null;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  ocrStatus: NoticeImageOcrStatus;
+  ocrText?: string | null;
+  ocrConfidence?: number | null;
+  ocrLanguage?: string | null;
+  ocrExtractedAt?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface NoticeNormalizationSourceBundle {
+  source: NoticeNormalizationSourceMetadata;
+  notice: NoticeNormalizationSourceNotice;
+  attachments: readonly NoticeNormalizationSourceAttachment[];
+  images: readonly NoticeNormalizationSourceImage[];
+}
+
+export interface NoticeNormalizationContextTextBlock {
+  text: string | null;
+  originalCharCount: number;
+  includedCharCount: number;
+  truncated: boolean;
+}
+
+export interface NoticeNormalizationContextBodyLink {
+  href: string;
+  text?: string | null;
+}
+
+export interface NoticeNormalizationContextAttachment {
+  attachmentId: number;
+  fileName: string;
+  downloadUrl: string;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  extractionStatus: NoticeAttachmentExtractionStatus;
+  extractorType?: NoticeAttachmentExtractorType | null;
+  extractedAt?: string | null;
+  errorMessage?: string | null;
+  textBlock: NoticeNormalizationContextTextBlock | null;
+}
+
+export interface NoticeNormalizationContextImage {
+  imageId: number;
+  imageUrl: string;
+  altText?: string | null;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  ocrStatus: NoticeImageOcrStatus;
+  ocrConfidence?: number | null;
+  ocrLanguage?: string | null;
+  ocrExtractedAt?: string | null;
+  errorMessage?: string | null;
+  textBlock: NoticeNormalizationContextTextBlock | null;
+}
+
+export interface NoticeNormalizationContextStats {
+  attachmentCount: number;
+  attachmentTextAvailableCount: number;
+  attachmentTextMissingCount: number;
+  attachmentOmittedCount: number;
+  imageCount: number;
+  imageTextAvailableCount: number;
+  imageTextMissingCount: number;
+  imageOmittedCount: number;
+}
+
+export interface NoticeNormalizationContext {
+  source: NoticeNormalizationSourceMetadata;
+  notice: NoticeNormalizationSourceNotice;
+  bodyTextBlock: NoticeNormalizationContextTextBlock;
+  bodyHtmlBlock: NoticeNormalizationContextTextBlock;
+  bodyLinks: readonly NoticeNormalizationContextBodyLink[];
+  attachments: readonly NoticeNormalizationContextAttachment[];
+  images: readonly NoticeNormalizationContextImage[];
+  stats: NoticeNormalizationContextStats;
+  promptInput: string;
+}
+
+export interface NoticeNormalizationContextOptions {
+  maxBodyChars?: number;
+  maxBodyHtmlChars?: number;
+  maxAttachmentChars?: number;
+  maxImageChars?: number;
+  maxAttachmentCount?: number;
+  maxImageCount?: number;
+  maxBodyLinkCount?: number;
+  maxTotalChars?: number;
+}

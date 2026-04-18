@@ -10,6 +10,9 @@ import type {
   NoticeReadModelJsonValue,
   NoticeReadModelNormalizationStatus,
   NoticeReadModelUpsertInput,
+  NoticeNormalizationSourceAttachment,
+  NoticeNormalizationSourceBundle,
+  NoticeNormalizationSourceImage,
   NoticeSource,
   StoredNoticeAttachment,
   StoredNoticeImage,
@@ -794,6 +797,196 @@ export class NoticeRepository {
     };
   }
 
+  async getNormalizationSourceBundle(
+    noticeItemId: number,
+  ): Promise<NoticeNormalizationSourceBundle> {
+    return this.getNormalizationSourceBundleWithExecutor(this.pool, noticeItemId);
+  }
+
+  async getNormalizationSourceBundleWithClient(
+    client: PoolClient,
+    noticeItemId: number,
+  ): Promise<NoticeNormalizationSourceBundle> {
+    return this.getNormalizationSourceBundleWithExecutor(client, noticeItemId);
+  }
+
+  private async getNormalizationSourceBundleWithExecutor(
+    executor: NoticeQueryExecutor,
+    noticeItemId: number,
+  ): Promise<NoticeNormalizationSourceBundle> {
+    const noticeResult = await executor.query<{
+      notice_item_id: number;
+      source_id: string;
+      source_name: string;
+      source_description: string;
+      source_list_url: string;
+      external_id: string;
+      title: string;
+      category_label: string | null;
+      detail_url: string;
+      list_url: string;
+      author: string | null;
+      published_at: string;
+      published_at_raw: string;
+      body_text: string | null;
+      body_html: string | null;
+      content_hash: string | null;
+      attachments_count: number;
+      images_count: number;
+      first_seen_at: string;
+      last_seen_at: string;
+      last_scraped_at: string;
+    }>(
+      `
+        SELECT
+          ni.id AS notice_item_id,
+          ns.id AS source_id,
+          ns.name AS source_name,
+          ns.description AS source_description,
+          ns.list_url AS source_list_url,
+          ni.external_id,
+          ni.title,
+          ni.category_label,
+          ni.detail_url,
+          ni.list_url,
+          ni.author,
+          ni.published_at::text,
+          ni.published_at_raw,
+          ni.body_text,
+          ni.body_html,
+          ni.content_hash,
+          ni.attachments_count,
+          ni.images_count,
+          ni.first_seen_at::text,
+          ni.last_seen_at::text,
+          ni.last_scraped_at::text
+        FROM ${this.schema}.notice_items ni
+        INNER JOIN ${this.schema}.notice_sources ns
+          ON ns.id = ni.source_id
+        WHERE ni.id = $1
+      `,
+      [noticeItemId],
+    );
+
+    const noticeRow = noticeResult.rows[0];
+    if (!noticeRow) {
+      throw new Error(
+        `notice item ${noticeItemId} was not found for normalization context`,
+      );
+    }
+
+    const attachmentsResult = await executor.query<{
+      attachment_id: number;
+      file_name: string;
+      download_url: string;
+      sort_order: number;
+      storage_key: string | null;
+      content_type: string | null;
+      download_status: "pending" | "succeeded" | "failed";
+      extraction_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+      extractor_type: "pdf" | "docx" | "hwpx" | null;
+      extracted_text: string | null;
+      extracted_char_count: number | null;
+      extracted_at: string | null;
+      error_message: string | null;
+    }>(
+      `
+        SELECT
+          na.id AS attachment_id,
+          na.file_name,
+          na.download_url,
+          na.sort_order,
+          na.storage_key,
+          na.content_type,
+          na.download_status,
+          nae.extraction_status,
+          nae.extractor_type,
+          nae.extracted_text,
+          nae.extracted_char_count,
+          nae.extracted_at::text,
+          nae.error_message
+        FROM ${this.schema}.notice_attachments na
+        LEFT JOIN ${this.schema}.notice_attachment_extractions nae
+          ON nae.attachment_id = na.id
+        WHERE na.notice_item_id = $1
+        ORDER BY na.sort_order ASC
+      `,
+      [noticeItemId],
+    );
+
+    const imagesResult = await executor.query<{
+      image_id: number;
+      image_url: string;
+      alt_text: string | null;
+      sort_order: number;
+      storage_key: string | null;
+      content_type: string | null;
+      download_status: "pending" | "succeeded" | "failed";
+      ocr_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+      ocr_text: string | null;
+      ocr_confidence: string | number | null;
+      ocr_language: string | null;
+      ocr_extracted_at: string | null;
+      error_message: string | null;
+    }>(
+      `
+        SELECT
+          ni.id AS image_id,
+          ni.image_url,
+          ni.alt_text,
+          ni.sort_order,
+          ni.storage_key,
+          ni.content_type,
+          ni.download_status,
+          nior.ocr_status,
+          nior.ocr_text,
+          nior.ocr_confidence,
+          nior.ocr_language,
+          nior.ocr_extracted_at::text,
+          nior.error_message
+        FROM ${this.schema}.notice_images ni
+        LEFT JOIN ${this.schema}.notice_image_ocr_results nior
+          ON nior.image_id = ni.id
+        WHERE ni.notice_item_id = $1
+        ORDER BY ni.sort_order ASC
+      `,
+      [noticeItemId],
+    );
+
+    return {
+      source: {
+        id: noticeRow.source_id,
+        name: noticeRow.source_name,
+        description: noticeRow.source_description,
+        listUrl: noticeRow.source_list_url,
+      },
+      notice: {
+        noticeItemId: Number(noticeRow.notice_item_id),
+        sourceId: noticeRow.source_id,
+        externalId: noticeRow.external_id,
+        title: noticeRow.title,
+        categoryLabel: noticeRow.category_label,
+        detailUrl: noticeRow.detail_url,
+        listUrl: noticeRow.list_url,
+        author: noticeRow.author,
+        publishedAt: noticeRow.published_at,
+        publishedAtRaw: noticeRow.published_at_raw,
+        bodyText: noticeRow.body_text,
+        bodyHtml: noticeRow.body_html,
+        contentHash: noticeRow.content_hash,
+        attachmentsCount: Number(noticeRow.attachments_count),
+        imagesCount: Number(noticeRow.images_count),
+        firstSeenAt: noticeRow.first_seen_at,
+        lastSeenAt: noticeRow.last_seen_at,
+        lastScrapedAt: noticeRow.last_scraped_at,
+      },
+      attachments: attachmentsResult.rows.map((row) =>
+        mapNormalizationSourceAttachment(row)
+      ),
+      images: imagesResult.rows.map((row) => mapNormalizationSourceImage(row)),
+    };
+  }
+
   private async upsertNoticeRow(
     client: PoolClient,
     input: NoticeUpsertInput,
@@ -997,4 +1190,68 @@ export class NoticeRepository {
       .map((row) => row.storage_key)
       .filter((storageKey): storageKey is string => Boolean(storageKey));
   }
+}
+
+function mapNormalizationSourceAttachment(row: {
+  attachment_id: number;
+  file_name: string;
+  download_url: string;
+  sort_order: number;
+  storage_key: string | null;
+  content_type: string | null;
+  download_status: "pending" | "succeeded" | "failed";
+  extraction_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+  extractor_type: "pdf" | "docx" | "hwpx" | null;
+  extracted_text: string | null;
+  extracted_char_count: number | null;
+  extracted_at: string | null;
+  error_message: string | null;
+}): NoticeNormalizationSourceAttachment {
+  return {
+    attachmentId: Number(row.attachment_id),
+    fileName: row.file_name,
+    downloadUrl: row.download_url,
+    sortOrder: Number(row.sort_order),
+    storageKey: row.storage_key,
+    contentType: row.content_type,
+    downloadStatus: row.download_status,
+    extractionStatus: row.extraction_status ?? "pending",
+    extractorType: row.extractor_type,
+    extractedText: row.extracted_text,
+    extractedCharCount: row.extracted_char_count,
+    extractedAt: row.extracted_at,
+    errorMessage: row.error_message,
+  };
+}
+
+function mapNormalizationSourceImage(row: {
+  image_id: number;
+  image_url: string;
+  alt_text: string | null;
+  sort_order: number;
+  storage_key: string | null;
+  content_type: string | null;
+  download_status: "pending" | "succeeded" | "failed";
+  ocr_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+  ocr_text: string | null;
+  ocr_confidence: string | number | null;
+  ocr_language: string | null;
+  ocr_extracted_at: string | null;
+  error_message: string | null;
+}): NoticeNormalizationSourceImage {
+  return {
+    imageId: Number(row.image_id),
+    imageUrl: row.image_url,
+    altText: row.alt_text,
+    sortOrder: Number(row.sort_order),
+    storageKey: row.storage_key,
+    contentType: row.content_type,
+    downloadStatus: row.download_status,
+    ocrStatus: row.ocr_status ?? "pending",
+    ocrText: row.ocr_text,
+    ocrConfidence: row.ocr_confidence === null ? null : Number(row.ocr_confidence),
+    ocrLanguage: row.ocr_language,
+    ocrExtractedAt: row.ocr_extracted_at,
+    errorMessage: row.error_message,
+  };
 }

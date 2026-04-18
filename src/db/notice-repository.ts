@@ -3,11 +3,11 @@ import type {
   NoticeAssetImage,
   NoticeAssetProcessingUpdate,
   NoticeAttachmentExtractionUpdate,
+  NoticeDetailsJsonb,
   NoticeImageOcrUpdate,
   NoticeAttachment,
   NoticeDetail,
   NoticeReadModel,
-  NoticeReadModelJsonValue,
   NoticeReadModelNormalizationStatus,
   NoticeReadModelUpsertInput,
   NoticeNormalizationSourceAttachment,
@@ -684,7 +684,7 @@ export class NoticeRepository {
       benefit_amount_krw: number | null;
       selection_count: number | null;
       summary: string | null;
-      details_jsonb: NoticeReadModelJsonValue | null;
+      details_jsonb: NoticeDetailsJsonb | null;
       normalized_confidence: number;
       normalized_at: string;
       normalization_status: NoticeReadModelNormalizationStatus;

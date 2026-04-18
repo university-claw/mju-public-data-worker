@@ -45,57 +45,86 @@ export type NoticeImageOcrStatus =
 export type NoticeReadModelNormalizationStatus =
   | "succeeded"
   | "failed";
+export const NOTICE_READ_MODEL_NOTICE_KINDS = [
+  "announcement",
+  "scholarship",
+  "recruitment",
+  "event",
+  "survey",
+  "system_notice",
+  "application",
+  "contest",
+  "result",
+  "other",
+] as const;
 export type NoticeReadModelNoticeKind =
-  | "announcement"
-  | "scholarship"
-  | "recruitment"
-  | "event"
-  | "survey"
-  | "system_notice"
-  | "application"
-  | "contest"
-  | "result"
-  | "other";
-export type NoticeReadModelIssuerScope = "internal" | "external";
+  typeof NOTICE_READ_MODEL_NOTICE_KINDS[number];
+
+export const NOTICE_READ_MODEL_ISSUER_SCOPES = [
+  "internal",
+  "external",
+] as const;
+export type NoticeReadModelIssuerScope =
+  typeof NOTICE_READ_MODEL_ISSUER_SCOPES[number];
+
+export const NOTICE_READ_MODEL_PRIMARY_TIME_KINDS = [
+  "application_period",
+  "event_period",
+  "operation_period",
+  "response_deadline",
+  "announcement_period",
+  "other",
+] as const;
 export type NoticeReadModelPrimaryTimeKind =
-  | "application_period"
-  | "event_period"
-  | "operation_period"
-  | "response_deadline"
-  | "announcement_period"
-  | "other";
+  typeof NOTICE_READ_MODEL_PRIMARY_TIME_KINDS[number];
+
+export const NOTICE_READ_MODEL_ACTION_KINDS = [
+  "apply",
+  "register",
+  "participate",
+  "respond",
+  "check",
+  "support",
+  "other",
+] as const;
 export type NoticeReadModelActionKind =
-  | "apply"
-  | "register"
-  | "participate"
-  | "respond"
-  | "check"
-  | "support"
-  | "other";
+  typeof NOTICE_READ_MODEL_ACTION_KINDS[number];
+
+export const NOTICE_READ_MODEL_ACTION_CHANNELS = [
+  "web_form",
+  "system",
+  "email",
+  "in_person",
+  "onsite",
+  "phone",
+  "other",
+] as const;
 export type NoticeReadModelActionChannel =
-  | "web_form"
-  | "system"
-  | "email"
-  | "in_person"
-  | "onsite"
-  | "phone"
-  | "other";
+  typeof NOTICE_READ_MODEL_ACTION_CHANNELS[number];
+
+export const NOTICE_READ_MODEL_PARTICIPATION_MODES = [
+  "online",
+  "offline",
+  "hybrid",
+  "remote",
+  "onsite",
+  "other",
+] as const;
 export type NoticeReadModelParticipationMode =
-  | "online"
-  | "offline"
-  | "hybrid"
-  | "remote"
-  | "onsite"
-  | "other";
+  typeof NOTICE_READ_MODEL_PARTICIPATION_MODES[number];
+
+export const NOTICE_READ_MODEL_BENEFIT_KINDS = [
+  "scholarship",
+  "grant",
+  "tuition",
+  "interest_support",
+  "prize",
+  "free_issue",
+  "coupon",
+  "other",
+] as const;
 export type NoticeReadModelBenefitKind =
-  | "scholarship"
-  | "grant"
-  | "tuition"
-  | "interest_support"
-  | "prize"
-  | "free_issue"
-  | "coupon"
-  | "other";
+  typeof NOTICE_READ_MODEL_BENEFIT_KINDS[number];
 
 export type NoticeReadModelJsonPrimitive = string | number | boolean | null;
 export interface NoticeReadModelJsonObject {
@@ -105,6 +134,36 @@ export type NoticeReadModelJsonValue =
   | NoticeReadModelJsonPrimitive
   | NoticeReadModelJsonObject
   | NoticeReadModelJsonValue[];
+
+export const NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS = [
+  "eligibility",
+  "required_documents",
+  "application_process",
+  "schedule_details",
+  "benefit_details",
+  "selection_details",
+  "content_details",
+  "resource_links",
+  "contact",
+  "important_notes",
+  "extra",
+] as const;
+export type NoticeDetailsJsonbTopLevelKey =
+  typeof NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS[number];
+
+export interface NoticeDetailsJsonb {
+  eligibility?: NoticeReadModelJsonObject;
+  required_documents?: NoticeReadModelJsonValue[];
+  application_process?: NoticeReadModelJsonObject;
+  schedule_details?: NoticeReadModelJsonObject;
+  benefit_details?: NoticeReadModelJsonObject;
+  selection_details?: NoticeReadModelJsonObject;
+  content_details?: NoticeReadModelJsonObject;
+  resource_links?: NoticeReadModelJsonValue[];
+  contact?: NoticeReadModelJsonObject;
+  important_notes?: NoticeReadModelJsonValue[];
+  extra?: NoticeReadModelJsonObject;
+}
 
 export interface NoticeAssetProcessingUpdate {
   storageProvider?: "local" | null;
@@ -198,7 +257,7 @@ export interface NoticeReadModelUpsertInput {
   benefitAmountKrw?: number | null;
   selectionCount?: number | null;
   summary?: string | null;
-  detailsJsonb: NoticeReadModelJsonValue | null;
+  detailsJsonb: NoticeDetailsJsonb | null;
   normalizedConfidence: number;
   normalizedAt: string;
   normalizationStatus: NoticeReadModelNormalizationStatus;

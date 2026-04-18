@@ -803,6 +803,24 @@ export class NoticeRepository {
     return this.getNormalizationSourceBundleWithExecutor(this.pool, noticeItemId);
   }
 
+  async findNoticeItemIdBySourceExternalId(
+    sourceId: string,
+    externalId: string,
+  ): Promise<number | null> {
+    const result = await this.pool.query<{ id: number }>(
+      `
+        SELECT id
+        FROM ${this.schema}.notice_items
+        WHERE source_id = $1
+          AND external_id = $2
+      `,
+      [sourceId, externalId],
+    );
+
+    const row = result.rows[0];
+    return row ? Number(row.id) : null;
+  }
+
   async getNormalizationSourceBundleWithClient(
     client: PoolClient,
     noticeItemId: number,

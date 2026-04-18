@@ -32,28 +32,70 @@ describe("notice normalization structured output schema", () => {
     expect(noticeDetailsJsonbStructuredSchema).toMatchObject({
       type: "object",
       additionalProperties: false,
+      required: [...NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS],
     });
   });
 
-  it("keeps only top-level keys fixed while leaving nested sections flexible", () => {
+  it("keeps top-level keys fixed and uses section-specific nested shapes compatible with structured outputs", () => {
     const properties = noticeDetailsJsonbStructuredSchema.properties as Record<
       string,
       Record<string, unknown>
     >;
 
     expect(properties.eligibility).toMatchObject({
-      type: "object",
-      additionalProperties: true,
+      anyOf: [
+        {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+          },
+        },
+        { type: "null" },
+      ],
     });
     expect(properties.required_documents).toMatchObject({
-      type: "array",
+      anyOf: [
+        {
+          type: "array",
+        },
+        { type: "null" },
+      ],
     });
     expect(properties.resource_links).toMatchObject({
-      type: "array",
+      anyOf: [
+        {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+          },
+        },
+        { type: "null" },
+      ],
     });
-    expect(properties.extra).toMatchObject({
-      type: "object",
-      additionalProperties: true,
+    expect(properties.contact).toMatchObject({
+      anyOf: [
+        {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+          },
+        },
+        { type: "null" },
+      ],
+    });
+    expect(properties.important_notes).toMatchObject({
+      anyOf: [
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+        { type: "null" },
+      ],
     });
   });
 

@@ -25,6 +25,13 @@ function nullableIntegerSchema(description: string): JsonSchema {
   };
 }
 
+function nullableSchema(schema: JsonSchema, description: string): JsonSchema {
+  return {
+    anyOf: [schema, { type: "null" }],
+    description,
+  };
+}
+
 function nullableEnumSchema(
   values: readonly string[],
   description: string,
@@ -53,19 +60,85 @@ function stringArraySchema(description: string): JsonSchema {
   };
 }
 
-const flexibleObjectSchema = (
-  description: string,
-): JsonSchema => ({
+const detailEntrySchema: JsonSchema = {
   type: "object",
-  additionalProperties: true,
+  additionalProperties: false,
+  properties: {
+    title: {
+      type: ["string", "null"],
+      description: "짧은 소제목 또는 항목명",
+    },
+    content: {
+      type: "string",
+      description: "항목의 구체적 설명",
+    },
+  },
+  required: ["title", "content"],
+};
+
+const detailEntryArraySchema = (description: string): JsonSchema => ({
+  type: "array",
+  items: detailEntrySchema,
   description,
 });
 
-const flexibleArraySchema = (
-  description: string,
-): JsonSchema => ({
+const resourceLinkSchema: JsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    label: {
+      type: ["string", "null"],
+      description: "링크 설명 또는 제목",
+    },
+    url: {
+      type: "string",
+      description: "실제 링크 URL",
+    },
+    purpose: {
+      type: ["string", "null"],
+      description: "신청, 안내, 매뉴얼, 참고자료 등 링크 용도",
+    },
+  },
+  required: ["label", "url", "purpose"],
+};
+
+const resourceLinkArraySchema = (description: string): JsonSchema => ({
   type: "array",
-  items: {},
+  items: resourceLinkSchema,
+  description,
+});
+
+const contactItemSchema: JsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    label: {
+      type: ["string", "null"],
+      description: "담당 부서 또는 담당자명",
+    },
+    value: {
+      type: "string",
+      description: "연락처 값",
+    },
+    channel: {
+      type: ["string", "null"],
+      description: "email, phone, website 등 연락 수단 종류",
+    },
+  },
+  required: ["label", "value", "channel"],
+};
+
+const contactItemArraySchema = (description: string): JsonSchema => ({
+  type: "array",
+  items: contactItemSchema,
+  description,
+});
+
+const stringArraySchemaWithDescription = (description: string): JsonSchema => ({
+  type: "array",
+  items: {
+    type: "string",
+  },
   description,
 });
 
@@ -73,40 +146,72 @@ export const noticeDetailsJsonbStructuredSchema: JsonSchema = {
   type: "object",
   additionalProperties: false,
   properties: {
-    eligibility: flexibleObjectSchema(
+    eligibility: nullableSchema(
+      detailEntryArraySchema("세부 자격요건, 우대조건, 제외조건"),
       "세부 자격요건, 우대조건, 제외조건",
     ),
-    required_documents: flexibleArraySchema(
+    required_documents: nullableSchema(
+      detailEntryArraySchema("제출 서류 상세 목록"),
       "제출 서류 상세 목록",
     ),
-    application_process: flexibleObjectSchema(
+    application_process: nullableSchema(
+      detailEntryArraySchema("신청/접수/참여/제출 절차와 방법"),
       "신청/접수/참여/제출 절차와 방법",
     ),
-    schedule_details: flexibleObjectSchema(
+    schedule_details: nullableSchema(
+      detailEntryArraySchema(
+        "대표 시간축 외 추가 일정, 세부 마일스톤, 세션별 일정",
+      ),
       "대표 시간축 외 추가 일정, 세부 마일스톤, 세션별 일정",
     ),
-    benefit_details: flexibleObjectSchema(
+    benefit_details: nullableSchema(
+      detailEntryArraySchema("대표 금액 외 혜택 상세, 지급 방식/기간/구성"),
       "대표 금액 외 혜택 상세, 지급 방식/기간/구성",
     ),
-    selection_details: flexibleObjectSchema(
+    selection_details: nullableSchema(
+      detailEntryArraySchema(
+        "선발 절차, 심사 단계, 평가 기준, 합격 발표 관련 정보",
+      ),
       "선발 절차, 심사 단계, 평가 기준, 합격 발표 관련 정보",
     ),
-    content_details: flexibleObjectSchema(
+    content_details: nullableSchema(
+      detailEntryArraySchema(
+        "행사/교육/공모전/채용/운영 변경 등 공지 본체의 세부 내용",
+      ),
       "행사/교육/공모전/채용/운영 변경 등 공지 본체의 세부 내용",
     ),
-    resource_links: flexibleArraySchema(
+    resource_links: nullableSchema(
+      resourceLinkArraySchema("문의처 외 신청/안내/매뉴얼/참고 링크"),
       "문의처 외 신청/안내/매뉴얼/참고 링크",
     ),
-    contact: flexibleObjectSchema(
+    contact: nullableSchema(
+      contactItemArraySchema("문의처, 담당자, 연락 방법"),
       "문의처, 담당자, 연락 방법",
     ),
-    important_notes: flexibleArraySchema(
+    important_notes: nullableSchema(
+      stringArraySchemaWithDescription(
+        "유의사항, 참여/수혜 유지 조건, 운영상 주의사항",
+      ),
       "유의사항, 참여/수혜 유지 조건, 운영상 주의사항",
     ),
-    extra: flexibleObjectSchema(
+    extra: nullableSchema(
+      detailEntryArraySchema("위 key로 깔끔하게 들어가지 않는 중요 상세"),
       "위 key로 깔끔하게 들어가지 않는 중요 상세",
     ),
   },
+  required: [
+    "eligibility",
+    "required_documents",
+    "application_process",
+    "schedule_details",
+    "benefit_details",
+    "selection_details",
+    "content_details",
+    "resource_links",
+    "contact",
+    "important_notes",
+    "extra",
+  ],
 };
 
 export const noticeNormalizationStructuredOutputSchema: JsonSchema = {

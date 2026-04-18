@@ -151,18 +151,35 @@ export const NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS = [
 export type NoticeDetailsJsonbTopLevelKey =
   typeof NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS[number];
 
+export interface NoticeDetailsEntry {
+  title: string | null;
+  content: string;
+}
+
+export interface NoticeDetailsResourceLink {
+  label: string | null;
+  url: string;
+  purpose: string | null;
+}
+
+export interface NoticeDetailsContactItem {
+  label: string | null;
+  value: string;
+  channel: string | null;
+}
+
 export interface NoticeDetailsJsonb {
-  eligibility?: NoticeReadModelJsonObject;
-  required_documents?: NoticeReadModelJsonValue[];
-  application_process?: NoticeReadModelJsonObject;
-  schedule_details?: NoticeReadModelJsonObject;
-  benefit_details?: NoticeReadModelJsonObject;
-  selection_details?: NoticeReadModelJsonObject;
-  content_details?: NoticeReadModelJsonObject;
-  resource_links?: NoticeReadModelJsonValue[];
-  contact?: NoticeReadModelJsonObject;
-  important_notes?: NoticeReadModelJsonValue[];
-  extra?: NoticeReadModelJsonObject;
+  eligibility: NoticeDetailsEntry[] | null;
+  required_documents: NoticeDetailsEntry[] | null;
+  application_process: NoticeDetailsEntry[] | null;
+  schedule_details: NoticeDetailsEntry[] | null;
+  benefit_details: NoticeDetailsEntry[] | null;
+  selection_details: NoticeDetailsEntry[] | null;
+  content_details: NoticeDetailsEntry[] | null;
+  resource_links: NoticeDetailsResourceLink[] | null;
+  contact: NoticeDetailsContactItem[] | null;
+  important_notes: string[] | null;
+  extra: NoticeDetailsEntry[] | null;
 }
 
 export interface NoticeAssetProcessingUpdate {

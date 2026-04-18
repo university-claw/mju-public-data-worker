@@ -42,6 +42,69 @@ export type NoticeImageOcrStatus =
   | "succeeded"
   | "failed"
   | "unsupported";
+export type NoticeReadModelNormalizationStatus =
+  | "succeeded"
+  | "failed";
+export type NoticeReadModelNoticeKind =
+  | "announcement"
+  | "scholarship"
+  | "recruitment"
+  | "event"
+  | "survey"
+  | "system_notice"
+  | "application"
+  | "contest"
+  | "result"
+  | "other";
+export type NoticeReadModelIssuerScope = "internal" | "external";
+export type NoticeReadModelPrimaryTimeKind =
+  | "application_period"
+  | "event_period"
+  | "operation_period"
+  | "response_deadline"
+  | "announcement_period"
+  | "other";
+export type NoticeReadModelActionKind =
+  | "apply"
+  | "register"
+  | "participate"
+  | "respond"
+  | "check"
+  | "support"
+  | "other";
+export type NoticeReadModelActionChannel =
+  | "web_form"
+  | "system"
+  | "email"
+  | "in_person"
+  | "onsite"
+  | "phone"
+  | "other";
+export type NoticeReadModelParticipationMode =
+  | "online"
+  | "offline"
+  | "hybrid"
+  | "remote"
+  | "onsite"
+  | "other";
+export type NoticeReadModelBenefitKind =
+  | "scholarship"
+  | "grant"
+  | "tuition"
+  | "interest_support"
+  | "prize"
+  | "free_issue"
+  | "coupon"
+  | "other";
+
+export type NoticeReadModelJsonPrimitive = string | number | boolean | null;
+export interface NoticeReadModelJsonObject {
+  [key: string]: NoticeReadModelJsonValue;
+}
+export type NoticeReadModelJsonValue =
+  | NoticeReadModelJsonPrimitive
+  | NoticeReadModelJsonObject
+  | NoticeReadModelJsonValue[];
 
 export interface NoticeAssetProcessingUpdate {
   storageProvider?: "local" | null;
@@ -107,4 +170,45 @@ export interface NoticeDetail extends NoticeListItem {
   contentHash: string;
   attachments: NoticeAttachment[];
   images: NoticeAssetImage[];
+}
+
+export interface NoticeReadModelUpsertInput {
+  noticeItemId: number;
+  noticeKind?: NoticeReadModelNoticeKind | null;
+  issuerName?: string | null;
+  issuerScope?: NoticeReadModelIssuerScope | null;
+  targetCampuses: readonly string[];
+  targetAudiences: readonly string[];
+  targetProgramLevels: readonly string[];
+  targetDepartments: readonly string[];
+  targetGradeYears: readonly number[];
+  primaryTimeKind?: NoticeReadModelPrimaryTimeKind | null;
+  primaryStartAt?: string | null;
+  primaryEndAt?: string | null;
+  primaryDeadlineAt?: string | null;
+  hasDeadline: boolean;
+  actionRequired: boolean;
+  actionKind?: NoticeReadModelActionKind | null;
+  primaryActionChannel?: NoticeReadModelActionChannel | null;
+  primaryActionUrl?: string | null;
+  primaryLocation?: string | null;
+  participationMode?: NoticeReadModelParticipationMode | null;
+  hasBenefit: boolean;
+  benefitKind?: NoticeReadModelBenefitKind | null;
+  benefitAmountKrw?: number | null;
+  selectionCount?: number | null;
+  summary?: string | null;
+  detailsJsonb: NoticeReadModelJsonValue | null;
+  normalizedConfidence: number;
+  normalizedAt: string;
+  normalizationStatus: NoticeReadModelNormalizationStatus;
+  normalizationErrorMessage?: string | null;
+}
+
+export interface NoticeReadModel extends NoticeReadModelUpsertInput {
+  id: number;
+  sourceId: string;
+  externalId: string;
+  createdAt: string;
+  updatedAt: string;
 }

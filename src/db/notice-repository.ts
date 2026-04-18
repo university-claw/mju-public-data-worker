@@ -6,6 +6,10 @@ import type {
   NoticeImageOcrUpdate,
   NoticeAttachment,
   NoticeDetail,
+  NoticeReadModel,
+  NoticeReadModelJsonValue,
+  NoticeReadModelNormalizationStatus,
+  NoticeReadModelUpsertInput,
   NoticeSource,
   StoredNoticeAttachment,
   StoredNoticeImage,
@@ -22,6 +26,8 @@ export interface NoticeUpsertResult {
   wasInserted: boolean;
   obsoleteStorageKeys: string[];
 }
+
+type NoticeQueryExecutor = Pick<Pool, "query">;
 
 export class NoticeRepository {
   constructor(
@@ -473,6 +479,319 @@ export class NoticeRepository {
         update.errorMessage ?? null,
       ],
     );
+  }
+
+  async upsertReadModel(input: NoticeReadModelUpsertInput): Promise<void> {
+    await this.upsertReadModelWithExecutor(this.pool, input);
+  }
+
+  async upsertReadModelWithClient(
+    client: PoolClient,
+    input: NoticeReadModelUpsertInput,
+  ): Promise<void> {
+    await this.upsertReadModelWithExecutor(client, input);
+  }
+
+  private async upsertReadModelWithExecutor(
+    executor: NoticeQueryExecutor,
+    input: NoticeReadModelUpsertInput,
+  ): Promise<void> {
+    const detailsJsonb = input.detailsJsonb === null
+      ? null
+      : JSON.stringify(input.detailsJsonb);
+    const result = await executor.query<{ id: number }>(
+      `
+        INSERT INTO ${this.schema}.notice_read_models (
+          notice_item_id,
+          source_id,
+          external_id,
+          notice_kind,
+          issuer_name,
+          issuer_scope,
+          target_campuses,
+          target_audiences,
+          target_program_levels,
+          target_departments,
+          target_grade_years,
+          primary_time_kind,
+          primary_start_at,
+          primary_end_at,
+          primary_deadline_at,
+          has_deadline,
+          action_required,
+          action_kind,
+          primary_action_channel,
+          primary_action_url,
+          primary_location,
+          participation_mode,
+          has_benefit,
+          benefit_kind,
+          benefit_amount_krw,
+          selection_count,
+          summary,
+          details_jsonb,
+          normalized_confidence,
+          normalized_at,
+          normalization_status,
+          normalization_error_message,
+          updated_at
+        )
+        SELECT
+          ni.id,
+          ni.source_id,
+          ni.external_id,
+          $2,
+          $3,
+          $4,
+          $5::text[],
+          $6::text[],
+          $7::text[],
+          $8::text[],
+          $9::integer[],
+          $10,
+          $11,
+          $12,
+          $13,
+          $14,
+          $15,
+          $16,
+          $17,
+          $18,
+          $19,
+          $20,
+          $21,
+          $22,
+          $23,
+          $24,
+          $25,
+          $26::jsonb,
+          $27,
+          $28,
+          $29,
+          $30,
+          now()
+        FROM ${this.schema}.notice_items ni
+        WHERE ni.id = $1
+        ON CONFLICT (notice_item_id) DO UPDATE
+        SET
+          source_id = EXCLUDED.source_id,
+          external_id = EXCLUDED.external_id,
+          notice_kind = EXCLUDED.notice_kind,
+          issuer_name = EXCLUDED.issuer_name,
+          issuer_scope = EXCLUDED.issuer_scope,
+          target_campuses = EXCLUDED.target_campuses,
+          target_audiences = EXCLUDED.target_audiences,
+          target_program_levels = EXCLUDED.target_program_levels,
+          target_departments = EXCLUDED.target_departments,
+          target_grade_years = EXCLUDED.target_grade_years,
+          primary_time_kind = EXCLUDED.primary_time_kind,
+          primary_start_at = EXCLUDED.primary_start_at,
+          primary_end_at = EXCLUDED.primary_end_at,
+          primary_deadline_at = EXCLUDED.primary_deadline_at,
+          has_deadline = EXCLUDED.has_deadline,
+          action_required = EXCLUDED.action_required,
+          action_kind = EXCLUDED.action_kind,
+          primary_action_channel = EXCLUDED.primary_action_channel,
+          primary_action_url = EXCLUDED.primary_action_url,
+          primary_location = EXCLUDED.primary_location,
+          participation_mode = EXCLUDED.participation_mode,
+          has_benefit = EXCLUDED.has_benefit,
+          benefit_kind = EXCLUDED.benefit_kind,
+          benefit_amount_krw = EXCLUDED.benefit_amount_krw,
+          selection_count = EXCLUDED.selection_count,
+          summary = EXCLUDED.summary,
+          details_jsonb = EXCLUDED.details_jsonb,
+          normalized_confidence = EXCLUDED.normalized_confidence,
+          normalized_at = EXCLUDED.normalized_at,
+          normalization_status = EXCLUDED.normalization_status,
+          normalization_error_message = EXCLUDED.normalization_error_message,
+          updated_at = now()
+        RETURNING id
+      `,
+      [
+        input.noticeItemId,
+        input.noticeKind ?? null,
+        input.issuerName ?? null,
+        input.issuerScope ?? null,
+        [...input.targetCampuses],
+        [...input.targetAudiences],
+        [...input.targetProgramLevels],
+        [...input.targetDepartments],
+        [...input.targetGradeYears],
+        input.primaryTimeKind ?? null,
+        input.primaryStartAt ?? null,
+        input.primaryEndAt ?? null,
+        input.primaryDeadlineAt ?? null,
+        input.hasDeadline,
+        input.actionRequired,
+        input.actionKind ?? null,
+        input.primaryActionChannel ?? null,
+        input.primaryActionUrl ?? null,
+        input.primaryLocation ?? null,
+        input.participationMode ?? null,
+        input.hasBenefit,
+        input.benefitKind ?? null,
+        input.benefitAmountKrw ?? null,
+        input.selectionCount ?? null,
+        input.summary ?? null,
+        detailsJsonb,
+        input.normalizedConfidence,
+        input.normalizedAt,
+        input.normalizationStatus,
+        input.normalizationErrorMessage ?? null,
+      ],
+    );
+
+    if (!result.rows[0]) {
+      throw new Error(
+        `notice item ${input.noticeItemId} was not found for read model upsert`,
+      );
+    }
+  }
+
+  async getReadModelByNoticeItemId(
+    noticeItemId: number,
+  ): Promise<NoticeReadModel | null> {
+    const result = await this.pool.query<{
+      id: number;
+      notice_item_id: number;
+      source_id: string;
+      external_id: string;
+      notice_kind: string | null;
+      issuer_name: string | null;
+      issuer_scope: string | null;
+      target_campuses: string[] | null;
+      target_audiences: string[] | null;
+      target_program_levels: string[] | null;
+      target_departments: string[] | null;
+      target_grade_years: Array<number | string> | null;
+      primary_time_kind: string | null;
+      primary_start_at: string | null;
+      primary_end_at: string | null;
+      primary_deadline_at: string | null;
+      has_deadline: boolean;
+      action_required: boolean;
+      action_kind: string | null;
+      primary_action_channel: string | null;
+      primary_action_url: string | null;
+      primary_location: string | null;
+      participation_mode: string | null;
+      has_benefit: boolean;
+      benefit_kind: string | null;
+      benefit_amount_krw: number | null;
+      selection_count: number | null;
+      summary: string | null;
+      details_jsonb: NoticeReadModelJsonValue | null;
+      normalized_confidence: number;
+      normalized_at: string;
+      normalization_status: NoticeReadModelNormalizationStatus;
+      normalization_error_message: string | null;
+      created_at: string;
+      updated_at: string;
+    }>(
+      `
+        SELECT
+          id,
+          notice_item_id,
+          source_id,
+          external_id,
+          notice_kind,
+          issuer_name,
+          issuer_scope,
+          target_campuses,
+          target_audiences,
+          target_program_levels,
+          target_departments,
+          target_grade_years,
+          primary_time_kind,
+          primary_start_at::text,
+          primary_end_at::text,
+          primary_deadline_at::text,
+          has_deadline,
+          action_required,
+          action_kind,
+          primary_action_channel,
+          primary_action_url,
+          primary_location,
+          participation_mode,
+          has_benefit,
+          benefit_kind,
+          benefit_amount_krw,
+          selection_count,
+          summary,
+          details_jsonb,
+          normalized_confidence,
+          normalized_at::text,
+          normalization_status,
+          normalization_error_message,
+          created_at::text,
+          updated_at::text
+        FROM ${this.schema}.notice_read_models
+        WHERE notice_item_id = $1
+      `,
+      [noticeItemId],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: Number(row.id),
+      noticeItemId: Number(row.notice_item_id),
+      sourceId: row.source_id,
+      externalId: row.external_id,
+      noticeKind:
+        row.notice_kind as Exclude<NoticeReadModel["noticeKind"], undefined>,
+      issuerName: row.issuer_name,
+      issuerScope:
+        row.issuer_scope as Exclude<NoticeReadModel["issuerScope"], undefined>,
+      targetCampuses: row.target_campuses ?? [],
+      targetAudiences: row.target_audiences ?? [],
+      targetProgramLevels: row.target_program_levels ?? [],
+      targetDepartments: row.target_departments ?? [],
+      targetGradeYears: (row.target_grade_years ?? []).map((value) =>
+        Number(value)
+      ),
+      primaryTimeKind:
+        row.primary_time_kind as Exclude<
+          NoticeReadModel["primaryTimeKind"],
+          undefined
+        >,
+      primaryStartAt: row.primary_start_at,
+      primaryEndAt: row.primary_end_at,
+      primaryDeadlineAt: row.primary_deadline_at,
+      hasDeadline: row.has_deadline,
+      actionRequired: row.action_required,
+      actionKind:
+        row.action_kind as Exclude<NoticeReadModel["actionKind"], undefined>,
+      primaryActionChannel:
+        row.primary_action_channel as Exclude<
+          NoticeReadModel["primaryActionChannel"],
+          undefined
+        >,
+      primaryActionUrl: row.primary_action_url,
+      primaryLocation: row.primary_location,
+      participationMode:
+        row.participation_mode as Exclude<
+          NoticeReadModel["participationMode"],
+          undefined
+        >,
+      hasBenefit: row.has_benefit,
+      benefitKind:
+        row.benefit_kind as Exclude<NoticeReadModel["benefitKind"], undefined>,
+      benefitAmountKrw: row.benefit_amount_krw,
+      selectionCount: row.selection_count,
+      summary: row.summary,
+      detailsJsonb: row.details_jsonb,
+      normalizedConfidence: row.normalized_confidence,
+      normalizedAt: row.normalized_at,
+      normalizationStatus: row.normalization_status,
+      normalizationErrorMessage: row.normalization_error_message,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
   private async upsertNoticeRow(

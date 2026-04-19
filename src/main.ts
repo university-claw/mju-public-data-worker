@@ -77,11 +77,16 @@ function parsePositiveIntegerOption(name: string, raw: string): number {
 
 function parseDatasetOption(
   args: string[],
-): "tuning" | "holdout" {
+): "tuning" | "holdout" | "validation_v2" | "regression" {
   const raw = parseStringOption(args, "--dataset") ?? "tuning";
-  if (raw !== "tuning" && raw !== "holdout") {
+  if (
+    raw !== "tuning" &&
+    raw !== "holdout" &&
+    raw !== "validation_v2" &&
+    raw !== "regression"
+  ) {
     throw new Error(
-      `--dataset must be one of: tuning, holdout (received: ${raw})`,
+      `--dataset must be one of: tuning, holdout, validation_v2, regression (received: ${raw})`,
     );
   }
 

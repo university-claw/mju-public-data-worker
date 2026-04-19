@@ -158,6 +158,13 @@ async function runCollect(args: string[]): Promise<void> {
         triggerReason: "manual",
         storageLocalRoot: config.storageLocalRoot,
         ocrLanguages: config.ocrLanguages,
+        noticeNormalizationEnabled: config.noticeNormalizationEnabled,
+        noticeNormalizationModel: config.noticeNormalizationModel,
+        noticeNormalizationMaxOutputTokens:
+          config.noticeNormalizationMaxOutputTokens,
+        ...(config.openAiApiKey
+          ? { noticeNormalizationApiKey: config.openAiApiKey }
+          : {}),
       });
 
       console.log(
@@ -180,6 +187,10 @@ async function runCollect(args: string[]): Promise<void> {
               result.noticeImageOcrUnsupportedCount,
             totalNoticeImageOcrFailedCount:
               result.noticeImageOcrFailedCount,
+            totalNoticeNormalizationSucceededCount:
+              result.noticeNormalizationSucceededCount,
+            totalNoticeNormalizationFailedCount:
+              result.noticeNormalizationFailedCount,
             sources: result.sources,
           },
           null,
@@ -248,7 +259,14 @@ async function runSchedule(args: string[]): Promise<void> {
     const result = await runSchedulerTick(pool, config.pgSchema, {
       storageLocalRoot: config.storageLocalRoot,
       ocrLanguages: config.ocrLanguages,
+      noticeNormalizationEnabled: config.noticeNormalizationEnabled,
+      noticeNormalizationModel: config.noticeNormalizationModel,
+      noticeNormalizationMaxOutputTokens:
+        config.noticeNormalizationMaxOutputTokens,
       dryRun,
+      ...(config.openAiApiKey
+        ? { noticeNormalizationApiKey: config.openAiApiKey }
+        : {}),
     });
 
     console.log(JSON.stringify(result, null, 2));

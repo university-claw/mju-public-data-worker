@@ -12,6 +12,10 @@ import {
   createNoticeImageOcrProcessor,
   type NoticeImageOcrProcessor,
 } from "../notices/image-ocr-processor.js";
+import {
+  createNoticeNormalizationRunner,
+  type NoticeNormalizationRunner,
+} from "../notices/normalization-runner.js";
 import { scrapeNoticeDetail } from "../notices/detail-scraper.js";
 import { scrapeNoticeList } from "../notices/list-scraper.js";
 import { NOTICE_SOURCES } from "../notices/sources.js";
@@ -22,6 +26,10 @@ export interface CollectNoticesOptions {
   triggerReason: string;
   storageLocalRoot: string;
   ocrLanguages: string[];
+  noticeNormalizationEnabled: boolean;
+  noticeNormalizationApiKey?: string;
+  noticeNormalizationModel: string;
+  noticeNormalizationMaxOutputTokens: number;
 }
 
 export interface SourceCollectMetrics {
@@ -35,6 +43,8 @@ export interface SourceCollectMetrics {
   noticeImageOcrSucceededCount: number;
   noticeImageOcrUnsupportedCount: number;
   noticeImageOcrFailedCount: number;
+  noticeNormalizationSucceededCount: number;
+  noticeNormalizationFailedCount: number;
 }
 
 export interface SourceCollectResult extends SourceCollectMetrics {
@@ -82,6 +92,15 @@ export async function collectNotices(
     storageLocalRoot: options.storageLocalRoot,
     ocrLanguages: options.ocrLanguages,
   });
+  const normalizationRunner = createNoticeNormalizationRunner({
+    repository,
+    enabled: options.noticeNormalizationEnabled,
+    model: options.noticeNormalizationModel,
+    maxOutputTokens: options.noticeNormalizationMaxOutputTokens,
+    ...(options.noticeNormalizationApiKey
+      ? { apiKey: options.noticeNormalizationApiKey }
+      : {}),
+  });
   await repository.ensureSources(NOTICE_SOURCES);
 
   const scrapeRunId = await repository.createScrapeRun(
@@ -101,6 +120,8 @@ export async function collectNotices(
     noticeImageOcrSucceededCount: 0,
     noticeImageOcrUnsupportedCount: 0,
     noticeImageOcrFailedCount: 0,
+    noticeNormalizationSucceededCount: 0,
+    noticeNormalizationFailedCount: 0,
   };
 
   try {
@@ -113,6 +134,7 @@ export async function collectNotices(
           assetProcessor,
           attachmentExtractionProcessor,
           imageOcrProcessor,
+          normalizationRunner,
           source,
           options.limit,
         );
@@ -146,6 +168,8 @@ export async function collectNotices(
               noticeImageOcrSucceededCount: 0,
               noticeImageOcrUnsupportedCount: 0,
               noticeImageOcrFailedCount: 0,
+              noticeNormalizationSucceededCount: 0,
+              noticeNormalizationFailedCount: 0,
             };
         const errorMessage =
           error instanceof Error ? error.message : String(error);
@@ -183,6 +207,8 @@ export async function collectNotices(
       totals.noticeImageOcrSucceededCount,
       totals.noticeImageOcrUnsupportedCount,
       totals.noticeImageOcrFailedCount,
+      totals.noticeNormalizationSucceededCount,
+      totals.noticeNormalizationFailedCount,
       hasFailure ? "one or more sources failed" : undefined,
     );
 
@@ -210,6 +236,8 @@ export async function collectNotices(
         totals.noticeImageOcrSucceededCount,
         totals.noticeImageOcrUnsupportedCount,
         totals.noticeImageOcrFailedCount,
+        totals.noticeNormalizationSucceededCount,
+        totals.noticeNormalizationFailedCount,
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -248,6 +276,9 @@ function accumulateMetrics(
   target.noticeImageOcrSucceededCount += source.noticeImageOcrSucceededCount;
   target.noticeImageOcrUnsupportedCount += source.noticeImageOcrUnsupportedCount;
   target.noticeImageOcrFailedCount += source.noticeImageOcrFailedCount;
+  target.noticeNormalizationSucceededCount +=
+    source.noticeNormalizationSucceededCount;
+  target.noticeNormalizationFailedCount += source.noticeNormalizationFailedCount;
 }
 
 async function collectSingleSource(
@@ -255,6 +286,7 @@ async function collectSingleSource(
   assetProcessor: NoticeAssetProcessor,
   attachmentExtractionProcessor: NoticeAttachmentExtractionProcessor,
   imageOcrProcessor: NoticeImageOcrProcessor,
+  normalizationRunner: NoticeNormalizationRunner,
   source: NoticeSource,
   limit: number,
 ): Promise<SourceCollectMetrics> {
@@ -271,6 +303,8 @@ async function collectSingleSource(
     noticeImageOcrSucceededCount: 0,
     noticeImageOcrUnsupportedCount: 0,
     noticeImageOcrFailedCount: 0,
+    noticeNormalizationSucceededCount: 0,
+    noticeNormalizationFailedCount: 0,
   };
 
   // 오케스트레이터가 나중에 DB만 보고 답할 수 있으려면, 첫 슬라이스부터
@@ -293,6 +327,22 @@ async function collectSingleSource(
         upsertResult.noticeItemId,
         fetchedAt,
       );
+      const normalizationResult = await normalizationRunner.normalizeNotice(
+        upsertResult.noticeItemId,
+      );
+      if (normalizationResult.status === "succeeded") {
+        metrics.noticeNormalizationSucceededCount += 1;
+      }
+      if (normalizationResult.status === "failed") {
+        metrics.noticeNormalizationFailedCount += 1;
+        console.warn(
+          `notice normalization failed for ${source.id}:${item.externalId}: ${normalizationResult.errorMessage ?? "unknown error"}${
+            normalizationResult.persistedFailureState === false
+              ? " (read model row not created yet; failure stored on notice item)"
+              : ""
+          }`,
+        );
+      }
 
       metrics.processedCount += 1;
       metrics.attachmentExtractionSucceededCount += extractionSummary.succeededCount;

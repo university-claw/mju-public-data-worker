@@ -98,7 +98,20 @@ describe("notice repository integration", () => {
         selectionCount: 10,
         summary: "테스트 장학 공지 요약",
         detailsJsonb: {
-          required_documents: ["신청서", "성적증명서"],
+          eligibility: null,
+          required_documents: [
+            { title: "필수", content: "신청서" },
+            { title: "필수", content: "성적증명서" },
+          ],
+          application_process: null,
+          schedule_details: null,
+          benefit_details: null,
+          selection_details: null,
+          content_details: null,
+          resource_links: null,
+          contact: null,
+          important_notes: null,
+          extra: null,
         },
         normalizedConfidence: 0.91,
         normalizedAt: "2026-04-18T12:00:00+09:00",
@@ -133,7 +146,21 @@ describe("notice repository integration", () => {
         selectionCount: 12,
         summary: "업데이트된 테스트 장학 공지 요약",
         detailsJsonb: {
-          required_documents: ["신청서", "성적증명서", "재학증명서"],
+          eligibility: null,
+          required_documents: [
+            { title: "필수", content: "신청서" },
+            { title: "필수", content: "성적증명서" },
+            { title: "필수", content: "재학증명서" },
+          ],
+          application_process: null,
+          schedule_details: null,
+          benefit_details: null,
+          selection_details: null,
+          content_details: null,
+          resource_links: null,
+          contact: null,
+          important_notes: null,
+          extra: null,
         },
         normalizedConfidence: 0.93,
         normalizedAt: "2026-04-18T13:00:00+09:00",
@@ -157,7 +184,21 @@ describe("notice repository integration", () => {
         normalizationStatus: "succeeded",
       });
       expect(stored?.detailsJsonb).toEqual({
-        required_documents: ["신청서", "성적증명서", "재학증명서"],
+        eligibility: null,
+        required_documents: [
+          { title: "필수", content: "신청서" },
+          { title: "필수", content: "성적증명서" },
+          { title: "필수", content: "재학증명서" },
+        ],
+        application_process: null,
+        schedule_details: null,
+        benefit_details: null,
+        selection_details: null,
+        content_details: null,
+        resource_links: null,
+        contact: null,
+        important_notes: null,
+        extra: null,
       });
     } finally {
       await pool.query(

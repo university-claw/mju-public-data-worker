@@ -4,7 +4,7 @@ import type {
   NoticeReadModelActionChannel,
   NoticeNormalizationSourceBundle,
 } from "./types.js";
-import type { NoticeNormalizationStructuredOutput } from "./normalization-evaluator.js";
+import type { NoticeNormalizationStructuredOutput } from "./normalization-runtime.js";
 
 const URL_PATTERN =
   /(?:(?:https?:\/\/|mailto:|www\.)[^\s<>"'`)\]}]+)/giu;

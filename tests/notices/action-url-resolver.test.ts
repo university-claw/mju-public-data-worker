@@ -4,7 +4,7 @@ import type {
   NoticeDetailsJsonb,
   NoticeNormalizationSourceBundle,
 } from "../../src/notices/types.js";
-import type { NoticeNormalizationStructuredOutput } from "../../src/notices/normalization-evaluator.js";
+import type { NoticeNormalizationStructuredOutput } from "../../src/notices/normalization-runtime.js";
 
 function createBundle(params: {
   bodyText?: string | null;

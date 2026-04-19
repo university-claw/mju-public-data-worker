@@ -17,6 +17,10 @@ import type {
 export interface RunSchedulerTickOptions {
   storageLocalRoot: string;
   ocrLanguages: string[];
+  noticeNormalizationEnabled: boolean;
+  noticeNormalizationApiKey?: string;
+  noticeNormalizationModel: string;
+  noticeNormalizationMaxOutputTokens: number;
   dryRun?: boolean;
   now?: Date;
 }
@@ -104,6 +108,13 @@ export async function runSchedulerTick(
             triggerReason: `scheduled:${definition.taskKey}`,
             storageLocalRoot: options.storageLocalRoot,
             ocrLanguages: options.ocrLanguages,
+            noticeNormalizationEnabled: options.noticeNormalizationEnabled,
+            noticeNormalizationModel: options.noticeNormalizationModel,
+            noticeNormalizationMaxOutputTokens:
+              options.noticeNormalizationMaxOutputTokens,
+            ...(options.noticeNormalizationApiKey
+              ? { noticeNormalizationApiKey: options.noticeNormalizationApiKey }
+              : {}),
           });
 
           return {
@@ -114,6 +125,10 @@ export async function runSchedulerTick(
               processedCount: result.processedCount,
               insertedCount: result.insertedCount,
               updatedCount: result.updatedCount,
+              noticeNormalizationSucceededCount:
+                result.noticeNormalizationSucceededCount,
+              noticeNormalizationFailedCount:
+                result.noticeNormalizationFailedCount,
             },
           };
         }

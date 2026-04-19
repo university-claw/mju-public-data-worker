@@ -95,6 +95,8 @@ export class NoticeRepository {
     totalNoticeImageOcrSucceededCount: number,
     totalNoticeImageOcrUnsupportedCount: number,
     totalNoticeImageOcrFailedCount: number,
+    totalNoticeNormalizationSucceededCount: number,
+    totalNoticeNormalizationFailedCount: number,
     errorMessage?: string,
   ): Promise<void> {
     await this.pool.query(
@@ -114,7 +116,9 @@ export class NoticeRepository {
           total_notice_image_ocr_succeeded_count = $10,
           total_notice_image_ocr_unsupported_count = $11,
           total_notice_image_ocr_failed_count = $12,
-          error_message = $13
+          total_notice_normalization_succeeded_count = $13,
+          total_notice_normalization_failed_count = $14,
+          error_message = $15
         WHERE id = $1
       `,
       [
@@ -130,6 +134,8 @@ export class NoticeRepository {
         totalNoticeImageOcrSucceededCount,
         totalNoticeImageOcrUnsupportedCount,
         totalNoticeImageOcrFailedCount,
+        totalNoticeNormalizationSucceededCount,
+        totalNoticeNormalizationFailedCount,
         errorMessage ?? null,
       ],
     );
@@ -149,6 +155,8 @@ export class NoticeRepository {
     noticeImageOcrSucceededCount: number;
     noticeImageOcrUnsupportedCount: number;
     noticeImageOcrFailedCount: number;
+    noticeNormalizationSucceededCount: number;
+    noticeNormalizationFailedCount: number;
     startedAt: string;
     errorMessage?: string;
   }): Promise<void> {
@@ -171,9 +179,11 @@ export class NoticeRepository {
           notice_image_ocr_succeeded_count,
           notice_image_ocr_unsupported_count,
           notice_image_ocr_failed_count,
+          notice_normalization_succeeded_count,
+          notice_normalization_failed_count,
           error_message
         )
-        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       `,
       [
         params.scrapeRunId,
@@ -190,7 +200,34 @@ export class NoticeRepository {
         params.noticeImageOcrSucceededCount,
         params.noticeImageOcrUnsupportedCount,
         params.noticeImageOcrFailedCount,
+        params.noticeNormalizationSucceededCount,
+        params.noticeNormalizationFailedCount,
         params.errorMessage ?? null,
+      ],
+    );
+  }
+
+  async updateNoticeNormalizationState(params: {
+    noticeItemId: number;
+    status: NoticeReadModelNormalizationStatus;
+    normalizedAt: string;
+    errorMessage?: string | null;
+  }): Promise<void> {
+    await this.pool.query(
+      `
+        UPDATE ${this.schema}.notice_items
+        SET
+          latest_normalization_status = $2,
+          latest_normalization_error_message = $3,
+          latest_normalized_at = $4,
+          updated_at = now()
+        WHERE id = $1
+      `,
+      [
+        params.noticeItemId,
+        params.status,
+        params.errorMessage ?? null,
+        params.normalizedAt,
       ],
     );
   }

@@ -1,4 +1,4 @@
-export const NOTICE_NORMALIZATION_PROMPT_VERSION = "v7";
+export const NOTICE_NORMALIZATION_PROMPT_VERSION = "v8";
 
 export const NOTICE_NORMALIZATION_SYSTEM_PROMPT = `You extract a normalized read model from a university notice.
 
@@ -47,6 +47,7 @@ Facts rules:
 - If the notice explicitly labels a link as 신청 링크, 지원 페이지, 접수 링크, 응답 링크, or similar, that link may be used as primary_action_url even if the path itself looks generic.
 - If the notice only provides a generic homepage, portal landing page, or multiple item-specific links, set primary_action_url to null and keep those links in resource_links.
 - Do not use a bare site root, generic system homepage, or recruitment portal landing page as primary_action_url unless the notice explicitly identifies that exact URL as the application/submission/action link.
+- If a notice says things like "홈페이지 접속 후 ... 클릭" or shows menu navigation from a homepage/root URL, treat that URL as a generic entry point, not a direct action URL.
 - primary_location must be a physical venue or in-person submission/visit location, never a website, portal, or system name.
 - benefit_amount_krw should be the single representative amount when it is clear.
 - Do not use salary, annual pay, hourly wage, compensation, 근로장학 시급, 활동비 단가, or employment-related pay as benefit_amount_krw. Keep those in content_details or benefit_details instead unless the notice is primarily about direct financial support.
@@ -133,6 +134,7 @@ export function buildNoticeNormalizationUserPrompt(promptInput: string): string 
     "- has_deadline=true 이면 primary_deadline_at은 반드시 non-null이어야 한다.",
     "- 일반 홈페이지나 포털 랜딩은 primary_action_url로 두지 말고, 직접 행동 링크가 없으면 primary_action_url은 null로 둔다.",
     "- 단, 본문이 링크를 지원 페이지/신청 링크/접수 링크로 명시하면 그 링크는 primary_action_url 후보가 될 수 있다.",
+    "- 홈페이지 루트 URL에 대해 '홈페이지 접속 후 ... 클릭' 같은 메뉴 이동 안내가 붙어 있으면 direct action URL이 아니라 generic entry URL로 보고 primary_action_url은 null로 둔다.",
     "- 운영부서/센터/팀 이름은 target_departments에 넣지 않는다.",
     "- 관련 전공자/관련 분야 같은 자격 표현은 target_departments에 넣지 않는다.",
     "- 인문계열/사회계열 같은 계열 이름, 모집분야/채용분야/초빙분야/선발직렬은 target_departments에 넣지 않는다.",

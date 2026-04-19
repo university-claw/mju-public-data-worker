@@ -224,7 +224,7 @@ function calculateReservedAssetBudget(params: {
   );
 }
 
-function extractBodyLinks(
+export function extractBodyLinks(
   bodyHtml: string | null | undefined,
   maxBodyLinkCount: number,
 ): NoticeNormalizationContextBodyLink[] {

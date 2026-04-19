@@ -37,6 +37,10 @@ import {
   NOTICE_NORMALIZATION_SYSTEM_PROMPT,
 } from "./normalization-prompt.js";
 import {
+  resolveNoticePrimaryActionUrl,
+  type NoticePrimaryActionUrlResolution,
+} from "./action-url-resolver.js";
+import {
   noticeNormalizationStructuredOutputSchema,
   noticeNormalizationStructuredOutputSchemaName,
 } from "./normalization-output-schema.js";
@@ -110,7 +114,9 @@ export interface NoticeNormalizationEvalResult {
   userPrompt: string;
   usage: NoticeNormalizationEvalUsage;
   validation: NoticeNormalizationEvalValidation;
+  primaryActionUrlResolution: NoticePrimaryActionUrlResolution;
   parsedOutput: NoticeNormalizationStructuredOutput;
+  parsedOutputBeforePostProcessing: NoticeNormalizationStructuredOutput;
   rawOutputText: string;
   rawResponse: unknown;
 }
@@ -131,6 +137,9 @@ export interface NoticeNormalizationEvalSummary {
     sampleCount: number;
     schemaValidCount: number;
     consistencyWarningCount: number;
+    primaryActionUrlChangedCount: number;
+    genericRootClearedCount: number;
+    directCandidateReplacementCount: number;
     averageInputTokens: number;
     averageOutputTokens: number;
     averageEstimatedCostUsd: number | null;
@@ -223,9 +232,16 @@ export async function runNoticeNormalizationEvaluation(
         });
 
         const rawOutputText = extractResponseOutputText(response);
-        const parsedOutput = JSON.parse(
+        const parsedOutputBeforePostProcessing = JSON.parse(
           rawOutputText,
         ) as NoticeNormalizationStructuredOutput;
+        const {
+          output: parsedOutput,
+          resolution: primaryActionUrlResolution,
+        } = resolveNoticePrimaryActionUrl({
+          output: parsedOutputBeforePostProcessing,
+          bundle,
+        });
         const validation = validateStructuredOutput(parsedOutput);
         const usage = buildUsageSummary(model, response.usage);
 
@@ -242,7 +258,9 @@ export async function runNoticeNormalizationEvaluation(
           userPrompt,
           usage,
           validation,
+          primaryActionUrlResolution,
           parsedOutput,
+          parsedOutputBeforePostProcessing,
           rawOutputText,
           rawResponse: response,
         };
@@ -523,12 +541,29 @@ export function buildNoticeNormalizationEvalSummary(params: {
       (sum, result) => sum + result.validation.consistencyWarnings.length,
       0,
     );
+    const primaryActionUrlChangedCount = results.filter(
+      (result) =>
+        result.primaryActionUrlResolution.initialUrl !==
+        result.primaryActionUrlResolution.finalUrl,
+    ).length;
+    const genericRootClearedCount = results.filter(
+      (result) =>
+        result.primaryActionUrlResolution.decision === "cleared_generic_root",
+    ).length;
+    const directCandidateReplacementCount = results.filter(
+      (result) =>
+        result.primaryActionUrlResolution.decision ===
+        "replaced_with_direct_candidate",
+    ).length;
 
     return {
       model,
       sampleCount: results.length,
       schemaValidCount,
       consistencyWarningCount,
+      primaryActionUrlChangedCount,
+      genericRootClearedCount,
+      directCandidateReplacementCount,
       averageInputTokens: average(results.map((result) => result.usage.inputTokens)),
       averageOutputTokens: average(
         results.map((result) => result.usage.outputTokens),

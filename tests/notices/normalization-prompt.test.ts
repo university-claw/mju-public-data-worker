@@ -7,7 +7,7 @@ import {
 
 describe("notice normalization prompt", () => {
   it("tracks the initial prompt version", () => {
-    expect(NOTICE_NORMALIZATION_PROMPT_VERSION).toBe("v7");
+    expect(NOTICE_NORMALIZATION_PROMPT_VERSION).toBe("v8");
   });
 
   it("includes core extraction and anti-hallucination rules", () => {
@@ -46,6 +46,9 @@ describe("notice normalization prompt", () => {
     );
     expect(NOTICE_NORMALIZATION_SYSTEM_PROMPT).toContain(
       "Do not use a bare site root, generic system homepage, or recruitment portal landing page as primary_action_url",
+    );
+    expect(NOTICE_NORMALIZATION_SYSTEM_PROMPT).toContain(
+      "홈페이지 접속 후 ... 클릭",
     );
     expect(NOTICE_NORMALIZATION_SYSTEM_PROMPT).toContain(
       "Do not create placeholder or explanatory pseudo-URLs.",
@@ -91,6 +94,7 @@ describe("notice normalization prompt", () => {
     expect(prompt).toContain("값이 없으면 null로 둔다.");
     expect(prompt).toContain("일반 홈페이지나 포털 랜딩은 primary_action_url로 두지 말고");
     expect(prompt).toContain("관련 전공자/관련 분야 같은 자격 표현은 target_departments에 넣지 않는다.");
+    expect(prompt).toContain("홈페이지 루트 URL에 대해 '홈페이지 접속 후 ... 클릭' 같은 메뉴 이동 안내가 붙어 있으면");
     expect(prompt).toContain("계열 이름, 모집분야/채용분야/초빙분야/선발직렬은 target_departments에 넣지 않는다.");
     expect(prompt).toContain("전공 제한 없음이거나 구체 학과명 없이 계열만 적힌 경우 target_departments는 []로 둔다.");
     expect(prompt).toContain("근무지, 방문 제출처, 증명서 발급처, 문의처에 나온 캠퍼스명만으로 target_campuses를 채우지 않는다.");

@@ -135,3 +135,77 @@ export interface CafeteriaMenuNormalizationResult {
   entries: CafeteriaNormalizedMenuEntry[];
   errorMessage?: string | null;
 }
+
+export type CafeteriaOfficialPageWeekScope =
+  | "current"
+  | "previous"
+  | "next";
+
+export type CafeteriaOfficialPageSnapshotStatus =
+  | "succeeded"
+  | "empty"
+  | "failed";
+
+export interface CafeteriaOfficialPageSource {
+  sourceId: string;
+  pageKey: string;
+  pageUrl: string;
+  viewActionPath: string;
+  name: string;
+  active?: boolean;
+}
+
+export interface CafeteriaOfficialPageSnapshotInput {
+  sourceId: string;
+  weekStartDate: string;
+  weekScope: CafeteriaOfficialPageWeekScope;
+  snapshotHash: string;
+  rawHtml: string;
+  fetchedAt: string;
+  status: CafeteriaOfficialPageSnapshotStatus;
+  errorMessage?: string | null;
+}
+
+export interface CafeteriaOfficialPageSnapshotResult {
+  sourceSnapshotId: number;
+}
+
+export interface CafeteriaOfficialMenuDocumentInput {
+  sourceSnapshotId: number;
+  sourceId: string;
+  weekStartDate: string;
+  documentScope: CafeteriaMenuDocumentScope;
+  serviceStartDate?: string | null;
+  serviceEndDate?: string | null;
+  breakfastAvailable: boolean;
+  lunchAvailable: boolean;
+  dinnerAvailable: boolean;
+  normalizedAt?: string | null;
+}
+
+export interface CafeteriaOfficialMenuEntryInput {
+  serviceDate: string;
+  mealType: CafeteriaMenuMealType;
+  isClosed: boolean;
+  menuText: string;
+  menuItems: string[];
+  confidence?: number | null;
+}
+
+export type CafeteriaResolvedMenuSourceKind =
+  | "instagram_ocr"
+  | "official_page";
+
+export interface CafeteriaResolvedMenuEntryInput {
+  sourceId: string;
+  serviceDate: string;
+  mealType: CafeteriaMenuMealType;
+  selectedSourceKind: CafeteriaResolvedMenuSourceKind;
+  selectedInstagramEntryId?: number | null;
+  selectedOfficialEntryId?: number | null;
+  isClosed: boolean;
+  menuText: string;
+  menuItems: string[];
+  selectionReason?: string | null;
+  selectedAt?: string | null;
+}

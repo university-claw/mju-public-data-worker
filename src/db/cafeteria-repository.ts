@@ -1,5 +1,10 @@
 import type { Pool } from "pg";
 import type {
+  CafeteriaOfficialMenuDocumentInput,
+  CafeteriaOfficialMenuEntryInput,
+  CafeteriaOfficialPageSnapshotInput,
+  CafeteriaOfficialPageSnapshotResult,
+  CafeteriaOfficialPageSource,
   CafeteriaMenuNormalizationContext,
   CafeteriaMenuNormalizationResult,
   CafeteriaMenuDocumentStructureResult,
@@ -9,6 +14,7 @@ import type {
   CafeteriaInstagramSource,
   CafeteriaInstagramUpsertResult,
   CafeteriaPostClassificationResult,
+  CafeteriaResolvedMenuEntryInput,
 } from "../cafeterias/types.js";
 
 export class CafeteriaRepository {
@@ -57,6 +63,270 @@ export class CafeteriaRepository {
         ],
       );
     }
+  }
+
+  async ensureOfficialPageSources(
+    sources: CafeteriaOfficialPageSource[],
+  ): Promise<void> {
+    for (const source of sources) {
+      await this.pool.query(
+        `
+          INSERT INTO ${this.schema}.cafeteria_official_page_sources (
+            source_id,
+            page_key,
+            page_url,
+            view_action_path,
+            name,
+            active,
+            updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, now())
+          ON CONFLICT (source_id) DO UPDATE
+          SET
+            page_key = EXCLUDED.page_key,
+            page_url = EXCLUDED.page_url,
+            view_action_path = EXCLUDED.view_action_path,
+            name = EXCLUDED.name,
+            active = EXCLUDED.active,
+            updated_at = now()
+        `,
+        [
+          source.sourceId,
+          source.pageKey,
+          source.pageUrl,
+          source.viewActionPath,
+          source.name,
+          source.active ?? true,
+        ],
+      );
+    }
+  }
+
+  async createOfficialPageSnapshot(
+    input: CafeteriaOfficialPageSnapshotInput,
+  ): Promise<CafeteriaOfficialPageSnapshotResult> {
+    const result = await this.pool.query<{ id: number }>(
+      `
+        INSERT INTO ${this.schema}.cafeteria_official_page_snapshots (
+          source_id,
+          week_start_date,
+          week_scope,
+          snapshot_hash,
+          raw_html,
+          fetched_at,
+          status,
+          error_message
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `,
+      [
+        input.sourceId,
+        input.weekStartDate,
+        input.weekScope,
+        input.snapshotHash,
+        input.rawHtml,
+        input.fetchedAt,
+        input.status,
+        input.errorMessage ?? null,
+      ],
+    );
+
+    return {
+      sourceSnapshotId: Number(result.rows[0]!.id),
+    };
+  }
+
+  async upsertOfficialMenuDocument(
+    input: CafeteriaOfficialMenuDocumentInput,
+  ): Promise<number> {
+    const result = await this.pool.query<{ id: number }>(
+      `
+        INSERT INTO ${this.schema}.cafeteria_official_menu_documents (
+          source_snapshot_id,
+          source_id,
+          week_start_date,
+          document_scope,
+          service_start_date,
+          service_end_date,
+          breakfast_available,
+          lunch_available,
+          dinner_available,
+          normalized_at,
+          updated_at
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          $4,
+          $5,
+          $6,
+          $7,
+          $8,
+          $9,
+          $10,
+          now()
+        )
+        ON CONFLICT (source_snapshot_id) DO UPDATE
+        SET
+          source_id = EXCLUDED.source_id,
+          week_start_date = EXCLUDED.week_start_date,
+          document_scope = EXCLUDED.document_scope,
+          service_start_date = EXCLUDED.service_start_date,
+          service_end_date = EXCLUDED.service_end_date,
+          breakfast_available = EXCLUDED.breakfast_available,
+          lunch_available = EXCLUDED.lunch_available,
+          dinner_available = EXCLUDED.dinner_available,
+          normalized_at = EXCLUDED.normalized_at,
+          updated_at = now()
+        RETURNING id
+      `,
+      [
+        input.sourceSnapshotId,
+        input.sourceId,
+        input.weekStartDate,
+        input.documentScope,
+        input.serviceStartDate ?? null,
+        input.serviceEndDate ?? null,
+        input.breakfastAvailable,
+        input.lunchAvailable,
+        input.dinnerAvailable,
+        input.normalizedAt ?? null,
+      ],
+    );
+
+    return Number(result.rows[0]!.id);
+  }
+
+  async replaceOfficialMenuEntries(params: {
+    sourceDocumentId: number;
+    sourceId: string;
+    entries: CafeteriaOfficialMenuEntryInput[];
+    normalizationMethod?: string;
+  }): Promise<void> {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        `
+          DELETE FROM ${this.schema}.cafeteria_official_menu_entries
+          WHERE source_document_id = $1
+        `,
+        [params.sourceDocumentId],
+      );
+
+      for (const entry of params.entries) {
+        await client.query(
+          `
+            INSERT INTO ${this.schema}.cafeteria_official_menu_entries (
+              source_document_id,
+              source_id,
+              service_date,
+              meal_type,
+              is_closed,
+              menu_text,
+              menu_items,
+              parse_confidence,
+              normalization_method,
+              updated_at
+            )
+            VALUES (
+              $1,
+              $2,
+              $3,
+              $4,
+              $5,
+              $6,
+              $7::jsonb,
+              $8,
+              $9,
+              now()
+            )
+          `,
+          [
+            params.sourceDocumentId,
+            params.sourceId,
+            entry.serviceDate,
+            entry.mealType,
+            entry.isClosed,
+            entry.menuText,
+            JSON.stringify(entry.menuItems),
+            entry.confidence ?? null,
+            params.normalizationMethod ?? "html_table",
+          ],
+        );
+      }
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async upsertResolvedMenuEntry(
+    input: CafeteriaResolvedMenuEntryInput,
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        INSERT INTO ${this.schema}.cafeteria_resolved_menu_entries (
+          source_id,
+          service_date,
+          meal_type,
+          selected_source_kind,
+          selected_instagram_entry_id,
+          selected_official_entry_id,
+          is_closed,
+          menu_text,
+          menu_items,
+          selection_reason,
+          selected_at,
+          updated_at
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          $4,
+          $5,
+          $6,
+          $7,
+          $8,
+          $9::jsonb,
+          $10,
+          coalesce($11, now()),
+          now()
+        )
+        ON CONFLICT (source_id, service_date, meal_type) DO UPDATE
+        SET
+          selected_source_kind = EXCLUDED.selected_source_kind,
+          selected_instagram_entry_id = EXCLUDED.selected_instagram_entry_id,
+          selected_official_entry_id = EXCLUDED.selected_official_entry_id,
+          is_closed = EXCLUDED.is_closed,
+          menu_text = EXCLUDED.menu_text,
+          menu_items = EXCLUDED.menu_items,
+          selection_reason = EXCLUDED.selection_reason,
+          selected_at = EXCLUDED.selected_at,
+          updated_at = now()
+      `,
+      [
+        input.sourceId,
+        input.serviceDate,
+        input.mealType,
+        input.selectedSourceKind,
+        input.selectedInstagramEntryId ?? null,
+        input.selectedOfficialEntryId ?? null,
+        input.isClosed,
+        input.menuText,
+        JSON.stringify(input.menuItems),
+        input.selectionReason ?? null,
+        input.selectedAt ?? null,
+      ],
+    );
   }
 
   async createScrapeRun(workerName: string, triggerReason: string): Promise<number> {

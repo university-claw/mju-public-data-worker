@@ -155,6 +155,14 @@ export interface CafeteriaOfficialPageSource {
   active?: boolean;
 }
 
+export interface CafeteriaOfficialFetchedPage {
+  source: CafeteriaOfficialPageSource;
+  weekScope: CafeteriaOfficialPageWeekScope;
+  weekStartDate: string;
+  rawHtml: string;
+  fetchedAt: string;
+}
+
 export interface CafeteriaOfficialPageSnapshotInput {
   sourceId: string;
   weekStartDate: string;
@@ -190,6 +198,18 @@ export interface CafeteriaOfficialMenuEntryInput {
   menuText: string;
   menuItems: string[];
   confidence?: number | null;
+}
+
+export interface CafeteriaOfficialParsedMenuDocument {
+  weekStartDate: string;
+  status: CafeteriaOfficialPageSnapshotStatus;
+  documentScope: CafeteriaMenuDocumentScope;
+  serviceStartDate?: string | null;
+  serviceEndDate?: string | null;
+  breakfastAvailable: boolean;
+  lunchAvailable: boolean;
+  dinnerAvailable: boolean;
+  entries: CafeteriaOfficialMenuEntryInput[];
 }
 
 export type CafeteriaResolvedMenuSourceKind =

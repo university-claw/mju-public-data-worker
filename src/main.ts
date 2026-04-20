@@ -7,6 +7,7 @@ import { checkReachability } from "./http/client.js";
 import { NOTICE_SOURCES } from "./notices/sources.js";
 import { runNoticeNormalizationEvaluation } from "./notices/normalization-evaluator.js";
 import { collectCafeteriaInstagramPosts } from "./workers/cafeteria-instagram-collector.js";
+import { collectCafeteriaOfficialPages } from "./workers/cafeteria-official-page-collector.js";
 import { collectNotices } from "./workers/notice-collector.js";
 import { runSchedulerTick } from "./workers/scheduler-tick.js";
 
@@ -220,6 +221,28 @@ async function runCollect(args: string[]): Promise<void> {
             totalProcessedCount: result.processedCount,
             totalInsertedCount: result.insertedCount,
             totalUpdatedCount: result.updatedCount,
+            sources: result.sources,
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+
+    if (target === "cafeteria-official-pages") {
+      const result = await collectCafeteriaOfficialPages(pool, config.pgSchema, {
+        triggerReason: "manual",
+        includePreviousWeek: hasFlag(args, "--include-previous-week"),
+      });
+
+      console.log(
+        JSON.stringify(
+          {
+            scrapeRunId: result.scrapeRunId,
+            fetchedPageCount: result.fetchedPageCount,
+            processedPageCount: result.processedPageCount,
+            storedEntryCount: result.storedEntryCount,
             sources: result.sources,
           },
           null,

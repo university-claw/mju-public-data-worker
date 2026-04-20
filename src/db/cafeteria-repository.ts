@@ -137,6 +137,22 @@ export class CafeteriaRepository {
     };
   }
 
+  async markOfficialPageSnapshotFailed(
+    sourceSnapshotId: number,
+    errorMessage: string,
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        UPDATE ${this.schema}.cafeteria_official_page_snapshots
+        SET
+          status = 'failed',
+          error_message = $2
+        WHERE id = $1
+      `,
+      [sourceSnapshotId, errorMessage],
+    );
+  }
+
   async upsertOfficialMenuDocument(
     input: CafeteriaOfficialMenuDocumentInput,
   ): Promise<number> {
@@ -205,6 +221,16 @@ export class CafeteriaRepository {
     }
 
     return Number(result.rows[0]!.id);
+  }
+
+  async deleteOfficialMenuDocument(sourceDocumentId: number): Promise<void> {
+    await this.pool.query(
+      `
+        DELETE FROM ${this.schema}.cafeteria_official_menu_documents
+        WHERE id = $1
+      `,
+      [sourceDocumentId],
+    );
   }
 
   async replaceOfficialMenuEntries(params: {

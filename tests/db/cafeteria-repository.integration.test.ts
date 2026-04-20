@@ -170,6 +170,49 @@ describe("cafeteria repository integration", () => {
       expect(Number(resolved.rows[0]!.selected_official_entry_id)).toBe(
         selectedOfficialEntryId,
       );
+
+      await repository.replaceOfficialMenuEntries({
+        sourceDocumentId: documentId,
+        sourceId,
+        entries: [
+          {
+            serviceDate: "2026-04-20",
+            mealType: "breakfast",
+            isClosed: false,
+            menuText: "참치김치볶음밥 수정본",
+            menuItems: ["참치김치볶음밥 수정본"],
+            confidence: 0.99,
+          },
+          {
+            serviceDate: "2026-04-20",
+            mealType: "lunch",
+            isClosed: false,
+            menuText: "눈꽃치즈닭갈비덮밥 수정본",
+            menuItems: ["눈꽃치즈닭갈비덮밥 수정본"],
+            confidence: 0.98,
+          },
+        ],
+      });
+
+      const refreshedResolved = await pool.query<{
+        selected_official_entry_id: number | null;
+        menu_text: string;
+      }>(
+        `
+          SELECT selected_official_entry_id, menu_text
+          FROM ${schema}.cafeteria_resolved_menu_entries
+          WHERE source_id = $1
+            AND service_date = $2
+            AND meal_type = $3
+        `,
+        [sourceId, "2026-04-20", "breakfast"],
+      );
+
+      expect(refreshedResolved.rowCount).toBe(1);
+      expect(Number(refreshedResolved.rows[0]!.selected_official_entry_id)).not.toBe(
+        selectedOfficialEntryId,
+      );
+      expect(refreshedResolved.rows[0]!.menu_text).toBe("참치김치볶음밥 수정본");
     } finally {
       await pool.query(
         `DELETE FROM ${schema}.cafeteria_resolved_menu_entries WHERE source_id = $1`,
@@ -182,6 +225,123 @@ describe("cafeteria repository integration", () => {
       await pool.query(
         `DELETE FROM ${schema}.cafeteria_instagram_sources WHERE id = $1`,
         [sourceId],
+      );
+    }
+  });
+
+  it("rejects resolved rows that point at an official entry for a different source", async () => {
+    const sourceA = `test_cafeteria_source_a_${Date.now()}`;
+    const sourceB = `test_cafeteria_source_b_${Date.now()}`;
+
+    await repository.ensureInstagramSources([
+      {
+        id: sourceA,
+        name: "테스트 식당 A",
+        description: "integration test cafeteria source A",
+        profileUrl: "https://www.instagram.com/test_cafeteria_source_a/",
+        instagramUsername: "test_cafeteria_source_a",
+        menuImageGroup: "test-cafeteria-group-a",
+        supportsWeekendMenu: false,
+      },
+      {
+        id: sourceB,
+        name: "테스트 식당 B",
+        description: "integration test cafeteria source B",
+        profileUrl: "https://www.instagram.com/test_cafeteria_source_b/",
+        instagramUsername: "test_cafeteria_source_b",
+        menuImageGroup: "test-cafeteria-group-b",
+        supportsWeekendMenu: false,
+      },
+    ]);
+
+    try {
+      await repository.ensureOfficialPageSources([
+        {
+          sourceId: sourceA,
+          pageKey: `mjukr-test-a-${Date.now()}`,
+          pageUrl: "https://mjedu.mju.ac.kr/mjukr/998/subview.do",
+          viewActionPath: "/diet/mjukr/998/view.do",
+          name: "테스트 공식 페이지 A",
+        },
+      ]);
+
+      const snapshot = await repository.createOfficialPageSnapshot({
+        sourceId: sourceA,
+        weekStartDate: "2026-04-20",
+        weekScope: "current",
+        snapshotHash: `hash-a-${Date.now()}`,
+        rawHtml: "<html><body>integration test cafeteria snapshot A</body></html>",
+        fetchedAt: "2026-04-20T11:00:00+09:00",
+        status: "succeeded",
+      });
+
+      const documentId = await repository.upsertOfficialMenuDocument({
+        sourceSnapshotId: snapshot.sourceSnapshotId,
+        sourceId: sourceA,
+        weekStartDate: "2026-04-20",
+        documentScope: "weekday",
+        serviceStartDate: "2026-04-20",
+        serviceEndDate: "2026-04-24",
+        breakfastAvailable: true,
+        lunchAvailable: false,
+        dinnerAvailable: false,
+        normalizedAt: "2026-04-20T11:01:00+09:00",
+      });
+
+      await repository.replaceOfficialMenuEntries({
+        sourceDocumentId: documentId,
+        sourceId: sourceA,
+        entries: [
+          {
+            serviceDate: "2026-04-20",
+            mealType: "breakfast",
+            isClosed: false,
+            menuText: "공식 페이지 메뉴 A",
+            menuItems: ["공식 페이지 메뉴 A"],
+            confidence: 0.99,
+          },
+        ],
+      });
+
+      const officialEntries = await pool.query<{ id: number }>(
+        `
+          SELECT id
+          FROM ${schema}.cafeteria_official_menu_entries
+          WHERE source_id = $1
+            AND service_date = $2
+            AND meal_type = $3
+        `,
+        [sourceA, "2026-04-20", "breakfast"],
+      );
+
+      const selectedOfficialEntryId = Number(officialEntries.rows[0]!.id);
+
+      await expect(
+        repository.upsertResolvedMenuEntry({
+          sourceId: sourceB,
+          serviceDate: "2026-04-20",
+          mealType: "breakfast",
+          selectedSourceKind: "official_page",
+          selectedOfficialEntryId,
+          isClosed: false,
+          menuText: "공식 페이지 메뉴 A",
+          menuItems: ["공식 페이지 메뉴 A"],
+          selectionReason: "should fail because selected entry belongs to source A",
+          selectedAt: "2026-04-20T11:03:00+09:00",
+        }),
+      ).rejects.toThrow();
+    } finally {
+      await pool.query(
+        `DELETE FROM ${schema}.cafeteria_resolved_menu_entries WHERE source_id IN ($1, $2)`,
+        [sourceA, sourceB],
+      );
+      await pool.query(
+        `DELETE FROM ${schema}.cafeteria_official_page_sources WHERE source_id = $1`,
+        [sourceA],
+      );
+      await pool.query(
+        `DELETE FROM ${schema}.cafeteria_instagram_sources WHERE id IN ($1, $2)`,
+        [sourceA, sourceB],
       );
     }
   });

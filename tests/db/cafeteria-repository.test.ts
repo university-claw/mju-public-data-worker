@@ -156,6 +156,30 @@ describe("cafeteria repository", () => {
     ]);
   });
 
+  it("throws when an official menu document snapshot/source pair does not match", async () => {
+    const pool = {
+      query: vi.fn(async () => ({ rowCount: 0, rows: [] })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await expect(
+      repository.upsertOfficialMenuDocument({
+        sourceSnapshotId: 21,
+        sourceId: "bokji",
+        weekStartDate: "2026-04-20",
+        documentScope: "weekday",
+        serviceStartDate: "2026-04-20",
+        serviceEndDate: "2026-04-24",
+        breakfastAvailable: true,
+        lunchAvailable: true,
+        dinnerAvailable: false,
+        normalizedAt: "2026-04-20T10:02:00+09:00",
+      }),
+    ).rejects.toThrow(
+      "official page snapshot 21 does not match source bokji",
+    );
+  });
+
   it("creates or refreshes a menu document only for menu_sheet posts", async () => {
     const { pool, query, release } = createConnectedPoolMock();
     const repository = new CafeteriaRepository(pool, "public_data");
@@ -381,7 +405,25 @@ describe("cafeteria repository", () => {
   });
 
   it("replaces normalized menu entries and updates document normalization state together", async () => {
-    const { pool, query, release } = createConnectedPoolMock();
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ count: 0 }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: 1201 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: 1202 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
     const repository = new CafeteriaRepository(pool, "public_data");
 
     await repository.syncMenuNormalization(
@@ -431,7 +473,7 @@ describe("cafeteria repository", () => {
       },
     );
 
-    expect(query.mock.calls).toHaveLength(7);
+    expect(query.mock.calls).toHaveLength(10);
     expect(String(query.mock.calls[0]![0])).toContain("BEGIN");
     expect(String(query.mock.calls[1]![0])).toContain(
       "SELECT count(*)::int AS count",
@@ -439,6 +481,15 @@ describe("cafeteria repository", () => {
     expect(String(query.mock.calls[2]![0])).toContain(
       "UPDATE public_data.cafeteria_menu_documents",
     );
+    expect(String(query.mock.calls[3]![0])).toContain(
+      "SELECT resolved.service_date::text, resolved.meal_type",
+    );
+    expect(query.mock.calls[3]![1]).toEqual([
+      "student-hall",
+      "weekday",
+      "2026-04-13",
+      "2026-04-17",
+    ]);
     expect(query.mock.calls[2]![1]).toEqual([
       11,
       "partial",
@@ -447,13 +498,13 @@ describe("cafeteria repository", () => {
       2,
       "one dinner cell was empty",
     ]);
-    expect(String(query.mock.calls[3]![0])).toContain(
+    expect(String(query.mock.calls[4]![0])).toContain(
       "DELETE FROM public_data.cafeteria_menu_entries",
     );
-    expect(String(query.mock.calls[4]![0])).toContain(
+    expect(String(query.mock.calls[5]![0])).toContain(
       "INSERT INTO public_data.cafeteria_menu_entries",
     );
-    expect(query.mock.calls[4]![1]).toEqual([
+    expect(query.mock.calls[5]![1]).toEqual([
       11,
       12,
       "student-hall",
@@ -464,7 +515,19 @@ describe("cafeteria repository", () => {
       JSON.stringify(["삼계탕"]),
       0.81,
     ]);
-    expect(query.mock.calls[5]![1]).toEqual([
+    expect(String(query.mock.calls[6]![0])).toContain(
+      "UPDATE public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[6]![1]).toEqual([
+      1201,
+      false,
+      "삼계탕",
+      JSON.stringify(["삼계탕"]),
+      "student-hall",
+      "2026-04-13",
+      "breakfast",
+    ]);
+    expect(query.mock.calls[7]![1]).toEqual([
       11,
       12,
       "student-hall",
@@ -475,12 +538,52 @@ describe("cafeteria repository", () => {
       JSON.stringify(["미운영"]),
       1,
     ]);
-    expect(String(query.mock.calls[6]![0])).toContain("COMMIT");
+    expect(String(query.mock.calls[8]![0])).toContain(
+      "UPDATE public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[8]![1]).toEqual([
+      1202,
+      true,
+      "미운영",
+      JSON.stringify(["미운영"]),
+      "student-hall",
+      "2026-04-13",
+      "lunch",
+    ]);
+    expect(String(query.mock.calls[9]![0])).toContain("COMMIT");
     expect(release).toHaveBeenCalledTimes(1);
   });
 
   it("replaces official menu entries for a document in a single transaction", async () => {
-    const { pool, query, release } = createConnectedPoolMock();
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            source_id: "bokji",
+            week_start_date: "2026-04-20",
+            document_scope: "weekday",
+            service_start_date: "2026-04-20",
+            service_end_date: "2026-04-24",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: 910 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: 911 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
     const repository = new CafeteriaRepository(pool, "public_data");
 
     await repository.replaceOfficialMenuEntries({
@@ -506,16 +609,28 @@ describe("cafeteria repository", () => {
       ],
     });
 
-    expect(query.mock.calls).toHaveLength(5);
+    expect(query.mock.calls).toHaveLength(9);
     expect(String(query.mock.calls[0]![0])).toContain("BEGIN");
     expect(String(query.mock.calls[1]![0])).toContain(
-      "DELETE FROM public_data.cafeteria_official_menu_entries",
+      "service_start_date::text",
     );
     expect(query.mock.calls[1]![1]).toEqual([401]);
     expect(String(query.mock.calls[2]![0])).toContain(
-      "INSERT INTO public_data.cafeteria_official_menu_entries",
+      "SELECT resolved.service_date::text, resolved.meal_type",
     );
     expect(query.mock.calls[2]![1]).toEqual([
+      "bokji",
+      "2026-04-20",
+      "weekday",
+    ]);
+    expect(String(query.mock.calls[3]![0])).toContain(
+      "DELETE FROM public_data.cafeteria_official_menu_entries",
+    );
+    expect(query.mock.calls[3]![1]).toEqual([401]);
+    expect(String(query.mock.calls[4]![0])).toContain(
+      "INSERT INTO public_data.cafeteria_official_menu_entries",
+    );
+    expect(query.mock.calls[4]![1]).toEqual([
       401,
       "bokji",
       "2026-04-20",
@@ -526,7 +641,19 @@ describe("cafeteria repository", () => {
       0.98,
       "html_table",
     ]);
-    expect(query.mock.calls[3]![1]).toEqual([
+    expect(String(query.mock.calls[5]![0])).toContain(
+      "UPDATE public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[5]![1]).toEqual([
+      910,
+      false,
+      "잔치국수 백미밥",
+      JSON.stringify(["잔치국수", "백미밥"]),
+      "bokji",
+      "2026-04-20",
+      "lunch",
+    ]);
+    expect(query.mock.calls[6]![1]).toEqual([
       401,
       "bokji",
       "2026-04-20",
@@ -537,7 +664,170 @@ describe("cafeteria repository", () => {
       0.97,
       "html_table",
     ]);
-    expect(String(query.mock.calls[4]![0])).toContain("COMMIT");
+    expect(String(query.mock.calls[7]![0])).toContain(
+      "UPDATE public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[7]![1]).toEqual([
+      911,
+      false,
+      "뼈없는감자탕 백미밥",
+      JSON.stringify(["뼈없는감자탕", "백미밥"]),
+      "bokji",
+      "2026-04-20",
+      "dinner",
+    ]);
+    expect(String(query.mock.calls[8]![0])).toContain("COMMIT");
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("rolls back when official menu document source does not match", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ source_id: "student-hall" }],
+      })
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await expect(
+      repository.replaceOfficialMenuEntries({
+        sourceDocumentId: 401,
+        sourceId: "bokji",
+        entries: [],
+      }),
+    ).rejects.toThrow(
+      "official menu document 401 does not belong to source bokji",
+    );
+
+    expect(String(query.mock.calls[0]![0])).toContain("BEGIN");
+    expect(String(query.mock.calls[1]![0])).toContain("service_start_date::text");
+    expect(String(query.mock.calls[2]![0])).toContain("ROLLBACK");
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("deletes stale official resolved rows when a refreshed official document no longer contains that key", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            source_id: "bokji",
+            week_start_date: "2026-04-20",
+            document_scope: "weekday",
+            service_start_date: "2026-04-20",
+            service_end_date: "2026-04-24",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ service_date: "2026-04-21", meal_type: "dinner" }],
+      })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: 920 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await repository.replaceOfficialMenuEntries({
+      sourceDocumentId: 402,
+      sourceId: "bokji",
+      entries: [
+        {
+          serviceDate: "2026-04-20",
+          mealType: "lunch",
+          isClosed: false,
+          menuText: "잔치국수 백미밥",
+          menuItems: ["잔치국수", "백미밥"],
+          confidence: 0.98,
+        },
+      ],
+    });
+
+    expect(String(query.mock.calls[3]![0])).toContain(
+      "DELETE FROM public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[3]![1]).toEqual([
+      "bokji",
+      "2026-04-21",
+      "dinner",
+    ]);
+    expect(String(query.mock.calls[7]![0])).toContain("COMMIT");
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to existing official document keys when service range and incoming entries are empty", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            source_id: "bokji",
+            week_start_date: "2026-04-20",
+            document_scope: "weekday",
+            service_start_date: null,
+            service_end_date: null,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ service_date: "2026-04-21", meal_type: "dinner" }],
+      })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await repository.replaceOfficialMenuEntries({
+      sourceDocumentId: 403,
+      sourceId: "bokji",
+      entries: [],
+    });
+
+    expect(String(query.mock.calls[2]![0])).toContain(
+      "FROM public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[2]![1]).toEqual([
+      "bokji",
+      "2026-04-20",
+      "weekday",
+    ]);
+    expect(String(query.mock.calls[3]![0])).toContain(
+      "DELETE FROM public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[3]![1]).toEqual([
+      "bokji",
+      "2026-04-21",
+      "dinner",
+    ]);
+    expect(String(query.mock.calls[5]![0])).toContain("COMMIT");
     expect(release).toHaveBeenCalledTimes(1);
   });
 
@@ -605,9 +895,153 @@ describe("cafeteria repository", () => {
     expect(release).toHaveBeenCalledTimes(1);
   });
 
+  it("deletes stale instagram resolved rows when a refreshed OCR result no longer contains that key", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ count: 1 }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({
+        rows: [{ service_date: "2026-04-14", meal_type: "dinner" }],
+      })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ id: 1301 }] })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await repository.syncMenuNormalization(
+      {
+        sourceDocumentId: 11,
+        sourcePostId: 12,
+        source: {
+          id: "student-hall",
+          name: "학생회관",
+          description: "학생회관 식당",
+          profileUrl: "https://www.instagram.com/mjhs_yongin/",
+          instagramUsername: "mjhs_yongin",
+          menuImageGroup: "student-hall-myeongjin",
+          supportsWeekendMenu: true,
+        },
+        imageStorageKey: "cafeterias/student-hall/ABC/original.jpg",
+        documentScope: "weekday",
+        serviceStartDate: "2026-04-13",
+        serviceEndDate: "2026-04-17",
+        breakfastAvailable: true,
+        lunchAvailable: true,
+        dinnerAvailable: false,
+      },
+      {
+        status: "succeeded",
+        confidence: 0.91,
+        reason: "normalized 1/1 menu entries",
+        errorMessage: null,
+        entries: [
+          {
+            serviceDate: "2026-04-13",
+            mealType: "breakfast",
+            isClosed: false,
+            menuText: "삼계탕",
+            menuItems: ["삼계탕"],
+            confidence: 0.81,
+          },
+        ],
+      },
+    );
+
+    expect(String(query.mock.calls[4]![0])).toContain(
+      "DELETE FROM public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[4]![1]).toEqual([
+      "student-hall",
+      "2026-04-14",
+      "dinner",
+    ]);
+    expect(String(query.mock.calls[8]![0])).toContain("COMMIT");
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to existing instagram document keys when service range and incoming entries are empty", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ rows: [{ count: 1 }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({
+        rows: [{ service_date: "2026-04-14", meal_type: "dinner" }],
+      })
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const release = vi.fn();
+    const pool = {
+      connect: vi.fn(async () => ({
+        query,
+        release,
+      })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await repository.syncMenuNormalization(
+      {
+        sourceDocumentId: 11,
+        sourcePostId: 12,
+        source: {
+          id: "student-hall",
+          name: "학생회관",
+          description: "학생회관 식당",
+          profileUrl: "https://www.instagram.com/mjhs_yongin/",
+          instagramUsername: "mjhs_yongin",
+          menuImageGroup: "student-hall-myeongjin",
+          supportsWeekendMenu: true,
+        },
+        imageStorageKey: "cafeterias/student-hall/ABC/original.jpg",
+        documentScope: "weekday",
+        serviceStartDate: null,
+        serviceEndDate: null,
+        breakfastAvailable: true,
+        lunchAvailable: true,
+        dinnerAvailable: false,
+      },
+      {
+        status: "succeeded",
+        confidence: 0.5,
+        reason: "no active entries remained after refresh",
+        errorMessage: null,
+        entries: [],
+      },
+    );
+
+    expect(String(query.mock.calls[3]![0])).toContain(
+      "FROM public_data.cafeteria_menu_entries",
+    );
+    expect(query.mock.calls[3]![1]).toEqual([11]);
+    expect(String(query.mock.calls[4]![0])).toContain(
+      "DELETE FROM public_data.cafeteria_resolved_menu_entries",
+    );
+    expect(query.mock.calls[4]![1]).toEqual([
+      "student-hall",
+      "2026-04-14",
+      "dinner",
+    ]);
+    expect(String(query.mock.calls[6]![0])).toContain("COMMIT");
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
   it("upserts a resolved menu entry keyed by source/date/meal type", async () => {
     const pool = {
-      query: vi.fn(async () => ({ rows: [] })),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 811 }] })
+        .mockResolvedValueOnce({ rows: [] }),
     } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
     const repository = new CafeteriaRepository(pool, "public_data");
 
@@ -625,7 +1059,18 @@ describe("cafeteria repository", () => {
       selectedAt: "2026-04-20T10:05:00+09:00",
     });
 
-    const [sql, values] = vi.mocked(pool.query).mock.calls[0]!;
+    expect(vi.mocked(pool.query).mock.calls).toHaveLength(2);
+    expect(String(vi.mocked(pool.query).mock.calls[0]![0])).toContain(
+      "FROM public_data.cafeteria_official_menu_entries",
+    );
+    expect(vi.mocked(pool.query).mock.calls[0]![1]).toEqual([
+      811,
+      "student-hall",
+      "2026-04-20",
+      "breakfast",
+    ]);
+
+    const [sql, values] = vi.mocked(pool.query).mock.calls[1]!;
     expect(String(sql)).toContain(
       "INSERT INTO public_data.cafeteria_resolved_menu_entries",
     );
@@ -645,5 +1090,54 @@ describe("cafeteria repository", () => {
       "official page row contains authoritative menu text",
       "2026-04-20T10:05:00+09:00",
     ]);
+  });
+
+  it("rejects invalid selected entry combinations for resolved menu rows", async () => {
+    const pool = {
+      query: vi.fn(async () => ({ rows: [] })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await expect(
+      repository.upsertResolvedMenuEntry({
+        sourceId: "student-hall",
+        serviceDate: "2026-04-20",
+        mealType: "breakfast",
+        selectedSourceKind: "official_page",
+        selectedInstagramEntryId: 10,
+        selectedOfficialEntryId: null,
+        isClosed: false,
+        menuText: "참치김치볶음밥",
+        menuItems: ["참치김치볶음밥"],
+      }),
+    ).rejects.toThrow(
+      "official_page resolved row must set only selectedOfficialEntryId",
+    );
+
+    expect(vi.mocked(pool.query)).not.toHaveBeenCalled();
+  });
+
+  it("rejects resolved rows when the selected official entry does not match the resolved key", async () => {
+    const pool = {
+      query: vi.fn(async () => ({ rowCount: 0, rows: [] })),
+    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
+    const repository = new CafeteriaRepository(pool, "public_data");
+
+    await expect(
+      repository.upsertResolvedMenuEntry({
+        sourceId: "student-hall",
+        serviceDate: "2026-04-20",
+        mealType: "breakfast",
+        selectedSourceKind: "official_page",
+        selectedOfficialEntryId: 999,
+        isClosed: false,
+        menuText: "참치김치볶음밥",
+        menuItems: ["참치김치볶음밥"],
+      }),
+    ).rejects.toThrow(
+      "official entry 999 does not match student-hall/2026-04-20/breakfast",
+    );
+
+    expect(vi.mocked(pool.query)).toHaveBeenCalledTimes(1);
   });
 });

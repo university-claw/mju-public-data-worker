@@ -184,6 +184,13 @@ function addDays(dateText: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+function inferCurrentWeekStartDate(date = new Date()): string {
+  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  const kstWeekday = kstDate.getUTCDay() === 0 ? 7 : kstDate.getUTCDay();
+  kstDate.setUTCDate(kstDate.getUTCDate() - (kstWeekday - 1));
+  return kstDate.toISOString().slice(0, 10);
+}
+
 export async function collectCafeteriaOfficialPages(
   pool: Pool,
   schema: string,
@@ -318,6 +325,18 @@ async function collectSingleOfficialPageSource(
 
   for (const weekScope of weekScopes) {
     const isOptionalScope = weekScope !== "current";
+    if (weekScope === "current") {
+      const currentWeekStartDate = inferCurrentWeekStartDate();
+      const existingDocument = await repository.getOfficialMenuDocumentSummary(
+        source.sourceId,
+        currentWeekStartDate,
+      );
+
+      if (existingDocument?.status === "succeeded") {
+        continue;
+      }
+    }
+
     let page: CafeteriaOfficialFetchedPage;
 
     try {

@@ -75,6 +75,46 @@ describe("cafeteria-official-page-collector", () => {
     vi.clearAllMocks();
   });
 
+  it("skips current-week fetch when a succeeded official document already exists", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-21T12:00:00+09:00"));
+
+    const repository = createRepositoryMock();
+    repository.getOfficialMenuDocumentSummary.mockResolvedValue({
+      sourceDocumentId: 3001,
+      status: "succeeded",
+    });
+    const fetchPage = vi.fn();
+
+    try {
+      const result = await collectCafeteriaOfficialPagesWithDependencies(
+        {
+          repository,
+          sources: [SOURCES[0]!],
+          fetchPage,
+        },
+        {
+          triggerReason: "manual",
+        },
+      );
+
+      expect(result).toMatchObject({
+        fetchedPageCount: 0,
+        processedPageCount: 0,
+        storedEntryCount: 0,
+      });
+      expect(repository.getOfficialMenuDocumentSummary).toHaveBeenCalledWith(
+        "student-hall",
+        "2026-04-20",
+      );
+      expect(fetchPage).not.toHaveBeenCalled();
+      expect(repository.syncOfficialMenuDocument).not.toHaveBeenCalled();
+      expect(refreshResolvedMenusForDateRangeMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("refreshes resolved menu rows after syncing an official page", async () => {
     const repository = createRepositoryMock();
     const fetchPage = vi.fn().mockResolvedValueOnce({
@@ -272,50 +312,11 @@ describe("cafeteria-official-page-collector", () => {
     );
   });
 
-  it("does not overwrite a previously succeeded document with an empty page", async () => {
-    const repository = createRepositoryMock();
-    repository.getOfficialMenuDocumentSummary.mockImplementation(
-      async (sourceId: string, weekStartDate: string) =>
-        sourceId === "student-hall" && weekStartDate === "2026-04-20"
-          ? {
-              sourceDocumentId: 3001,
-              status: "succeeded" as const,
-            }
-          : null,
-    );
-    const fetchPage = vi.fn().mockResolvedValueOnce({
-      source: SOURCES[0],
-      weekScope: "current",
-      weekStartDate: "2026-04-20",
-      rawHtml:
-        "<table><tbody><tr><th>04.20 (월)</th><td>중식</td><td>-</td><td>등록된 식단내용이(가) 없습니다.</td><td>-</td></tr></tbody></table>",
-      fetchedAt: "2026-04-20T00:00:00.000Z",
-    });
-
-    const result = await collectCafeteriaOfficialPagesWithDependencies(
-      {
-        repository,
-        sources: [SOURCES[0]!],
-        fetchPage,
-      },
-      {
-        triggerReason: "manual",
-      },
-    );
-
-    expect(result).toMatchObject({
-      fetchedPageCount: 1,
-      processedPageCount: 1,
-      storedEntryCount: 0,
-    });
-    expect(repository.syncOfficialMenuDocument).not.toHaveBeenCalled();
-  });
-
-  it("preserves a previously succeeded document when later persistence fails", async () => {
+  it("still retries current-week fetch when the previous document is failed", async () => {
     const repository = createRepositoryMock();
     repository.getOfficialMenuDocumentSummary.mockResolvedValue({
       sourceDocumentId: 3001,
-      status: "succeeded",
+      status: "failed",
     });
     repository.syncOfficialMenuDocument = vi
       .fn()
@@ -343,7 +344,7 @@ describe("cafeteria-official-page-collector", () => {
       ),
     ).rejects.toThrow(/one or more cafeteria official page sources failed/);
 
-    expect(repository.syncOfficialMenuDocument).toHaveBeenCalledTimes(1);
+    expect(repository.syncOfficialMenuDocument).toHaveBeenCalledTimes(2);
     expect(repository.finishScrapeRun).toHaveBeenCalledWith(
       88,
       "failed",

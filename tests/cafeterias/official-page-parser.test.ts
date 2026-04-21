@@ -149,4 +149,37 @@ describe("official-page-parser", () => {
       },
     ]);
   });
+
+  it("normalizes closed rows into a closed state instead of preserving the raw text as menu items", () => {
+    const html = `
+      <html>
+        <body>
+          <table>
+            <tbody>
+              <tr>
+                <th>04.23 (목)</th>
+                <td>석식</td>
+                <td>-</td>
+                <td class="alignL">운영하지 않습니다</td>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const parsed = parseCafeteriaOfficialPage(html, "2026-04-20");
+
+    expect(parsed.entries).toEqual([
+      {
+        serviceDate: "2026-04-23",
+        mealType: "dinner",
+        isClosed: true,
+        menuText: "미운영",
+        menuItems: ["미운영"],
+        confidence: 1,
+      },
+    ]);
+  });
 });

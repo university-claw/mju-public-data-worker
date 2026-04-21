@@ -117,6 +117,20 @@ function buildMenuItems(lines: string[]): string[] {
   return menuItems;
 }
 
+function createClosedEntry(params: {
+  serviceDate: string;
+  mealType: CafeteriaMenuMealType;
+}): CafeteriaOfficialMenuEntryInput {
+  return {
+    serviceDate: params.serviceDate,
+    mealType: params.mealType,
+    isClosed: true,
+    menuText: "미운영",
+    menuItems: ["미운영"],
+    confidence: 1,
+  };
+}
+
 export function parseCafeteriaOfficialPage(
   html: string,
   weekStartDate: string,
@@ -182,11 +196,21 @@ export function parseCafeteriaOfficialPage(
       continue;
     }
 
+    if (menuTextLines.some((line) => CLOSED_PATTERN.test(line))) {
+      entries.push(
+        createClosedEntry({
+          serviceDate: currentServiceDate,
+          mealType,
+        }),
+      );
+      continue;
+    }
+
     const menuText = menuTextLines.join("\n");
     entries.push({
       serviceDate: currentServiceDate,
       mealType,
-      isClosed: menuTextLines.some((line) => CLOSED_PATTERN.test(line)),
+      isClosed: false,
       menuText,
       menuItems,
       confidence: 1,

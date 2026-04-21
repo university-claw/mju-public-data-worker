@@ -146,6 +146,9 @@ export type CafeteriaOfficialPageSnapshotStatus =
   | "empty"
   | "failed";
 
+export type CafeteriaOfficialMenuDocumentStatus =
+  CafeteriaOfficialPageSnapshotStatus;
+
 export interface CafeteriaOfficialPageSource {
   sourceId: string;
   pageKey: string;
@@ -179,9 +182,13 @@ export interface CafeteriaOfficialPageSnapshotResult {
 }
 
 export interface CafeteriaOfficialMenuDocumentInput {
-  sourceSnapshotId: number;
   sourceId: string;
   weekStartDate: string;
+  rawHtml: string;
+  contentHash: string;
+  fetchedAt: string;
+  status: CafeteriaOfficialMenuDocumentStatus;
+  errorMessage?: string | null;
   documentScope: CafeteriaMenuDocumentScope;
   serviceStartDate?: string | null;
   serviceEndDate?: string | null;

@@ -53,27 +53,15 @@ export interface CafeteriaOfficialPageCollectorRepositoryLike {
     totalUpdatedCount: number,
     errorMessage?: string,
   ): Promise<void>;
-  createOfficialPageSnapshot(input: {
-    sourceId: string;
-    weekStartDate: string;
-    weekScope: CafeteriaOfficialPageWeekScope;
-    snapshotHash: string;
-    rawHtml: string;
-    fetchedAt: string;
-    status: "succeeded" | "empty" | "failed";
-    errorMessage?: string | null;
-  }): Promise<{
-    sourceSnapshotId: number;
-  }>;
-  markOfficialPageSnapshotFailed(
-    sourceSnapshotId: number,
-    errorMessage: string,
-  ): Promise<void>;
-  deleteOfficialMenuDocument(sourceDocumentId: number): Promise<void>;
-  upsertOfficialMenuDocument(input: CafeteriaOfficialMenuDocumentInput): Promise<number>;
-  replaceOfficialMenuEntries(params: {
+  getOfficialMenuDocumentSummary(
+    sourceId: string,
+    weekStartDate: string,
+  ): Promise<{
     sourceDocumentId: number;
-    sourceId: string;
+    status: "succeeded" | "empty" | "failed";
+  } | null>;
+  syncOfficialMenuDocument(params: {
+    document: CafeteriaOfficialMenuDocumentInput;
     entries: Array<{
       serviceDate: string;
       mealType: "breakfast" | "lunch" | "dinner";
@@ -83,7 +71,10 @@ export interface CafeteriaOfficialPageCollectorRepositoryLike {
       confidence?: number | null;
     }>;
     normalizationMethod?: string;
-  }): Promise<void>;
+  }): Promise<{
+    sourceDocumentId: number;
+    storedEntryCount: number;
+  }>;
 }
 
 interface CafeteriaOfficialPageCollectorDependencies {
@@ -251,42 +242,38 @@ async function collectSingleOfficialPageSource(
     processedPageCount: 0,
     storedEntryCount: 0,
   };
-  const currentPage = await fetchAndMaybePersistFailureSnapshot(
-    repository,
-    fetchPage,
-    source,
-    "current",
-  );
-
-  metrics.fetchedPageCount += 1;
-  const currentPageEntryCount = await persistOfficialFetchedPage(
-    repository,
-    source,
-    currentPage,
-  );
-  metrics.processedPageCount += 1;
-  metrics.storedEntryCount += currentPageEntryCount;
+  let currentPageHtml: string | undefined;
 
   for (const weekScope of weekScopes) {
-    if (weekScope === "current") {
-      continue;
-    }
+    const isOptionalScope = weekScope !== "current";
+    let page: CafeteriaOfficialFetchedPage;
 
     try {
-      const page = await fetchAndMaybePersistFailureSnapshot(
-        repository,
-        fetchPage,
-        source,
-        weekScope,
-        currentPage.rawHtml,
-      );
+      page = await fetchPage(source, weekScope, undefined, {
+        ...(weekScope === "previous" && currentPageHtml
+          ? { currentPageHtml }
+          : {}),
+      });
       metrics.fetchedPageCount += 1;
-      const entryCount = await persistOfficialFetchedPage(repository, source, page);
-      metrics.processedPageCount += 1;
-      metrics.storedEntryCount += entryCount;
+      if (weekScope === "current") {
+        currentPageHtml = page.rawHtml;
+      }
     } catch (error) {
       if (error instanceof OfficialPageFetchError) {
-        continue;
+        if (error.weekStartDate) {
+          await persistOfficialFailedPage(
+            repository,
+            source,
+            error.weekStartDate,
+            error.rawHtml ?? "",
+            new Date().toISOString(),
+            error.message,
+          );
+        }
+
+        if (isOptionalScope) {
+          continue;
+        }
       }
 
       const message = error instanceof Error ? error.message : String(error);
@@ -295,41 +282,29 @@ async function collectSingleOfficialPageSource(
         metrics,
       );
     }
+
+    try {
+      const entryCount = await persistOfficialFetchedPage(repository, source, page);
+      metrics.processedPageCount += 1;
+      metrics.storedEntryCount += entryCount;
+    } catch (error) {
+      await persistOfficialFailedPage(
+        repository,
+        source,
+        page.weekStartDate,
+        page.rawHtml,
+        page.fetchedAt,
+        error instanceof Error ? error.message : String(error),
+      );
+
+      throw new CafeteriaOfficialPageCollectError(
+        `source "${source.sourceId}" failed while processing official page scope "${weekScope}": ${error instanceof Error ? error.message : String(error)}`,
+        metrics,
+      );
+    }
   }
 
   return metrics;
-}
-
-async function fetchAndMaybePersistFailureSnapshot(
-  repository: CafeteriaOfficialPageCollectorRepositoryLike,
-  fetchPage: typeof fetchCafeteriaOfficialPage,
-  source: CafeteriaOfficialPageSource,
-  weekScope: CafeteriaOfficialPageWeekScope,
-  currentPageHtml?: string,
-): Promise<CafeteriaOfficialFetchedPage> {
-  try {
-    return await fetchPage(source, weekScope, undefined, {
-      ...(currentPageHtml ? { currentPageHtml } : {}),
-    });
-  } catch (error) {
-    if (
-      error instanceof OfficialPageFetchError
-      && error.weekStartDate
-    ) {
-      await repository.createOfficialPageSnapshot({
-        sourceId: source.sourceId,
-        weekStartDate: error.weekStartDate,
-        weekScope,
-        snapshotHash: hashHtml(error.rawHtml ?? ""),
-        rawHtml: error.rawHtml ?? "",
-        fetchedAt: new Date().toISOString(),
-        status: "failed",
-        errorMessage: error.message,
-      });
-    }
-
-    throw error;
-  }
 }
 
 async function persistOfficialFetchedPage(
@@ -337,26 +312,25 @@ async function persistOfficialFetchedPage(
   source: CafeteriaOfficialPageSource,
   page: CafeteriaOfficialFetchedPage,
 ): Promise<number> {
-  let sourceSnapshotId: number | null = null;
-  let sourceDocumentId: number | null = null;
+  const parsed = parseCafeteriaOfficialPage(page.rawHtml, page.weekStartDate);
+  const existingDocument = await repository.getOfficialMenuDocumentSummary(
+    source.sourceId,
+    parsed.weekStartDate,
+  );
 
-  try {
-    const parsed = parseCafeteriaOfficialPage(page.rawHtml, page.weekStartDate);
-    const snapshot = await repository.createOfficialPageSnapshot({
-      sourceId: source.sourceId,
-      weekStartDate: page.weekStartDate,
-      weekScope: page.weekScope,
-      snapshotHash: hashHtml(page.rawHtml),
-      rawHtml: page.rawHtml,
-      fetchedAt: page.fetchedAt,
-      status: parsed.status,
-    });
-    sourceSnapshotId = snapshot.sourceSnapshotId;
+  if (parsed.status !== "succeeded" && existingDocument?.status === "succeeded") {
+    return 0;
+  }
 
-    sourceDocumentId = await repository.upsertOfficialMenuDocument({
-      sourceSnapshotId: snapshot.sourceSnapshotId,
+  const result = await repository.syncOfficialMenuDocument({
+    document: {
       sourceId: source.sourceId,
       weekStartDate: parsed.weekStartDate,
+      rawHtml: page.rawHtml,
+      contentHash: hashHtml(page.rawHtml),
+      fetchedAt: page.fetchedAt,
+      status: parsed.status,
+      errorMessage: null,
       documentScope: parsed.documentScope,
       serviceStartDate: parsed.serviceStartDate ?? null,
       serviceEndDate: parsed.serviceEndDate ?? null,
@@ -364,48 +338,49 @@ async function persistOfficialFetchedPage(
       lunchAvailable: parsed.lunchAvailable,
       dinnerAvailable: parsed.dinnerAvailable,
       normalizedAt: page.fetchedAt,
-    });
+    },
+    entries: parsed.entries,
+    normalizationMethod: "html_table",
+  });
 
-    await repository.replaceOfficialMenuEntries({
-      sourceDocumentId,
-      sourceId: source.sourceId,
-      entries: parsed.entries,
-      normalizationMethod: "html_table",
-    });
+  return result.storedEntryCount;
+}
 
-    return parsed.entries.length;
-  } catch (error) {
-    const baseErrorMessage = error instanceof Error ? error.message : String(error);
-    let errorMessage = baseErrorMessage;
+async function persistOfficialFailedPage(
+  repository: CafeteriaOfficialPageCollectorRepositoryLike,
+  source: CafeteriaOfficialPageSource,
+  weekStartDate: string,
+  rawHtml: string,
+  fetchedAt: string,
+  errorMessage: string,
+): Promise<void> {
+  const existingDocument = await repository.getOfficialMenuDocumentSummary(
+    source.sourceId,
+    weekStartDate,
+  );
 
-    if (sourceDocumentId != null) {
-      try {
-        await repository.deleteOfficialMenuDocument(sourceDocumentId);
-      } catch (cleanupError) {
-        const cleanupMessage =
-          cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
-        errorMessage = `${baseErrorMessage} (cleanup failed: ${cleanupMessage})`;
-      }
-    }
-
-    if (sourceSnapshotId != null) {
-      await repository.markOfficialPageSnapshotFailed(
-        sourceSnapshotId,
-        errorMessage,
-      );
-    } else {
-      await repository.createOfficialPageSnapshot({
-        sourceId: source.sourceId,
-        weekStartDate: page.weekStartDate,
-        weekScope: page.weekScope,
-        snapshotHash: hashHtml(page.rawHtml),
-        rawHtml: page.rawHtml,
-        fetchedAt: page.fetchedAt,
-        status: "failed",
-        errorMessage,
-      });
-    }
-
-    throw error;
+  if (existingDocument?.status === "succeeded") {
+    return;
   }
+
+  await repository.syncOfficialMenuDocument({
+    document: {
+      sourceId: source.sourceId,
+      weekStartDate,
+      rawHtml,
+      contentHash: hashHtml(rawHtml),
+      fetchedAt,
+      status: "failed",
+      errorMessage,
+      documentScope: "unknown",
+      serviceStartDate: null,
+      serviceEndDate: null,
+      breakfastAvailable: false,
+      lunchAvailable: false,
+      dinnerAvailable: false,
+      normalizedAt: null,
+    },
+    entries: [],
+    normalizationMethod: "html_table",
+  });
 }

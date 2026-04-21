@@ -61,10 +61,8 @@ describe("official-page-parser", () => {
         isClosed: false,
         menuText: "[중식 - 덮밥]\n닭갈비덮밥\n[중식 - 샐러드]\n닭가슴살샐러드",
         menuItems: [
-          "[중식 - 덮밥]",
-          "닭갈비덮밥",
-          "[중식 - 샐러드]",
-          "닭가슴살샐러드",
+          "[중식 - 덮밥] 닭갈비덮밥",
+          "[중식 - 샐러드] 닭가슴살샐러드",
         ],
         confidence: 1,
       },
@@ -117,5 +115,38 @@ describe("official-page-parser", () => {
       dinnerAvailable: false,
     });
     expect(parsed.entries).toEqual([]);
+  });
+
+  it("preserves a single section header as a prefix when only one menu line exists", () => {
+    const html = `
+      <html>
+        <body>
+          <table>
+            <tbody>
+              <tr>
+                <th>04.22 (수)</th>
+                <td>중식</td>
+                <td>-</td>
+                <td class="alignL">[중식 - 덮밥]<br>간장돼지불고기덮밥 *깻잎토핑</td>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const parsed = parseCafeteriaOfficialPage(html, "2026-04-20");
+
+    expect(parsed.entries).toEqual([
+      {
+        serviceDate: "2026-04-22",
+        mealType: "lunch",
+        isClosed: false,
+        menuText: "[중식 - 덮밥]\n간장돼지불고기덮밥 *깻잎토핑",
+        menuItems: ["[중식 - 덮밥] 간장돼지불고기덮밥 *깻잎토핑"],
+        confidence: 1,
+      },
+    ]);
   });
 });

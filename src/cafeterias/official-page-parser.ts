@@ -9,6 +9,7 @@ import type {
 
 const PLACEHOLDER_PATTERN = /등록된\s*식단내용이\(가\)\s*없습니다/u;
 const CLOSED_PATTERN = /(휴무|미운영|운영없음|운영하지 않습니다)/u;
+const SECTION_HEADER_PATTERN = /^\[[^\]]+\]$/u;
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/gu, " ").trim();
@@ -96,6 +97,26 @@ function inferDocumentScope(serviceDates: string[]): CafeteriaMenuDocumentScope 
   return "unknown";
 }
 
+function buildMenuItems(lines: string[]): string[] {
+  const menuItems: string[] = [];
+  let currentSection: string | null = null;
+
+  for (const line of lines) {
+    if (line === "-") {
+      continue;
+    }
+
+    if (SECTION_HEADER_PATTERN.test(line)) {
+      currentSection = line;
+      continue;
+    }
+
+    menuItems.push(currentSection ? `${currentSection} ${line}` : line);
+  }
+
+  return menuItems;
+}
+
 export function parseCafeteriaOfficialPage(
   html: string,
   weekStartDate: string,
@@ -155,16 +176,17 @@ export function parseCafeteriaOfficialPage(
       continue;
     }
 
-    const menuItems = contentLines.filter((line) => line !== "-");
+    const menuTextLines = contentLines.filter((line) => line !== "-");
+    const menuItems = buildMenuItems(menuTextLines);
     if (menuItems.length === 0) {
       continue;
     }
 
-    const menuText = menuItems.join("\n");
+    const menuText = menuTextLines.join("\n");
     entries.push({
       serviceDate: currentServiceDate,
       mealType,
-      isClosed: menuItems.some((line) => CLOSED_PATTERN.test(line)),
+      isClosed: menuTextLines.some((line) => CLOSED_PATTERN.test(line)),
       menuText,
       menuItems,
       confidence: 1,

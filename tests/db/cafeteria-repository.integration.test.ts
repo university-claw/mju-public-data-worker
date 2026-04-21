@@ -48,20 +48,14 @@ describe("cafeteria repository integration", () => {
         },
       ]);
 
-      const snapshot = await repository.createOfficialPageSnapshot({
+      const documentId = await repository.upsertOfficialMenuDocument({
         sourceId,
         weekStartDate: "2026-04-20",
-        weekScope: "current",
-        snapshotHash: `hash-${Date.now()}`,
         rawHtml: "<html><body>integration test cafeteria snapshot</body></html>",
+        contentHash: `hash-${Date.now()}`,
         fetchedAt: "2026-04-20T10:00:00+09:00",
         status: "succeeded",
-      });
-
-      const documentId = await repository.upsertOfficialMenuDocument({
-        sourceSnapshotId: snapshot.sourceSnapshotId,
-        sourceId,
-        weekStartDate: "2026-04-20",
+        errorMessage: null,
         documentScope: "weekday",
         serviceStartDate: "2026-04-20",
         serviceEndDate: "2026-04-24",
@@ -265,20 +259,14 @@ describe("cafeteria repository integration", () => {
         },
       ]);
 
-      const snapshot = await repository.createOfficialPageSnapshot({
+      const documentId = await repository.upsertOfficialMenuDocument({
         sourceId: sourceA,
         weekStartDate: "2026-04-20",
-        weekScope: "current",
-        snapshotHash: `hash-a-${Date.now()}`,
         rawHtml: "<html><body>integration test cafeteria snapshot A</body></html>",
+        contentHash: `hash-a-${Date.now()}`,
         fetchedAt: "2026-04-20T11:00:00+09:00",
         status: "succeeded",
-      });
-
-      const documentId = await repository.upsertOfficialMenuDocument({
-        sourceSnapshotId: snapshot.sourceSnapshotId,
-        sourceId: sourceA,
-        weekStartDate: "2026-04-20",
+        errorMessage: null,
         documentScope: "weekday",
         serviceStartDate: "2026-04-20",
         serviceEndDate: "2026-04-24",

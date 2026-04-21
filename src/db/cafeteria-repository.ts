@@ -1,6 +1,7 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import type {
   CafeteriaOfficialMenuDocumentInput,
+  CafeteriaOfficialMenuDocumentStatus,
   CafeteriaOfficialMenuEntryInput,
   CafeteriaOfficialPageSnapshotInput,
   CafeteriaOfficialPageSnapshotResult,
@@ -102,6 +103,37 @@ export class CafeteriaRepository {
     }
   }
 
+  async getOfficialMenuDocumentSummary(
+    sourceId: string,
+    weekStartDate: string,
+  ): Promise<{
+    sourceDocumentId: number;
+    status: CafeteriaOfficialMenuDocumentStatus;
+  } | null> {
+    const result = await this.pool.query<{
+      id: number;
+      status: CafeteriaOfficialMenuDocumentStatus;
+    }>(
+      `
+        SELECT id, status
+        FROM ${this.schema}.cafeteria_official_menu_documents
+        WHERE source_id = $1
+          AND week_start_date = $2
+      `,
+      [sourceId, weekStartDate],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      sourceDocumentId: Number(row.id),
+      status: row.status,
+    };
+  }
+
   async createOfficialPageSnapshot(
     input: CafeteriaOfficialPageSnapshotInput,
   ): Promise<CafeteriaOfficialPageSnapshotResult> {
@@ -156,12 +188,62 @@ export class CafeteriaRepository {
   async upsertOfficialMenuDocument(
     input: CafeteriaOfficialMenuDocumentInput,
   ): Promise<number> {
-    const result = await this.pool.query<{ id: number }>(
+    return this.upsertOfficialMenuDocumentWithClient(this.pool, input);
+  }
+
+  async syncOfficialMenuDocument(params: {
+    document: CafeteriaOfficialMenuDocumentInput;
+    entries: CafeteriaOfficialMenuEntryInput[];
+    normalizationMethod?: string;
+  }): Promise<{ sourceDocumentId: number; storedEntryCount: number }> {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      const sourceDocumentId = await this.upsertOfficialMenuDocumentWithClient(
+        client,
+        params.document,
+      );
+      const replaceParams: Parameters<
+        typeof this.replaceOfficialMenuEntriesWithClient
+      >[1] = {
+        sourceDocumentId,
+        sourceId: params.document.sourceId,
+        entries: params.entries,
+        ...(params.normalizationMethod
+          ? { normalizationMethod: params.normalizationMethod }
+          : {}),
+      };
+      await this.replaceOfficialMenuEntriesWithClient(client, replaceParams);
+      await client.query("COMMIT");
+
+      return {
+        sourceDocumentId,
+        storedEntryCount: params.entries.length,
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private async upsertOfficialMenuDocumentWithClient(
+    client: Pick<Pool, "query"> | PoolClient,
+    input: CafeteriaOfficialMenuDocumentInput,
+  ): Promise<number> {
+    const result = await client.query<{ id: number }>(
       `
         INSERT INTO ${this.schema}.cafeteria_official_menu_documents (
           source_snapshot_id,
           source_id,
           week_start_date,
+          raw_html,
+          content_hash,
+          fetched_at,
+          status,
+          error_message,
           document_scope,
           service_start_date,
           service_end_date,
@@ -171,9 +253,10 @@ export class CafeteriaRepository {
           normalized_at,
           updated_at
         )
-        SELECT
-          snapshot.id,
-          snapshot.source_id,
+        VALUES (
+          null,
+          $1,
+          $2,
           $3,
           $4,
           $5,
@@ -182,14 +265,20 @@ export class CafeteriaRepository {
           $8,
           $9,
           $10,
+          $11,
+          $12,
+          $13,
+          $14,
           now()
-        FROM ${this.schema}.cafeteria_official_page_snapshots AS snapshot
-        WHERE snapshot.id = $1
-          AND snapshot.source_id = $2
-        ON CONFLICT (source_snapshot_id) DO UPDATE
+        )
+        ON CONFLICT (source_id, week_start_date) DO UPDATE
         SET
-          source_id = EXCLUDED.source_id,
-          week_start_date = EXCLUDED.week_start_date,
+          source_snapshot_id = null,
+          raw_html = EXCLUDED.raw_html,
+          content_hash = EXCLUDED.content_hash,
+          fetched_at = EXCLUDED.fetched_at,
+          status = EXCLUDED.status,
+          error_message = EXCLUDED.error_message,
           document_scope = EXCLUDED.document_scope,
           service_start_date = EXCLUDED.service_start_date,
           service_end_date = EXCLUDED.service_end_date,
@@ -201,9 +290,13 @@ export class CafeteriaRepository {
         RETURNING id
       `,
       [
-        input.sourceSnapshotId,
         input.sourceId,
         input.weekStartDate,
+        input.rawHtml,
+        input.contentHash,
+        input.fetchedAt,
+        input.status,
+        input.errorMessage ?? null,
         input.documentScope,
         input.serviceStartDate ?? null,
         input.serviceEndDate ?? null,
@@ -213,12 +306,6 @@ export class CafeteriaRepository {
         input.normalizedAt ?? null,
       ],
     );
-
-    if (result.rowCount === 0) {
-      throw new Error(
-        `official page snapshot ${input.sourceSnapshotId} does not match source ${input.sourceId}`,
-      );
-    }
 
     return Number(result.rows[0]!.id);
   }
@@ -243,177 +330,7 @@ export class CafeteriaRepository {
 
     try {
       await client.query("BEGIN");
-      const documentResult = await client.query<{
-        source_id: string;
-        week_start_date: string;
-        document_scope: string;
-        service_start_date: string | null;
-        service_end_date: string | null;
-      }>(
-        `
-          SELECT
-            source_id,
-            week_start_date::text,
-            document_scope,
-            service_start_date::text,
-            service_end_date::text
-          FROM ${this.schema}.cafeteria_official_menu_documents
-          WHERE id = $1
-        `,
-        [params.sourceDocumentId],
-      );
-
-      if (documentResult.rowCount === 0) {
-        throw new Error(
-          `official menu document ${params.sourceDocumentId} does not exist`,
-        );
-      }
-
-      if (documentResult.rows[0]!.source_id !== params.sourceId) {
-        throw new Error(
-          `official menu document ${params.sourceDocumentId} does not belong to source ${params.sourceId}`,
-        );
-      }
-
-      const incomingKeys = new Set(
-        params.entries.map((entry) => `${entry.serviceDate}:${entry.mealType}`),
-      );
-      const existingResolvedKeysResult = await client.query<{
-        service_date: string;
-        meal_type: string;
-      }>(
-        `
-          SELECT resolved.service_date::text, resolved.meal_type
-          FROM ${this.schema}.cafeteria_resolved_menu_entries AS resolved
-          LEFT JOIN ${this.schema}.cafeteria_official_menu_entries AS entry
-            ON entry.id = resolved.selected_official_entry_id
-          LEFT JOIN ${this.schema}.cafeteria_official_menu_documents AS document
-            ON document.id = entry.source_document_id
-          WHERE resolved.source_id = $1
-            AND resolved.selected_source_kind = 'official_page'
-            AND (
-              (
-                resolved.selected_official_entry_id IS NOT NULL
-                AND document.week_start_date = $2::date
-                AND document.document_scope = $3
-              )
-              OR (
-                resolved.selected_official_entry_id IS NULL
-                AND resolved.service_date BETWEEN $2::date AND ($2::date + INTERVAL '6 days')::date
-                AND (
-                  $3 = 'unknown'
-                  OR (
-                    $3 = 'weekday'
-                    AND EXTRACT(ISODOW FROM resolved.service_date) BETWEEN 1 AND 5
-                  )
-                  OR (
-                    $3 = 'weekend'
-                    AND EXTRACT(ISODOW FROM resolved.service_date) IN (6, 7)
-                  )
-                )
-              )
-            )
-        `,
-        [
-          params.sourceId,
-          documentResult.rows[0]!.week_start_date,
-          documentResult.rows[0]!.document_scope,
-        ],
-      );
-
-      for (const row of existingResolvedKeysResult.rows) {
-        const entryKey = `${row.service_date}:${row.meal_type}`;
-        if (incomingKeys.has(entryKey)) {
-          continue;
-        }
-
-        await client.query(
-          `
-            DELETE FROM ${this.schema}.cafeteria_resolved_menu_entries
-            WHERE source_id = $1
-              AND service_date = $2
-              AND meal_type = $3
-              AND selected_source_kind = 'official_page'
-          `,
-          [params.sourceId, row.service_date, row.meal_type],
-        );
-      }
-
-      await client.query(
-        `
-          DELETE FROM ${this.schema}.cafeteria_official_menu_entries
-          WHERE source_document_id = $1
-        `,
-        [params.sourceDocumentId],
-      );
-
-      for (const entry of params.entries) {
-        const insertResult = await client.query<{ id: number }>(
-          `
-            INSERT INTO ${this.schema}.cafeteria_official_menu_entries (
-              source_document_id,
-              source_id,
-              service_date,
-              meal_type,
-              is_closed,
-              menu_text,
-              menu_items,
-              parse_confidence,
-              normalization_method,
-              updated_at
-            )
-            VALUES (
-              $1,
-              $2,
-              $3,
-              $4,
-              $5,
-              $6,
-              $7::jsonb,
-              $8,
-              $9,
-              now()
-            )
-            RETURNING id
-          `,
-          [
-            params.sourceDocumentId,
-            params.sourceId,
-            entry.serviceDate,
-            entry.mealType,
-            entry.isClosed,
-            entry.menuText,
-            JSON.stringify(entry.menuItems),
-            entry.confidence ?? null,
-            params.normalizationMethod ?? "html_table",
-          ],
-        );
-
-        await client.query(
-          `
-            UPDATE ${this.schema}.cafeteria_resolved_menu_entries
-            SET
-              selected_official_entry_id = $1,
-              is_closed = $2,
-              menu_text = $3,
-              menu_items = $4::jsonb,
-              updated_at = now()
-            WHERE source_id = $5
-              AND service_date = $6
-              AND meal_type = $7
-              AND selected_source_kind = 'official_page'
-          `,
-          [
-            Number(insertResult.rows[0]!.id),
-            entry.isClosed,
-            entry.menuText,
-            JSON.stringify(entry.menuItems),
-            params.sourceId,
-            entry.serviceDate,
-            entry.mealType,
-          ],
-        );
-      }
+      await this.replaceOfficialMenuEntriesWithClient(client, params);
 
       await client.query("COMMIT");
     } catch (error) {
@@ -421,6 +338,188 @@ export class CafeteriaRepository {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  private async replaceOfficialMenuEntriesWithClient(
+    client: PoolClient,
+    params: {
+      sourceDocumentId: number;
+      sourceId: string;
+      entries: CafeteriaOfficialMenuEntryInput[];
+      normalizationMethod?: string;
+    },
+  ): Promise<void> {
+    const documentResult = await client.query<{
+      source_id: string;
+      week_start_date: string;
+      document_scope: string;
+      service_start_date: string | null;
+      service_end_date: string | null;
+    }>(
+      `
+        SELECT
+          source_id,
+          week_start_date::text,
+          document_scope,
+          service_start_date::text,
+          service_end_date::text
+        FROM ${this.schema}.cafeteria_official_menu_documents
+        WHERE id = $1
+      `,
+      [params.sourceDocumentId],
+    );
+
+    if (documentResult.rowCount === 0) {
+      throw new Error(
+        `official menu document ${params.sourceDocumentId} does not exist`,
+      );
+    }
+
+    if (documentResult.rows[0]!.source_id !== params.sourceId) {
+      throw new Error(
+        `official menu document ${params.sourceDocumentId} does not belong to source ${params.sourceId}`,
+      );
+    }
+
+    const incomingKeys = new Set(
+      params.entries.map((entry) => `${entry.serviceDate}:${entry.mealType}`),
+    );
+    const existingResolvedKeysResult = await client.query<{
+      service_date: string;
+      meal_type: string;
+    }>(
+      `
+        SELECT resolved.service_date::text, resolved.meal_type
+        FROM ${this.schema}.cafeteria_resolved_menu_entries AS resolved
+        LEFT JOIN ${this.schema}.cafeteria_official_menu_entries AS entry
+          ON entry.id = resolved.selected_official_entry_id
+        LEFT JOIN ${this.schema}.cafeteria_official_menu_documents AS document
+          ON document.id = entry.source_document_id
+        WHERE resolved.source_id = $1
+          AND resolved.selected_source_kind = 'official_page'
+          AND (
+            (
+              resolved.selected_official_entry_id IS NOT NULL
+              AND document.week_start_date = $2::date
+              AND document.document_scope = $3
+            )
+            OR (
+              resolved.selected_official_entry_id IS NULL
+              AND resolved.service_date BETWEEN $2::date AND ($2::date + INTERVAL '6 days')::date
+              AND (
+                $3 = 'unknown'
+                OR (
+                  $3 = 'weekday'
+                  AND EXTRACT(ISODOW FROM resolved.service_date) BETWEEN 1 AND 5
+                )
+                OR (
+                  $3 = 'weekend'
+                  AND EXTRACT(ISODOW FROM resolved.service_date) IN (6, 7)
+                )
+              )
+            )
+          )
+      `,
+      [
+        params.sourceId,
+        documentResult.rows[0]!.week_start_date,
+        documentResult.rows[0]!.document_scope,
+      ],
+    );
+
+    for (const row of existingResolvedKeysResult.rows) {
+      const entryKey = `${row.service_date}:${row.meal_type}`;
+      if (incomingKeys.has(entryKey)) {
+        continue;
+      }
+
+      await client.query(
+        `
+          DELETE FROM ${this.schema}.cafeteria_resolved_menu_entries
+          WHERE source_id = $1
+            AND service_date = $2
+            AND meal_type = $3
+            AND selected_source_kind = 'official_page'
+        `,
+        [params.sourceId, row.service_date, row.meal_type],
+      );
+    }
+
+    await client.query(
+      `
+        DELETE FROM ${this.schema}.cafeteria_official_menu_entries
+        WHERE source_document_id = $1
+      `,
+      [params.sourceDocumentId],
+    );
+
+    for (const entry of params.entries) {
+      const insertResult = await client.query<{ id: number }>(
+        `
+          INSERT INTO ${this.schema}.cafeteria_official_menu_entries (
+            source_document_id,
+            source_id,
+            service_date,
+            meal_type,
+            is_closed,
+            menu_text,
+            menu_items,
+            parse_confidence,
+            normalization_method,
+            updated_at
+          )
+          VALUES (
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            $6,
+            $7::jsonb,
+            $8,
+            $9,
+            now()
+          )
+          RETURNING id
+        `,
+        [
+          params.sourceDocumentId,
+          params.sourceId,
+          entry.serviceDate,
+          entry.mealType,
+          entry.isClosed,
+          entry.menuText,
+          JSON.stringify(entry.menuItems),
+          entry.confidence ?? null,
+          params.normalizationMethod ?? "html_table",
+        ],
+      );
+
+      await client.query(
+        `
+          UPDATE ${this.schema}.cafeteria_resolved_menu_entries
+          SET
+            selected_official_entry_id = $1,
+            is_closed = $2,
+            menu_text = $3,
+            menu_items = $4::jsonb,
+            updated_at = now()
+          WHERE source_id = $5
+            AND service_date = $6
+            AND meal_type = $7
+            AND selected_source_kind = 'official_page'
+        `,
+        [
+          Number(insertResult.rows[0]!.id),
+          entry.isClosed,
+          entry.menuText,
+          JSON.stringify(entry.menuItems),
+          params.sourceId,
+          entry.serviceDate,
+          entry.mealType,
+        ],
+      );
     }
   }
 

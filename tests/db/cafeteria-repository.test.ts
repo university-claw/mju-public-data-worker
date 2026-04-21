@@ -117,16 +117,20 @@ describe("cafeteria repository", () => {
     ]);
   });
 
-  it("upserts an official menu document by source snapshot id", async () => {
+  it("upserts an official menu document by source and week", async () => {
     const pool = {
       query: vi.fn(async () => ({ rows: [{ id: 31 }] })),
     } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
     const repository = new CafeteriaRepository(pool, "public_data");
 
     const documentId = await repository.upsertOfficialMenuDocument({
-      sourceSnapshotId: 21,
       sourceId: "student-hall",
       weekStartDate: "2026-04-20",
+      rawHtml: "<html>학생회관 식단표</html>",
+      contentHash: "official-hash-123",
+      fetchedAt: "2026-04-20T10:01:00+09:00",
+      status: "succeeded",
+      errorMessage: null,
       documentScope: "weekday",
       serviceStartDate: "2026-04-20",
       serviceEndDate: "2026-04-24",
@@ -141,11 +145,15 @@ describe("cafeteria repository", () => {
     expect(String(sql)).toContain(
       "INSERT INTO public_data.cafeteria_official_menu_documents",
     );
-    expect(String(sql)).toContain("ON CONFLICT (source_snapshot_id) DO UPDATE");
+    expect(String(sql)).toContain("ON CONFLICT (source_id, week_start_date) DO UPDATE");
     expect(values).toEqual([
-      21,
       "student-hall",
       "2026-04-20",
+      "<html>학생회관 식단표</html>",
+      "official-hash-123",
+      "2026-04-20T10:01:00+09:00",
+      "succeeded",
+      null,
       "weekday",
       "2026-04-20",
       "2026-04-24",
@@ -154,30 +162,6 @@ describe("cafeteria repository", () => {
       false,
       "2026-04-20T10:02:00+09:00",
     ]);
-  });
-
-  it("throws when an official menu document snapshot/source pair does not match", async () => {
-    const pool = {
-      query: vi.fn(async () => ({ rowCount: 0, rows: [] })),
-    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
-    const repository = new CafeteriaRepository(pool, "public_data");
-
-    await expect(
-      repository.upsertOfficialMenuDocument({
-        sourceSnapshotId: 21,
-        sourceId: "bokji",
-        weekStartDate: "2026-04-20",
-        documentScope: "weekday",
-        serviceStartDate: "2026-04-20",
-        serviceEndDate: "2026-04-24",
-        breakfastAvailable: true,
-        lunchAvailable: true,
-        dinnerAvailable: false,
-        normalizedAt: "2026-04-20T10:02:00+09:00",
-      }),
-    ).rejects.toThrow(
-      "official page snapshot 21 does not match source bokji",
-    );
   });
 
   it("creates or refreshes a menu document only for menu_sheet posts", async () => {

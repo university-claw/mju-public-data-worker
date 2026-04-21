@@ -611,32 +611,18 @@ export class CafeteriaRepository {
       `
         SELECT resolved.service_date::text, resolved.meal_type
         FROM ${this.schema}.cafeteria_resolved_menu_entries AS resolved
-        LEFT JOIN ${this.schema}.cafeteria_official_menu_entries AS entry
-          ON entry.id = resolved.selected_official_entry_id
-        LEFT JOIN ${this.schema}.cafeteria_official_menu_documents AS document
-          ON document.id = entry.source_document_id
         WHERE resolved.source_id = $1
           AND resolved.selected_source_kind = 'official_page'
+          AND resolved.service_date BETWEEN $2::date AND ($2::date + INTERVAL '6 days')::date
           AND (
-            (
-              resolved.selected_official_entry_id IS NOT NULL
-              AND document.week_start_date = $2::date
-              AND document.document_scope = $3
+            $3 = 'unknown'
+            OR (
+              $3 = 'weekday'
+              AND EXTRACT(ISODOW FROM resolved.service_date) BETWEEN 1 AND 5
             )
             OR (
-              resolved.selected_official_entry_id IS NULL
-              AND resolved.service_date BETWEEN $2::date AND ($2::date + INTERVAL '6 days')::date
-              AND (
-                $3 = 'unknown'
-                OR (
-                  $3 = 'weekday'
-                  AND EXTRACT(ISODOW FROM resolved.service_date) BETWEEN 1 AND 5
-                )
-                OR (
-                  $3 = 'weekend'
-                  AND EXTRACT(ISODOW FROM resolved.service_date) IN (6, 7)
-                )
-              )
+              $3 = 'weekend'
+              AND EXTRACT(ISODOW FROM resolved.service_date) IN (6, 7)
             )
           )
       `,
@@ -674,7 +660,7 @@ export class CafeteriaRepository {
     );
 
     for (const entry of params.entries) {
-      const insertResult = await client.query<{ id: number }>(
+      await client.query<{ id: number }>(
         `
           INSERT INTO ${this.schema}.cafeteria_official_menu_entries (
             source_document_id,
@@ -719,18 +705,16 @@ export class CafeteriaRepository {
         `
           UPDATE ${this.schema}.cafeteria_resolved_menu_entries
           SET
-            selected_official_entry_id = $1,
-            is_closed = $2,
-            menu_text = $3,
-            menu_items = $4::jsonb,
+            is_closed = $1,
+            menu_text = $2,
+            menu_items = $3::jsonb,
             updated_at = now()
-          WHERE source_id = $5
-            AND service_date = $6
-            AND meal_type = $7
+          WHERE source_id = $4
+            AND service_date = $5
+            AND meal_type = $6
             AND selected_source_kind = 'official_page'
         `,
         [
-          Number(insertResult.rows[0]!.id),
           entry.isClosed,
           entry.menuText,
           JSON.stringify(entry.menuItems),
@@ -752,76 +736,6 @@ export class CafeteriaRepository {
     client: Pick<Pool, "query"> | PoolClient,
     input: CafeteriaResolvedMenuEntryInput,
   ): Promise<void> {
-    if (input.selectedSourceKind === "instagram_ocr") {
-      if (
-        input.selectedInstagramEntryId == null
-        || input.selectedOfficialEntryId != null
-      ) {
-        throw new Error(
-          "instagram_ocr resolved row must set only selectedInstagramEntryId",
-        );
-      }
-    } else if (input.selectedSourceKind === "official_page") {
-      if (
-        input.selectedOfficialEntryId == null
-        || input.selectedInstagramEntryId != null
-      ) {
-        throw new Error(
-          "official_page resolved row must set only selectedOfficialEntryId",
-        );
-      }
-    }
-
-    if (input.selectedInstagramEntryId != null) {
-      const instagramEntryResult = await client.query<{ id: number }>(
-        `
-          SELECT id
-          FROM ${this.schema}.cafeteria_menu_entries
-          WHERE id = $1
-            AND source_id = $2
-            AND service_date = $3
-            AND meal_type = $4
-        `,
-        [
-          input.selectedInstagramEntryId,
-          input.sourceId,
-          input.serviceDate,
-          input.mealType,
-        ],
-      );
-
-      if (instagramEntryResult.rowCount === 0) {
-        throw new Error(
-          `instagram entry ${input.selectedInstagramEntryId} does not match ${input.sourceId}/${input.serviceDate}/${input.mealType}`,
-        );
-      }
-    }
-
-    if (input.selectedOfficialEntryId != null) {
-      const officialEntryResult = await client.query<{ id: number }>(
-        `
-          SELECT id
-          FROM ${this.schema}.cafeteria_official_menu_entries
-          WHERE id = $1
-            AND source_id = $2
-            AND service_date = $3
-            AND meal_type = $4
-        `,
-        [
-          input.selectedOfficialEntryId,
-          input.sourceId,
-          input.serviceDate,
-          input.mealType,
-        ],
-      );
-
-      if (officialEntryResult.rowCount === 0) {
-        throw new Error(
-          `official entry ${input.selectedOfficialEntryId} does not match ${input.sourceId}/${input.serviceDate}/${input.mealType}`,
-        );
-      }
-    }
-
     await client.query(
       `
         INSERT INTO ${this.schema}.cafeteria_resolved_menu_entries (
@@ -829,12 +743,9 @@ export class CafeteriaRepository {
           service_date,
           meal_type,
           selected_source_kind,
-          selected_instagram_entry_id,
-          selected_official_entry_id,
           is_closed,
           menu_text,
           menu_items,
-          selection_reason,
           selected_at,
           updated_at
         )
@@ -845,22 +756,16 @@ export class CafeteriaRepository {
           $4,
           $5,
           $6,
-          $7,
-          $8,
-          $9::jsonb,
-          $10,
-          coalesce($11, now()),
+          $7::jsonb,
+          coalesce($8, now()),
           now()
         )
         ON CONFLICT (source_id, service_date, meal_type) DO UPDATE
         SET
           selected_source_kind = EXCLUDED.selected_source_kind,
-          selected_instagram_entry_id = EXCLUDED.selected_instagram_entry_id,
-          selected_official_entry_id = EXCLUDED.selected_official_entry_id,
           is_closed = EXCLUDED.is_closed,
           menu_text = EXCLUDED.menu_text,
           menu_items = EXCLUDED.menu_items,
-          selection_reason = EXCLUDED.selection_reason,
           selected_at = EXCLUDED.selected_at,
           updated_at = now()
       `,
@@ -869,12 +774,9 @@ export class CafeteriaRepository {
         input.serviceDate,
         input.mealType,
         input.selectedSourceKind,
-        input.selectedInstagramEntryId ?? null,
-        input.selectedOfficialEntryId ?? null,
         input.isClosed,
         input.menuText,
         JSON.stringify(input.menuItems),
-        input.selectionReason ?? null,
         input.selectedAt ?? null,
       ],
     );
@@ -1566,22 +1468,18 @@ export class CafeteriaRepository {
             `
               SELECT resolved.service_date::text, resolved.meal_type
               FROM ${this.schema}.cafeteria_resolved_menu_entries AS resolved
-              LEFT JOIN ${this.schema}.cafeteria_menu_entries AS entry
-                ON entry.id = resolved.selected_instagram_entry_id
-              LEFT JOIN ${this.schema}.cafeteria_menu_documents AS document
-                ON document.id = entry.source_document_id
               WHERE resolved.source_id = $1
                 AND resolved.selected_source_kind = 'instagram_ocr'
+                AND resolved.service_date BETWEEN $3::date AND $4::date
                 AND (
-                  (
-                    resolved.selected_instagram_entry_id IS NOT NULL
-                    AND document.document_scope = $2
-                    AND daterange(document.service_start_date, document.service_end_date, '[]')
-                      && daterange($3::date, $4::date, '[]')
+                  $2 = 'unknown'
+                  OR (
+                    $2 = 'weekday'
+                    AND EXTRACT(ISODOW FROM resolved.service_date) BETWEEN 1 AND 5
                   )
                   OR (
-                    resolved.selected_instagram_entry_id IS NULL
-                    AND resolved.service_date BETWEEN $3 AND $4
+                    $2 = 'weekend'
+                    AND EXTRACT(ISODOW FROM resolved.service_date) IN (6, 7)
                   )
                 )
             `,
@@ -1646,7 +1544,7 @@ export class CafeteriaRepository {
         );
 
         for (const entry of result.entries) {
-          const insertResult = await client.query<{ id: number }>(
+          await client.query<{ id: number }>(
             `
               INSERT INTO ${this.schema}.cafeteria_menu_entries (
                 source_document_id,
@@ -1693,18 +1591,16 @@ export class CafeteriaRepository {
             `
               UPDATE ${this.schema}.cafeteria_resolved_menu_entries
               SET
-                selected_instagram_entry_id = $1,
-                is_closed = $2,
-                menu_text = $3,
-                menu_items = $4::jsonb,
+                is_closed = $1,
+                menu_text = $2,
+                menu_items = $3::jsonb,
                 updated_at = now()
-              WHERE source_id = $5
-                AND service_date = $6
-                AND meal_type = $7
+              WHERE source_id = $4
+                AND service_date = $5
+                AND meal_type = $6
                 AND selected_source_kind = 'instagram_ocr'
             `,
             [
-              Number(insertResult.rows[0]!.id),
               entry.isClosed,
               entry.menuText,
               JSON.stringify(entry.menuItems),

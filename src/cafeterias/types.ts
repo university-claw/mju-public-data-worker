@@ -228,11 +228,8 @@ export interface CafeteriaResolvedMenuEntryInput {
   serviceDate: string;
   mealType: CafeteriaMenuMealType;
   selectedSourceKind: CafeteriaResolvedMenuSourceKind;
-  selectedInstagramEntryId?: number | null;
-  selectedOfficialEntryId?: number | null;
   isClosed: boolean;
   menuText: string;
   menuItems: string[];
-  selectionReason?: string | null;
   selectedAt?: string | null;
 }

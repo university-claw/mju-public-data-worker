@@ -150,12 +150,9 @@ export interface CafeteriaCollectorRepositoryLike {
       serviceDate: string;
       mealType: "breakfast" | "lunch" | "dinner";
       selectedSourceKind: "instagram_ocr" | "official_page";
-      selectedInstagramEntryId?: number | null;
-      selectedOfficialEntryId?: number | null;
       isClosed: boolean;
       menuText: string;
       menuItems: string[];
-      selectionReason?: string | null;
       selectedAt?: string | null;
     }>;
   }): Promise<{ upsertedCount: number; deletedCount: number }>;
@@ -164,12 +161,9 @@ export interface CafeteriaCollectorRepositoryLike {
     serviceDate: string;
     mealType: "breakfast" | "lunch" | "dinner";
     selectedSourceKind: "instagram_ocr" | "official_page";
-    selectedInstagramEntryId?: number | null;
-    selectedOfficialEntryId?: number | null;
     isClosed: boolean;
     menuText: string;
     menuItems: string[];
-    selectionReason?: string | null;
     selectedAt?: string | null;
   }): Promise<void>;
   deleteResolvedMenuEntry(

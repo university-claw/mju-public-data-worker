@@ -503,7 +503,6 @@ describe("cafeteria repository", () => {
       "UPDATE public_data.cafeteria_resolved_menu_entries",
     );
     expect(query.mock.calls[6]![1]).toEqual([
-      1201,
       false,
       "삼계탕",
       JSON.stringify(["삼계탕"]),
@@ -526,7 +525,6 @@ describe("cafeteria repository", () => {
       "UPDATE public_data.cafeteria_resolved_menu_entries",
     );
     expect(query.mock.calls[8]![1]).toEqual([
-      1202,
       true,
       "미운영",
       JSON.stringify(["미운영"]),
@@ -629,7 +627,6 @@ describe("cafeteria repository", () => {
       "UPDATE public_data.cafeteria_resolved_menu_entries",
     );
     expect(query.mock.calls[5]![1]).toEqual([
-      910,
       false,
       "잔치국수 백미밥",
       JSON.stringify(["잔치국수", "백미밥"]),
@@ -652,7 +649,6 @@ describe("cafeteria repository", () => {
       "UPDATE public_data.cafeteria_resolved_menu_entries",
     );
     expect(query.mock.calls[7]![1]).toEqual([
-      911,
       false,
       "뼈없는감자탕 백미밥",
       JSON.stringify(["뼈없는감자탕", "백미밥"]),
@@ -1022,10 +1018,7 @@ describe("cafeteria repository", () => {
 
   it("upserts a resolved menu entry keyed by source/date/meal type", async () => {
     const pool = {
-      query: vi
-        .fn()
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 811 }] })
-        .mockResolvedValueOnce({ rows: [] }),
+      query: vi.fn().mockResolvedValueOnce({ rows: [] }),
     } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
     const repository = new CafeteriaRepository(pool, "public_data");
 
@@ -1034,27 +1027,14 @@ describe("cafeteria repository", () => {
       serviceDate: "2026-04-20",
       mealType: "breakfast",
       selectedSourceKind: "official_page",
-      selectedInstagramEntryId: null,
-      selectedOfficialEntryId: 811,
       isClosed: false,
       menuText: "참치김치볶음밥",
       menuItems: ["참치김치볶음밥"],
-      selectionReason: "official page row contains authoritative menu text",
       selectedAt: "2026-04-20T10:05:00+09:00",
     });
 
-    expect(vi.mocked(pool.query).mock.calls).toHaveLength(2);
-    expect(String(vi.mocked(pool.query).mock.calls[0]![0])).toContain(
-      "FROM public_data.cafeteria_official_menu_entries",
-    );
-    expect(vi.mocked(pool.query).mock.calls[0]![1]).toEqual([
-      811,
-      "student-hall",
-      "2026-04-20",
-      "breakfast",
-    ]);
-
-    const [sql, values] = vi.mocked(pool.query).mock.calls[1]!;
+    expect(vi.mocked(pool.query).mock.calls).toHaveLength(1);
+    const [sql, values] = vi.mocked(pool.query).mock.calls[0]!;
     expect(String(sql)).toContain(
       "INSERT INTO public_data.cafeteria_resolved_menu_entries",
     );
@@ -1066,12 +1046,9 @@ describe("cafeteria repository", () => {
       "2026-04-20",
       "breakfast",
       "official_page",
-      null,
-      811,
       false,
       "참치김치볶음밥",
       JSON.stringify(["참치김치볶음밥"]),
-      "official page row contains authoritative menu text",
       "2026-04-20T10:05:00+09:00",
     ]);
   });
@@ -1106,11 +1083,9 @@ describe("cafeteria repository", () => {
           serviceDate: "2026-04-20",
           mealType: "breakfast",
           selectedSourceKind: "official_page",
-          selectedOfficialEntryId: 811,
           isClosed: false,
           menuText: "참치김치볶음밥",
           menuItems: ["참치김치볶음밥"],
-          selectionReason: "official page row is more authoritative than OCR",
           selectedAt: "2026-04-20T10:05:00+09:00",
         },
       ],
@@ -1138,67 +1113,9 @@ describe("cafeteria repository", () => {
       "dinner",
     ]);
     expect(String(query.mock.calls[3]![0])).toContain(
-      "FROM public_data.cafeteria_official_menu_entries",
-    );
-    expect(query.mock.calls[3]![1]).toEqual([
-      811,
-      "student-hall",
-      "2026-04-20",
-      "breakfast",
-    ]);
-    expect(String(query.mock.calls[4]![0])).toContain(
       "INSERT INTO public_data.cafeteria_resolved_menu_entries",
     );
-    expect(String(query.mock.calls[5]![0])).toContain("COMMIT");
+    expect(String(query.mock.calls[4]![0])).toContain("COMMIT");
     expect(release).toHaveBeenCalledTimes(1);
-  });
-
-  it("rejects invalid selected entry combinations for resolved menu rows", async () => {
-    const pool = {
-      query: vi.fn(async () => ({ rows: [] })),
-    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
-    const repository = new CafeteriaRepository(pool, "public_data");
-
-    await expect(
-      repository.upsertResolvedMenuEntry({
-        sourceId: "student-hall",
-        serviceDate: "2026-04-20",
-        mealType: "breakfast",
-        selectedSourceKind: "official_page",
-        selectedInstagramEntryId: 10,
-        selectedOfficialEntryId: null,
-        isClosed: false,
-        menuText: "참치김치볶음밥",
-        menuItems: ["참치김치볶음밥"],
-      }),
-    ).rejects.toThrow(
-      "official_page resolved row must set only selectedOfficialEntryId",
-    );
-
-    expect(vi.mocked(pool.query)).not.toHaveBeenCalled();
-  });
-
-  it("rejects resolved rows when the selected official entry does not match the resolved key", async () => {
-    const pool = {
-      query: vi.fn(async () => ({ rowCount: 0, rows: [] })),
-    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
-    const repository = new CafeteriaRepository(pool, "public_data");
-
-    await expect(
-      repository.upsertResolvedMenuEntry({
-        sourceId: "student-hall",
-        serviceDate: "2026-04-20",
-        mealType: "breakfast",
-        selectedSourceKind: "official_page",
-        selectedOfficialEntryId: 999,
-        isClosed: false,
-        menuText: "참치김치볶음밥",
-        menuItems: ["참치김치볶음밥"],
-      }),
-    ).rejects.toThrow(
-      "official entry 999 does not match student-hall/2026-04-20/breakfast",
-    );
-
-    expect(vi.mocked(pool.query)).toHaveBeenCalledTimes(1);
   });
 });

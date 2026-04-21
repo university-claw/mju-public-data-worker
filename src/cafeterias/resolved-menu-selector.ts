@@ -83,11 +83,9 @@ export async function refreshResolvedMenusForDateRange(
       serviceDate: candidate.serviceDate,
       mealType: candidate.mealType,
       selectedSourceKind: "official_page",
-      selectedOfficialEntryId: candidate.entryId,
       isClosed: candidate.isClosed,
       menuText: candidate.menuText,
       menuItems: candidate.menuItems,
-      selectionReason: "official page row is more authoritative than OCR",
       selectedAt,
     });
   }
@@ -103,11 +101,9 @@ export async function refreshResolvedMenusForDateRange(
       serviceDate: candidate.serviceDate,
       mealType: candidate.mealType,
       selectedSourceKind: "instagram_ocr",
-      selectedInstagramEntryId: candidate.entryId,
       isClosed: candidate.isClosed,
       menuText: candidate.menuText,
       menuItems: candidate.menuItems,
-      selectionReason: "official page row is unavailable, so OCR result is used",
       selectedAt,
     });
   }

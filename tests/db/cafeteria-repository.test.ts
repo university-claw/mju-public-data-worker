@@ -82,41 +82,6 @@ describe("cafeteria repository", () => {
     ]);
   });
 
-  it("creates an official page snapshot and returns the snapshot id", async () => {
-    const pool = {
-      query: vi.fn(async () => ({ rows: [{ id: 77 }] })),
-    } as unknown as ConstructorParameters<typeof CafeteriaRepository>[0];
-    const repository = new CafeteriaRepository(pool, "public_data");
-
-    const result = await repository.createOfficialPageSnapshot({
-      sourceId: "student-hall",
-      weekStartDate: "2026-04-20",
-      weekScope: "current",
-      snapshotHash: "abc123",
-      rawHtml: "<html>...</html>",
-      fetchedAt: "2026-04-20T10:00:00+09:00",
-      status: "succeeded",
-    });
-
-    expect(result).toEqual({
-      sourceSnapshotId: 77,
-    });
-    const [sql, values] = vi.mocked(pool.query).mock.calls[0]!;
-    expect(String(sql)).toContain(
-      "INSERT INTO public_data.cafeteria_official_page_snapshots",
-    );
-    expect(values).toEqual([
-      "student-hall",
-      "2026-04-20",
-      "current",
-      "abc123",
-      "<html>...</html>",
-      "2026-04-20T10:00:00+09:00",
-      "succeeded",
-      null,
-    ]);
-  });
-
   it("upserts an official menu document by source and week", async () => {
     const pool = {
       query: vi.fn(async () => ({ rows: [{ id: 31 }] })),

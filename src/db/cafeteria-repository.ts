@@ -3,8 +3,6 @@ import type {
   CafeteriaOfficialMenuDocumentInput,
   CafeteriaOfficialMenuDocumentStatus,
   CafeteriaOfficialMenuEntryInput,
-  CafeteriaOfficialPageSnapshotInput,
-  CafeteriaOfficialPageSnapshotResult,
   CafeteriaOfficialPageSource,
   CafeteriaMenuNormalizationContext,
   CafeteriaMenuNormalizationResult,
@@ -353,57 +351,6 @@ export class CafeteriaRepository {
     }
   }
 
-  async createOfficialPageSnapshot(
-    input: CafeteriaOfficialPageSnapshotInput,
-  ): Promise<CafeteriaOfficialPageSnapshotResult> {
-    const result = await this.pool.query<{ id: number }>(
-      `
-        INSERT INTO ${this.schema}.cafeteria_official_page_snapshots (
-          source_id,
-          week_start_date,
-          week_scope,
-          snapshot_hash,
-          raw_html,
-          fetched_at,
-          status,
-          error_message
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id
-      `,
-      [
-        input.sourceId,
-        input.weekStartDate,
-        input.weekScope,
-        input.snapshotHash,
-        input.rawHtml,
-        input.fetchedAt,
-        input.status,
-        input.errorMessage ?? null,
-      ],
-    );
-
-    return {
-      sourceSnapshotId: Number(result.rows[0]!.id),
-    };
-  }
-
-  async markOfficialPageSnapshotFailed(
-    sourceSnapshotId: number,
-    errorMessage: string,
-  ): Promise<void> {
-    await this.pool.query(
-      `
-        UPDATE ${this.schema}.cafeteria_official_page_snapshots
-        SET
-          status = 'failed',
-          error_message = $2
-        WHERE id = $1
-      `,
-      [sourceSnapshotId, errorMessage],
-    );
-  }
-
   async upsertOfficialMenuDocument(
     input: CafeteriaOfficialMenuDocumentInput,
   ): Promise<number> {
@@ -455,7 +402,6 @@ export class CafeteriaRepository {
     const result = await client.query<{ id: number }>(
       `
         INSERT INTO ${this.schema}.cafeteria_official_menu_documents (
-          source_snapshot_id,
           source_id,
           week_start_date,
           raw_html,
@@ -473,7 +419,6 @@ export class CafeteriaRepository {
           updated_at
         )
         VALUES (
-          null,
           $1,
           $2,
           $3,
@@ -492,7 +437,6 @@ export class CafeteriaRepository {
         )
         ON CONFLICT (source_id, week_start_date) DO UPDATE
         SET
-          source_snapshot_id = null,
           raw_html = EXCLUDED.raw_html,
           content_hash = EXCLUDED.content_hash,
           fetched_at = EXCLUDED.fetched_at,

@@ -141,13 +141,10 @@ export type CafeteriaOfficialPageWeekScope =
   | "previous"
   | "next";
 
-export type CafeteriaOfficialPageSnapshotStatus =
+export type CafeteriaOfficialMenuDocumentStatus =
   | "succeeded"
   | "empty"
   | "failed";
-
-export type CafeteriaOfficialMenuDocumentStatus =
-  CafeteriaOfficialPageSnapshotStatus;
 
 export interface CafeteriaOfficialPageSource {
   sourceId: string;
@@ -164,21 +161,6 @@ export interface CafeteriaOfficialFetchedPage {
   weekStartDate: string;
   rawHtml: string;
   fetchedAt: string;
-}
-
-export interface CafeteriaOfficialPageSnapshotInput {
-  sourceId: string;
-  weekStartDate: string;
-  weekScope: CafeteriaOfficialPageWeekScope;
-  snapshotHash: string;
-  rawHtml: string;
-  fetchedAt: string;
-  status: CafeteriaOfficialPageSnapshotStatus;
-  errorMessage?: string | null;
-}
-
-export interface CafeteriaOfficialPageSnapshotResult {
-  sourceSnapshotId: number;
 }
 
 export interface CafeteriaOfficialMenuDocumentInput {
@@ -209,7 +191,7 @@ export interface CafeteriaOfficialMenuEntryInput {
 
 export interface CafeteriaOfficialParsedMenuDocument {
   weekStartDate: string;
-  status: CafeteriaOfficialPageSnapshotStatus;
+  status: CafeteriaOfficialMenuDocumentStatus;
   documentScope: CafeteriaMenuDocumentScope;
   serviceStartDate?: string | null;
   serviceEndDate?: string | null;

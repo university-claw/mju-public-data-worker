@@ -223,6 +223,117 @@ describe("cafeteria repository integration", () => {
     }
   });
 
+  it("derives an instagram menu document range from normalized entries when document metadata is null", async () => {
+    const sourceId = `test_cafeteria_range_${Date.now()}`;
+
+    await repository.ensureInstagramSources([
+      {
+        id: sourceId,
+        name: "테스트 식당 범위",
+        description: "integration test cafeteria range source",
+        profileUrl: "https://www.instagram.com/test_cafeteria_range/",
+        instagramUsername: "test_cafeteria_range",
+        menuImageGroup: "test-cafeteria-range-group",
+        supportsWeekendMenu: false,
+      },
+    ]);
+
+    try {
+      const postResult = await repository.upsertInstagramPost(
+        {
+          sourceId,
+          postCode: `range-post-${Date.now()}`,
+          profileUrl: "https://www.instagram.com/test_cafeteria_range/",
+          permalink: "https://www.instagram.com/p/test-cafeteria-range/",
+          caption: "테스트 식단표",
+          postedAt: "2026-04-12T09:00:00+09:00",
+          postedAtEpoch: 1_776_006_000,
+          imageUrl: "https://example.com/cafeteria-range.jpg",
+          rawItem: { id: "range-post" },
+        },
+        "2026-04-12T09:05:00+09:00",
+      );
+
+      const documentResult = await pool.query<{ id: number }>(
+        `
+          INSERT INTO ${schema}.cafeteria_menu_documents (
+            source_post_id,
+            source_id,
+            document_type,
+            detection_method,
+            document_scope,
+            service_start_date,
+            service_end_date,
+            breakfast_available,
+            lunch_available,
+            dinner_available,
+            normalization_status,
+            normalized_entry_count,
+            normalized_at
+          )
+          VALUES (
+            $1,
+            $2,
+            'menu_sheet',
+            'rule_based',
+            'weekday',
+            NULL,
+            NULL,
+            true,
+            true,
+            false,
+            'succeeded',
+            2,
+            '2026-04-12T09:10:00+09:00'
+          )
+          RETURNING id
+        `,
+        [postResult.cafeteriaInstagramPostId, sourceId],
+      );
+      const sourceDocumentId = Number(documentResult.rows[0]!.id);
+
+      await pool.query(
+        `
+          INSERT INTO ${schema}.cafeteria_menu_entries (
+            source_document_id,
+            source_post_id,
+            source_id,
+            service_date,
+            meal_type,
+            is_closed,
+            menu_text,
+            menu_items,
+            normalization_confidence,
+            normalization_method
+          )
+          VALUES
+            ($1, $2, $3, '2026-04-14', 'breakfast', false, '김치볶음밥', '["김치볶음밥"]'::jsonb, 0.95, 'cell_ocr'),
+            ($1, $2, $3, '2026-04-18', 'lunch', false, '닭갈비덮밥', '["닭갈비덮밥"]'::jsonb, 0.94, 'cell_ocr')
+        `,
+        [sourceDocumentId, postResult.cafeteriaInstagramPostId, sourceId],
+      );
+
+      const existingRange = await repository.getExistingMenuDocumentRangeForSourcePost(
+        postResult.cafeteriaInstagramPostId,
+      );
+
+      expect(existingRange).toEqual({
+        sourceId,
+        serviceStartDate: "2026-04-14",
+        serviceEndDate: "2026-04-18",
+      });
+    } finally {
+      await pool.query(
+        `DELETE FROM ${schema}.cafeteria_instagram_posts WHERE source_id = $1`,
+        [sourceId],
+      );
+      await pool.query(
+        `DELETE FROM ${schema}.cafeteria_instagram_sources WHERE id = $1`,
+        [sourceId],
+      );
+    }
+  });
+
   it("rejects resolved rows that point at an official entry for a different source", async () => {
     const sourceA = `test_cafeteria_source_a_${Date.now()}`;
     const sourceB = `test_cafeteria_source_b_${Date.now()}`;

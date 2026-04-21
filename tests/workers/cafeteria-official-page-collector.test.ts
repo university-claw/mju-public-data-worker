@@ -1,10 +1,21 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OfficialPageFetchError } from "../../src/cafeterias/official-page-fetcher.js";
 import type { CafeteriaOfficialPageSource } from "../../src/cafeterias/types.js";
 import {
   collectCafeteriaOfficialPagesWithDependencies,
   type CafeteriaOfficialPageCollectorRepositoryLike,
 } from "../../src/workers/cafeteria-official-page-collector.js";
+
+const { refreshResolvedMenusForDateRangeMock } = vi.hoisted(() => ({
+  refreshResolvedMenusForDateRangeMock: vi.fn(async () => ({
+    upsertedCount: 0,
+    deletedCount: 0,
+  })),
+}));
+
+vi.mock("../../src/cafeterias/resolved-menu-selector.js", () => ({
+  refreshResolvedMenusForDateRange: refreshResolvedMenusForDateRangeMock,
+}));
 
 const SOURCES: CafeteriaOfficialPageSource[] = [
   {
@@ -31,6 +42,12 @@ function createRepositoryMock(): CafeteriaOfficialPageCollectorRepositoryLike & 
   finishScrapeRun: ReturnType<typeof vi.fn>;
   getOfficialMenuDocumentSummary: ReturnType<typeof vi.fn>;
   syncOfficialMenuDocument: ReturnType<typeof vi.fn>;
+  listInstagramMenuEntryCandidates: ReturnType<typeof vi.fn>;
+  listOfficialMenuEntryCandidates: ReturnType<typeof vi.fn>;
+  listResolvedMenuEntryKeys: ReturnType<typeof vi.fn>;
+  syncResolvedMenuEntriesForDateRange: ReturnType<typeof vi.fn>;
+  upsertResolvedMenuEntry: ReturnType<typeof vi.fn>;
+  deleteResolvedMenuEntry: ReturnType<typeof vi.fn>;
 } {
   return {
     ensureOfficialPageSources: vi.fn(async () => undefined),
@@ -41,10 +58,55 @@ function createRepositoryMock(): CafeteriaOfficialPageCollectorRepositoryLike & 
       sourceDocumentId: document.sourceId === "student-hall" ? 2001 : 2002,
       storedEntryCount: entries.length,
     })),
+    listInstagramMenuEntryCandidates: vi.fn(async () => []),
+    listOfficialMenuEntryCandidates: vi.fn(async () => []),
+    listResolvedMenuEntryKeys: vi.fn(async () => []),
+    syncResolvedMenuEntriesForDateRange: vi.fn(async () => ({
+      upsertedCount: 0,
+      deletedCount: 0,
+    })),
+    upsertResolvedMenuEntry: vi.fn(async () => undefined),
+    deleteResolvedMenuEntry: vi.fn(async () => undefined),
   };
 }
 
 describe("cafeteria-official-page-collector", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("refreshes resolved menu rows after syncing an official page", async () => {
+    const repository = createRepositoryMock();
+    const fetchPage = vi.fn().mockResolvedValueOnce({
+      source: SOURCES[0],
+      weekScope: "current",
+      weekStartDate: "2026-04-20",
+      rawHtml:
+        "<table><tbody><tr><th>04.20 (월)</th><td>중식</td><td>-</td><td>김치볶음밥</td><td>-</td></tr></tbody></table>",
+      fetchedAt: "2026-04-20T00:00:00.000Z",
+    });
+
+    await collectCafeteriaOfficialPagesWithDependencies(
+      {
+        repository,
+        sources: [SOURCES[0]!],
+        fetchPage,
+      },
+      {
+        triggerReason: "manual",
+      },
+    );
+
+    expect(refreshResolvedMenusForDateRangeMock).toHaveBeenCalledWith(
+      repository,
+      {
+        sourceId: "student-hall",
+        startDate: "2026-04-20",
+        endDate: "2026-04-26",
+      },
+    );
+  });
+
   it("stores current-week official page provenance for all sources", async () => {
     const repository = createRepositoryMock();
     const fetchPage = vi

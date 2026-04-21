@@ -5,6 +5,7 @@ import {
   OfficialPageFetchError,
 } from "../cafeterias/official-page-fetcher.js";
 import { parseCafeteriaOfficialPage } from "../cafeterias/official-page-parser.js";
+import { refreshResolvedMenusForDateRange } from "../cafeterias/resolved-menu-selector.js";
 import { CAFETERIA_OFFICIAL_PAGE_SOURCES } from "../cafeterias/sources.js";
 import type {
   CafeteriaOfficialFetchedPage,
@@ -75,6 +76,77 @@ export interface CafeteriaOfficialPageCollectorRepositoryLike {
     sourceDocumentId: number;
     storedEntryCount: number;
   }>;
+  listInstagramMenuEntryCandidates(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    Array<{
+      entryId: number;
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+    }>
+  >;
+  listOfficialMenuEntryCandidates(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    Array<{
+      entryId: number;
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+    }>
+  >;
+  listResolvedMenuEntryKeys(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ serviceDate: string; mealType: "breakfast" | "lunch" | "dinner" }>>;
+  syncResolvedMenuEntriesForDateRange(params: {
+    sourceId: string;
+    startDate: string;
+    endDate: string;
+    entries: Array<{
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      selectedSourceKind: "instagram_ocr" | "official_page";
+      selectedInstagramEntryId?: number | null;
+      selectedOfficialEntryId?: number | null;
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+      selectionReason?: string | null;
+      selectedAt?: string | null;
+    }>;
+  }): Promise<{ upsertedCount: number; deletedCount: number }>;
+  upsertResolvedMenuEntry(input: {
+    sourceId: string;
+    serviceDate: string;
+    mealType: "breakfast" | "lunch" | "dinner";
+    selectedSourceKind: "instagram_ocr" | "official_page";
+    selectedInstagramEntryId?: number | null;
+    selectedOfficialEntryId?: number | null;
+    isClosed: boolean;
+    menuText: string;
+    menuItems: string[];
+    selectionReason?: string | null;
+    selectedAt?: string | null;
+  }): Promise<void>;
+  deleteResolvedMenuEntry(
+    sourceId: string,
+    serviceDate: string,
+    mealType: "breakfast" | "lunch" | "dinner",
+  ): Promise<void>;
 }
 
 interface CafeteriaOfficialPageCollectorDependencies {
@@ -110,6 +182,12 @@ function buildWeekScopes(
   options: CollectCafeteriaOfficialPageOptions,
 ): CafeteriaOfficialPageWeekScope[] {
   return options.includePreviousWeek ? ["current", "previous"] : ["current"];
+}
+
+function addDays(dateText: string, days: number): string {
+  const date = new Date(`${dateText}T12:00:00+09:00`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 export async function collectCafeteriaOfficialPages(
@@ -261,7 +339,7 @@ async function collectSingleOfficialPageSource(
     } catch (error) {
       if (error instanceof OfficialPageFetchError) {
         if (error.weekStartDate) {
-          await persistOfficialFailedPage(
+          const didPersistFailure = await persistOfficialFailedPage(
             repository,
             source,
             error.weekStartDate,
@@ -269,6 +347,13 @@ async function collectSingleOfficialPageSource(
             new Date().toISOString(),
             error.message,
           );
+          if (didPersistFailure) {
+            await refreshResolvedMenusForDateRange(repository, {
+              sourceId: source.sourceId,
+              startDate: error.weekStartDate,
+              endDate: addDays(error.weekStartDate, 6),
+            });
+          }
         }
 
         if (isOptionalScope) {
@@ -284,11 +369,16 @@ async function collectSingleOfficialPageSource(
     }
 
     try {
-      const entryCount = await persistOfficialFetchedPage(repository, source, page);
+      const persisted = await persistOfficialFetchedPage(repository, source, page);
       metrics.processedPageCount += 1;
-      metrics.storedEntryCount += entryCount;
+      metrics.storedEntryCount += persisted.storedEntryCount;
+      await refreshResolvedMenusForDateRange(repository, {
+        sourceId: source.sourceId,
+        startDate: page.weekStartDate,
+        endDate: addDays(page.weekStartDate, 6),
+      });
     } catch (error) {
-      await persistOfficialFailedPage(
+      const didPersistFailure = await persistOfficialFailedPage(
         repository,
         source,
         page.weekStartDate,
@@ -296,6 +386,13 @@ async function collectSingleOfficialPageSource(
         page.fetchedAt,
         error instanceof Error ? error.message : String(error),
       );
+      if (didPersistFailure) {
+        await refreshResolvedMenusForDateRange(repository, {
+          sourceId: source.sourceId,
+          startDate: page.weekStartDate,
+          endDate: addDays(page.weekStartDate, 6),
+        });
+      }
 
       throw new CafeteriaOfficialPageCollectError(
         `source "${source.sourceId}" failed while processing official page scope "${weekScope}": ${error instanceof Error ? error.message : String(error)}`,
@@ -311,7 +408,7 @@ async function persistOfficialFetchedPage(
   repository: CafeteriaOfficialPageCollectorRepositoryLike,
   source: CafeteriaOfficialPageSource,
   page: CafeteriaOfficialFetchedPage,
-): Promise<number> {
+): Promise<{ storedEntryCount: number }> {
   const parsed = parseCafeteriaOfficialPage(page.rawHtml, page.weekStartDate);
   const existingDocument = await repository.getOfficialMenuDocumentSummary(
     source.sourceId,
@@ -319,7 +416,7 @@ async function persistOfficialFetchedPage(
   );
 
   if (parsed.status !== "succeeded" && existingDocument?.status === "succeeded") {
-    return 0;
+    return { storedEntryCount: 0 };
   }
 
   const result = await repository.syncOfficialMenuDocument({
@@ -343,7 +440,7 @@ async function persistOfficialFetchedPage(
     normalizationMethod: "html_table",
   });
 
-  return result.storedEntryCount;
+  return { storedEntryCount: result.storedEntryCount };
 }
 
 async function persistOfficialFailedPage(
@@ -353,14 +450,14 @@ async function persistOfficialFailedPage(
   rawHtml: string,
   fetchedAt: string,
   errorMessage: string,
-): Promise<void> {
+): Promise<boolean> {
   const existingDocument = await repository.getOfficialMenuDocumentSummary(
     source.sourceId,
     weekStartDate,
   );
 
   if (existingDocument?.status === "succeeded") {
-    return;
+    return false;
   }
 
   await repository.syncOfficialMenuDocument({
@@ -383,4 +480,5 @@ async function persistOfficialFailedPage(
     entries: [],
     normalizationMethod: "html_table",
   });
+  return true;
 }

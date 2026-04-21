@@ -134,6 +134,225 @@ export class CafeteriaRepository {
     };
   }
 
+  async listInstagramMenuEntryCandidates(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    Array<{
+      entryId: number;
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+    }>
+  > {
+    const result = await this.pool.query<{
+      entry_id: number;
+      source_id: string;
+      service_date: string;
+      meal_type: "breakfast" | "lunch" | "dinner";
+      is_closed: boolean;
+      menu_text: string;
+      menu_items: unknown;
+    }>(
+      `
+        SELECT DISTINCT ON (entry.service_date, entry.meal_type)
+          entry.id AS entry_id,
+          entry.source_id,
+          entry.service_date::text,
+          entry.meal_type,
+          entry.is_closed,
+          entry.menu_text,
+          entry.menu_items
+        FROM ${this.schema}.cafeteria_menu_entries AS entry
+        INNER JOIN ${this.schema}.cafeteria_menu_documents AS document
+          ON document.id = entry.source_document_id
+        WHERE entry.source_id = $1
+          AND entry.service_date BETWEEN $2::date AND $3::date
+        ORDER BY
+          entry.service_date,
+          entry.meal_type,
+          COALESCE(document.normalized_at, document.updated_at, document.created_at) DESC,
+          entry.id DESC
+      `,
+      [sourceId, startDate, endDate],
+    );
+
+    return result.rows.map((row) => ({
+      entryId: Number(row.entry_id),
+      sourceId: row.source_id,
+      serviceDate: row.service_date,
+      mealType: row.meal_type,
+      isClosed: row.is_closed,
+      menuText: row.menu_text,
+      menuItems: normalizeJsonStringArray(row.menu_items),
+    }));
+  }
+
+  async listOfficialMenuEntryCandidates(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    Array<{
+      entryId: number;
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+    }>
+  > {
+    const result = await this.pool.query<{
+      entry_id: number;
+      source_id: string;
+      service_date: string;
+      meal_type: "breakfast" | "lunch" | "dinner";
+      is_closed: boolean;
+      menu_text: string;
+      menu_items: unknown;
+    }>(
+      `
+        SELECT DISTINCT ON (entry.service_date, entry.meal_type)
+          entry.id AS entry_id,
+          entry.source_id,
+          entry.service_date::text,
+          entry.meal_type,
+          entry.is_closed,
+          entry.menu_text,
+          entry.menu_items
+        FROM ${this.schema}.cafeteria_official_menu_entries AS entry
+        INNER JOIN ${this.schema}.cafeteria_official_menu_documents AS document
+          ON document.id = entry.source_document_id
+        WHERE entry.source_id = $1
+          AND entry.service_date BETWEEN $2::date AND $3::date
+        ORDER BY
+          entry.service_date,
+          entry.meal_type,
+          COALESCE(document.normalized_at, document.fetched_at, document.updated_at, document.created_at) DESC,
+          entry.id DESC
+      `,
+      [sourceId, startDate, endDate],
+    );
+
+    return result.rows.map((row) => ({
+      entryId: Number(row.entry_id),
+      sourceId: row.source_id,
+      serviceDate: row.service_date,
+      mealType: row.meal_type,
+      isClosed: row.is_closed,
+      menuText: row.menu_text,
+      menuItems: normalizeJsonStringArray(row.menu_items),
+    }));
+  }
+
+  async listResolvedMenuEntryKeys(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ serviceDate: string; mealType: "breakfast" | "lunch" | "dinner" }>> {
+    const result = await this.pool.query<{
+      service_date: string;
+      meal_type: "breakfast" | "lunch" | "dinner";
+    }>(
+      `
+        SELECT service_date::text, meal_type
+        FROM ${this.schema}.cafeteria_resolved_menu_entries
+        WHERE source_id = $1
+          AND service_date BETWEEN $2::date AND $3::date
+        ORDER BY service_date, meal_type
+      `,
+      [sourceId, startDate, endDate],
+    );
+
+    return result.rows.map((row) => ({
+      serviceDate: row.service_date,
+      mealType: row.meal_type,
+    }));
+  }
+
+  async deleteResolvedMenuEntry(
+    sourceId: string,
+    serviceDate: string,
+    mealType: "breakfast" | "lunch" | "dinner",
+  ): Promise<void> {
+    await this.pool.query(
+      `
+        DELETE FROM ${this.schema}.cafeteria_resolved_menu_entries
+        WHERE source_id = $1
+          AND service_date = $2
+          AND meal_type = $3
+      `,
+      [sourceId, serviceDate, mealType],
+    );
+  }
+
+  async syncResolvedMenuEntriesForDateRange(params: {
+    sourceId: string;
+    startDate: string;
+    endDate: string;
+    entries: CafeteriaResolvedMenuEntryInput[];
+  }): Promise<{ upsertedCount: number; deletedCount: number }> {
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      const existingKeysResult = await client.query<{
+        service_date: string;
+        meal_type: "breakfast" | "lunch" | "dinner";
+      }>(
+        `
+          SELECT service_date::text, meal_type
+          FROM ${this.schema}.cafeteria_resolved_menu_entries
+          WHERE source_id = $1
+            AND service_date BETWEEN $2::date AND $3::date
+        `,
+        [params.sourceId, params.startDate, params.endDate],
+      );
+      const winnerKeys = new Set(
+        params.entries.map((entry) => `${entry.serviceDate}:${entry.mealType}`),
+      );
+      let deletedCount = 0;
+
+      for (const row of existingKeysResult.rows) {
+        const entryKey = `${row.service_date}:${row.meal_type}`;
+        if (winnerKeys.has(entryKey)) {
+          continue;
+        }
+
+        await client.query(
+          `
+            DELETE FROM ${this.schema}.cafeteria_resolved_menu_entries
+            WHERE source_id = $1
+              AND service_date = $2
+              AND meal_type = $3
+          `,
+          [params.sourceId, row.service_date, row.meal_type],
+        );
+        deletedCount += 1;
+      }
+
+      for (const entry of params.entries) {
+        await this.upsertResolvedMenuEntryWithClient(client, entry);
+      }
+
+      await client.query("COMMIT");
+      return {
+        upsertedCount: params.entries.length,
+        deletedCount,
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async createOfficialPageSnapshot(
     input: CafeteriaOfficialPageSnapshotInput,
   ): Promise<CafeteriaOfficialPageSnapshotResult> {
@@ -526,6 +745,13 @@ export class CafeteriaRepository {
   async upsertResolvedMenuEntry(
     input: CafeteriaResolvedMenuEntryInput,
   ): Promise<void> {
+    await this.upsertResolvedMenuEntryWithClient(this.pool, input);
+  }
+
+  private async upsertResolvedMenuEntryWithClient(
+    client: Pick<Pool, "query"> | PoolClient,
+    input: CafeteriaResolvedMenuEntryInput,
+  ): Promise<void> {
     if (input.selectedSourceKind === "instagram_ocr") {
       if (
         input.selectedInstagramEntryId == null
@@ -547,7 +773,7 @@ export class CafeteriaRepository {
     }
 
     if (input.selectedInstagramEntryId != null) {
-      const instagramEntryResult = await this.pool.query<{ id: number }>(
+      const instagramEntryResult = await client.query<{ id: number }>(
         `
           SELECT id
           FROM ${this.schema}.cafeteria_menu_entries
@@ -572,7 +798,7 @@ export class CafeteriaRepository {
     }
 
     if (input.selectedOfficialEntryId != null) {
-      const officialEntryResult = await this.pool.query<{ id: number }>(
+      const officialEntryResult = await client.query<{ id: number }>(
         `
           SELECT id
           FROM ${this.schema}.cafeteria_official_menu_entries
@@ -596,7 +822,7 @@ export class CafeteriaRepository {
       }
     }
 
-    await this.pool.query(
+    await client.query(
       `
         INSERT INTO ${this.schema}.cafeteria_resolved_menu_entries (
           source_id,
@@ -1220,6 +1446,54 @@ export class CafeteriaRepository {
     };
   }
 
+  async getExistingMenuDocumentRangeForSourcePost(
+    postId: number,
+  ): Promise<{
+    sourceId: string;
+    serviceStartDate: string | null;
+    serviceEndDate: string | null;
+  } | null> {
+    const result = await this.pool.query<{
+      source_id: string;
+      service_start_date: string | null;
+      service_end_date: string | null;
+    }>(
+      `
+        SELECT
+          document.source_id,
+          COALESCE(
+            document.service_start_date::text,
+            MIN(entry.service_date)::text
+          ) AS service_start_date,
+          COALESCE(
+            document.service_end_date::text,
+            MAX(entry.service_date)::text
+          ) AS service_end_date
+        FROM ${this.schema}.cafeteria_menu_documents AS document
+        LEFT JOIN ${this.schema}.cafeteria_menu_entries AS entry
+          ON entry.source_document_id = document.id
+        WHERE document.source_post_id = $1
+        GROUP BY
+          document.id,
+          document.source_id,
+          document.service_start_date,
+          document.service_end_date
+      `,
+      [postId],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      sourceId: row.source_id,
+      serviceStartDate: row.service_start_date,
+      serviceEndDate: row.service_end_date,
+    };
+  }
+
   async syncMenuNormalization(
     context: CafeteriaMenuNormalizationContext,
     result: CafeteriaMenuNormalizationResult,
@@ -1466,4 +1740,15 @@ function shouldDeleteExistingMenuDocument(
     classification.score <= 0 &&
     classification.signals.some((signal) => signal.startsWith("ignored-hint("))
   );
+}
+
+function normalizeJsonStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }

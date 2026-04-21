@@ -5,6 +5,7 @@ import { CafeteriaRepository } from "../db/cafeteria-repository.js";
 import { SchedulerRepository } from "../db/scheduler-repository.js";
 import { collectNotices } from "./notice-collector.js";
 import { collectCafeteriaInstagramPosts } from "./cafeteria-instagram-collector.js";
+import { collectCafeteriaOfficialPages } from "./cafeteria-official-page-collector.js";
 import { SCHEDULER_TASKS } from "../scheduler/policies.js";
 import { evaluateSchedulerTask } from "../scheduler/evaluator.js";
 import type {
@@ -54,6 +55,15 @@ interface CafeteriaScheduleRunnerDependencies {
   >;
 }
 
+interface CafeteriaOfficialScheduleRunnerDependencies {
+  collect(includePreviousWeek: boolean): Promise<{
+    scrapeRunId: number;
+    fetchedPageCount: number;
+    processedPageCount: number;
+    storedEntryCount: number;
+  }>;
+}
+
 interface SchedulerTaskRepositoryLike {
   ensureTasks(definitions: SchedulerTaskDefinition[]): Promise<void>;
   listTaskStates(): Promise<SchedulerTaskState[]>;
@@ -98,11 +108,11 @@ export async function runSchedulerTick(
       definitions: SCHEDULER_TASKS,
       repository: schedulerRepository,
       runTask: async (definition) => {
-        if (!options.storageLocalRoot) {
-          throw new Error("scheduler tasks require STORAGE_LOCAL_ROOT");
-        }
-
         if (definition.collectorType === "notices") {
+          if (!options.storageLocalRoot) {
+            throw new Error("scheduled notice collection requires STORAGE_LOCAL_ROOT");
+          }
+
           const result = await collectNotices(pool, schema, {
             limit: definition.noticeLimit ?? 30,
             triggerReason: `scheduled:${definition.taskKey}`,
@@ -131,6 +141,28 @@ export async function runSchedulerTick(
                 result.noticeNormalizationFailedCount,
             },
           };
+        }
+
+        if (definition.collectorType === "cafeteria-official-pages") {
+          return runScheduledOfficialCafeteriaTask(definition, {
+            collect: async (includePreviousWeek) => {
+              const result = await collectCafeteriaOfficialPages(pool, schema, {
+                triggerReason: `scheduled:${definition.taskKey}`,
+                includePreviousWeek,
+              });
+
+              return {
+                scrapeRunId: result.scrapeRunId,
+                fetchedPageCount: result.fetchedPageCount,
+                processedPageCount: result.processedPageCount,
+                storedEntryCount: result.storedEntryCount,
+              };
+            },
+          });
+        }
+
+        if (!options.storageLocalRoot) {
+          throw new Error("scheduled cafeteria instagram collection requires STORAGE_LOCAL_ROOT");
         }
 
         return runScheduledCafeteriaTask(
@@ -217,6 +249,26 @@ export async function runScheduledCafeteriaTask(
       processedCount: result.processedCount,
       insertedCount: result.insertedCount,
       updatedCount: result.updatedCount,
+    },
+  };
+}
+
+export async function runScheduledOfficialCafeteriaTask(
+  definition: SchedulerTaskDefinition,
+  dependencies: CafeteriaOfficialScheduleRunnerDependencies,
+): Promise<SchedulerTaskRunSummary> {
+  const result = await dependencies.collect(
+    definition.cafeteriaOfficialIncludePreviousWeek ?? false,
+  );
+
+  return {
+    status: "success",
+    resultSummary: {
+      scrapeRunId: result.scrapeRunId,
+      fetchedPageCount: result.fetchedPageCount,
+      processedPageCount: result.processedPageCount,
+      storedEntryCount: result.storedEntryCount,
+      includePreviousWeek: definition.cafeteriaOfficialIncludePreviousWeek ?? false,
     },
   };
 }

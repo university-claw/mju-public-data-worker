@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   CafeteriaInstagramPost,
   CafeteriaInstagramPostSnapshot,
@@ -12,6 +12,17 @@ import {
   collectCafeteriaInstagramPostsWithDependencies,
   type CafeteriaCollectorRepositoryLike,
 } from "../../src/workers/cafeteria-instagram-collector.js";
+
+const { refreshResolvedMenusForDateRangeMock } = vi.hoisted(() => ({
+  refreshResolvedMenusForDateRangeMock: vi.fn(async () => ({
+    upsertedCount: 0,
+    deletedCount: 0,
+  })),
+}));
+
+vi.mock("../../src/cafeterias/resolved-menu-selector.js", () => ({
+  refreshResolvedMenusForDateRange: refreshResolvedMenusForDateRangeMock,
+}));
 
 const SOURCES: CafeteriaInstagramSource[] = [
   {
@@ -58,6 +69,13 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
   listMenuSheetReferenceHashes: ReturnType<typeof vi.fn>;
   getMenuNormalizationContext: ReturnType<typeof vi.fn>;
   syncMenuNormalization: ReturnType<typeof vi.fn>;
+  getExistingMenuDocumentRangeForSourcePost: ReturnType<typeof vi.fn>;
+  listInstagramMenuEntryCandidates: ReturnType<typeof vi.fn>;
+  listOfficialMenuEntryCandidates: ReturnType<typeof vi.fn>;
+  listResolvedMenuEntryKeys: ReturnType<typeof vi.fn>;
+  syncResolvedMenuEntriesForDateRange: ReturnType<typeof vi.fn>;
+  upsertResolvedMenuEntry: ReturnType<typeof vi.fn>;
+  deleteResolvedMenuEntry: ReturnType<typeof vi.fn>;
 } {
   const defaultUpsertResult: CafeteriaInstagramUpsertResult = {
     cafeteriaInstagramPostId: 1,
@@ -98,11 +116,80 @@ function createRepositoryMock(): CafeteriaCollectorRepositoryLike & {
       dinnerAvailable: false,
     } satisfies CafeteriaMenuNormalizationContext)),
     syncMenuNormalization: vi.fn(async () => undefined),
+    getExistingMenuDocumentRangeForSourcePost: vi.fn(async () => null),
+    listInstagramMenuEntryCandidates: vi.fn(async () => []),
+    listOfficialMenuEntryCandidates: vi.fn(async () => []),
+    listResolvedMenuEntryKeys: vi.fn(async () => []),
+    syncResolvedMenuEntriesForDateRange: vi.fn(async () => ({
+      upsertedCount: 0,
+      deletedCount: 0,
+    })),
+    upsertResolvedMenuEntry: vi.fn(async () => undefined),
+    deleteResolvedMenuEntry: vi.fn(async () => undefined),
     updateInstagramPostProcessing: vi.fn(async () => undefined),
   };
 }
 
 describe("cafeteria-instagram-collector", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("refreshes resolved menu rows after syncing instagram OCR entries", async () => {
+    const repository = createRepositoryMock();
+    const scrapePosts = vi
+      .fn<() => Promise<CafeteriaInstagramPost[]>>()
+      .mockResolvedValueOnce([makePost("student-hall", "code-1")]);
+    const assetProcessor = {
+      processPost: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+    };
+    const menuNormalizer = {
+      normalizeDocument: vi.fn(async () => ({
+        status: "succeeded",
+        confidence: 0.8,
+        reason: "normalized 1/1 menu entries",
+        errorMessage: null,
+        entries: [
+          {
+            serviceDate: "2026-04-13",
+            mealType: "breakfast",
+            isClosed: false,
+            menuText: "삼계탕",
+            menuItems: ["삼계탕"],
+            confidence: 0.81,
+          },
+        ],
+      } satisfies CafeteriaMenuNormalizationResult)),
+      close: vi.fn(async () => undefined),
+    };
+
+    await collectCafeteriaInstagramPostsWithDependencies(
+      {
+        repository,
+        sources: [SOURCES[0]!],
+        scrapePosts,
+        assetProcessor,
+        menuNormalizer,
+      },
+      {
+        limit: 1,
+        triggerReason: "manual",
+        storageLocalRoot: "C:/tmp/assets",
+        ocrLanguages: ["kor", "eng"],
+      },
+    );
+
+    expect(refreshResolvedMenusForDateRangeMock).toHaveBeenCalledWith(
+      repository,
+      {
+        sourceId: "student-hall",
+        startDate: "2026-04-13",
+        endDate: "2026-04-17",
+      },
+    );
+  });
+
   it("records a successful scrape run across all sources", async () => {
     const repository = createRepositoryMock();
     const scrapePosts = vi
@@ -414,6 +501,14 @@ describe("cafeteria-instagram-collector", () => {
 
   it("passes undefined document structure for ignored posts", async () => {
     const repository = createRepositoryMock();
+    repository.getExistingMenuDocumentRangeForSourcePost = vi
+      .fn()
+      .mockResolvedValueOnce({
+        sourceId: "student-hall",
+        serviceStartDate: "2026-04-13",
+        serviceEndDate: "2026-04-17",
+      })
+      .mockResolvedValueOnce(null);
     repository.getInstagramPostSnapshot = vi
       .fn()
       .mockResolvedValueOnce({
@@ -475,6 +570,15 @@ describe("cafeteria-instagram-collector", () => {
         postKind: "ignored",
       } satisfies Partial<CafeteriaPostClassificationResult>),
       undefined,
+    );
+    expect(refreshResolvedMenusForDateRangeMock).toHaveBeenNthCalledWith(
+      1,
+      repository,
+      {
+        sourceId: "student-hall",
+        startDate: "2026-04-13",
+        endDate: "2026-04-17",
+      },
     );
     expect(repository.getMenuNormalizationContext).toHaveBeenCalledTimes(1);
     expect(menuNormalizer.normalizeDocument).toHaveBeenCalledTimes(1);

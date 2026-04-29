@@ -14,6 +14,15 @@ const ALLOWED_CATEGORY_LABELS = new Set([
   "창업",
 ]);
 
+const EMPTY_BOARD_PATTERNS = [
+  /등록된\s+게시물이\s+없습니다/u,
+  /게시물이\s*\(?가\)?\s*없습니다/u,
+  /게시물이\s+없습니다/u,
+  /자료가\s+없습니다/u,
+  /데이터가\s+없습니다/u,
+  /검색된\s+결과가\s+없습니다/u,
+];
+
 export function extractExternalIdFromOnclick(onclick?: string): string | undefined {
   if (!onclick) {
     return undefined;
@@ -101,6 +110,26 @@ function stripLeadingBracketCategory(title: string, categoryLabel?: string): str
   }
 
   return title.replace(/^\[[^\]]+\]\s*/, "").trim();
+}
+
+export function isExplicitEmptyNoticeBoard(html: string): boolean {
+  const $ = loadHtml(html);
+  return $("table.artclTable tbody tr")
+    .toArray()
+    .some((row) => {
+      const rowText = collapseWhitespace($(row).text());
+      const hasEmptyMessage = EMPTY_BOARD_PATTERNS.some((pattern) =>
+        pattern.test(rowText),
+      );
+      if (!hasEmptyMessage) {
+        return false;
+      }
+
+      return (
+        $(row).find("td._noData, td.noData, td[class*='noData']").length > 0 ||
+        $(row).find("a").length === 0
+      );
+    });
 }
 
 /**
@@ -281,6 +310,10 @@ export async function scrapeNoticeList(
   const origin = new URL(source.listUrl).origin;
   const html = await fetchHtml(source.listUrl);
   const htmlItems = parseHtmlListItems(html, source, origin);
+  if (htmlItems.length === 0 && isExplicitEmptyNoticeBoard(html)) {
+    return [];
+  }
+
   let mergedItems = dedupeItems(htmlItems);
 
   if (mergedItems.length < limit) {

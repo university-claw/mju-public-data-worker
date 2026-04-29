@@ -192,6 +192,8 @@ async function runCollect(args: string[]): Promise<void> {
               result.noticeNormalizationSucceededCount,
             totalNoticeNormalizationFailedCount:
               result.noticeNormalizationFailedCount,
+            failedSourceCount: result.failedSourceCount,
+            failedSources: result.failedSources,
             sources: result.sources,
           },
           null,

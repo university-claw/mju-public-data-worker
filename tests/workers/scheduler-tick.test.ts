@@ -112,9 +112,16 @@ describe("scheduler tick", () => {
     ];
     const runTask = vi.fn(async (definition: SchedulerTaskDefinition) => ({
       status: definition.collectorType === "notices" ? "success" : "skipped",
-      resultSummary: {
-        taskKey: definition.taskKey,
-      },
+      resultSummary:
+        definition.collectorType === "notices"
+          ? {
+            taskKey: definition.taskKey,
+            failedSourceCount: 1,
+            failedSources: [{ sourceId: "event", errorMessage: "empty board" }],
+          }
+          : {
+            taskKey: definition.taskKey,
+          },
     }));
 
     const result = await runSchedulerTickWithDependencies(
@@ -134,8 +141,19 @@ describe("scheduler tick", () => {
     expect(repository.updatedEvaluations[0]?.taskKey).toBe("cafeterias/bokji-weekday");
     expect(repository.startedRuns).toHaveLength(1);
     expect(repository.finishedRuns).toHaveLength(1);
+    expect(repository.finishedRuns[0]?.summary).toMatchObject({
+      status: "success",
+      resultSummary: {
+        failedSourceCount: 1,
+        failedSources: [{ sourceId: "event", errorMessage: "empty board" }],
+      },
+    });
     expect(result.executed).toHaveLength(1);
     expect(result.executed[0]?.status).toBe("success");
+    expect(result.executed[0]?.resultSummary).toMatchObject({
+      failedSourceCount: 1,
+      failedSources: [{ sourceId: "event", errorMessage: "empty board" }],
+    });
   });
 
   it("supports dry-run evaluation without mutating repository state", async () => {

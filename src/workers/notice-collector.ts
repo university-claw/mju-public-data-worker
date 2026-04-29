@@ -53,9 +53,16 @@ export interface SourceCollectResult extends SourceCollectMetrics {
   errorMessage?: string;
 }
 
+export interface FailedNoticeSource {
+  sourceId: string;
+  errorMessage: string;
+}
+
 export interface CollectNoticesResult extends SourceCollectMetrics {
   scrapeRunId: number;
   sources: SourceCollectResult[];
+  failedSourceCount: number;
+  failedSources: FailedNoticeSource[];
 }
 
 class SourceCollectError extends Error {
@@ -193,10 +200,20 @@ export async function collectNotices(
       }
     }
 
-    const hasFailure = results.some((result) => result.status === "failed");
+    const failedSources = results
+      .filter(
+        (result): result is SourceCollectResult & { errorMessage: string } =>
+          result.status === "failed" && Boolean(result.errorMessage),
+      )
+      .map((result) => ({
+        sourceId: result.sourceId,
+        errorMessage: result.errorMessage,
+      }));
+    const hasFailure = failedSources.length > 0;
+    const hasSuccess = results.some((result) => result.status === "success");
     await repository.finishScrapeRun(
       scrapeRunId,
-      hasFailure ? "failed" : "success",
+      hasFailure && !hasSuccess ? "failed" : "success",
       totals.scrapedCount,
       totals.processedCount,
       totals.insertedCount,
@@ -209,16 +226,18 @@ export async function collectNotices(
       totals.noticeImageOcrFailedCount,
       totals.noticeNormalizationSucceededCount,
       totals.noticeNormalizationFailedCount,
-      hasFailure ? "one or more sources failed" : undefined,
+      hasFailure && !hasSuccess ? "one or more sources failed" : undefined,
     );
 
-    if (hasFailure) {
+    if (hasFailure && !hasSuccess) {
       throw new Error("one or more notice sources failed during collection");
     }
 
     return {
       scrapeRunId,
       sources: results,
+      failedSourceCount: failedSources.length,
+      failedSources,
       ...totals,
     };
   } catch (error) {

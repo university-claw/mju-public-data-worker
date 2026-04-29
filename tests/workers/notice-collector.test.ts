@@ -459,4 +459,95 @@ describe("notice collector", () => {
 
     warnSpy.mockRestore();
   });
+
+  it("keeps partial notice collection successful when one source fails", async () => {
+    const { collectNotices } = await import("../../src/workers/notice-collector.js");
+    const { scrapeNoticeList } = await import("../../src/notices/list-scraper.js");
+    const { scrapeNoticeDetail } = await import("../../src/notices/detail-scraper.js");
+
+    vi.mocked(scrapeNoticeList)
+      .mockResolvedValueOnce([
+        {
+          sourceId: "general",
+          externalId: "231000",
+          title: "목록 제목",
+          detailUrl: "https://example.com/detail/231000",
+          publishedAt: "2026-04-12T00:00:00.000Z",
+          publishedAtRaw: "2026.04.12",
+        },
+      ])
+      .mockResolvedValueOnce([])
+      .mockRejectedValueOnce(new Error("event board parser failed"))
+      .mockResolvedValueOnce([]);
+    vi.mocked(scrapeNoticeDetail).mockResolvedValueOnce(mockSingleNotice());
+    attachmentExtractionProcessorMock.processNotice.mockResolvedValueOnce({
+      succeededCount: 0,
+      unsupportedCount: 0,
+      failedCount: 0,
+    });
+
+    const result = await collectNotices(
+      {} as never,
+      "public_data",
+      createCollectOptions(),
+    );
+
+    expect(result.failedSourceCount).toBe(1);
+    expect(result.failedSources).toEqual([
+      {
+        sourceId: "event",
+        errorMessage: "event board parser failed",
+      },
+    ]);
+    expect(result.sources.find((source) => source.sourceId === "event")).toMatchObject({
+      status: "failed",
+      errorMessage: "event board parser failed",
+    });
+    expect(repositoryMock.recordSourceRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scrapeRunId: 101,
+        sourceId: "event",
+        status: "failed",
+        errorMessage: "event board parser failed",
+      }),
+    );
+    const finishCall = repositoryMock.finishScrapeRun.mock.calls.at(-1);
+    expect(finishCall?.[1]).toBe("success");
+    expect(finishCall?.[14]).toBeUndefined();
+    expect(repositoryMock.upsertNotice).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails the notice collection when every source fails", async () => {
+    const { collectNotices } = await import("../../src/workers/notice-collector.js");
+    const { scrapeNoticeList } = await import("../../src/notices/list-scraper.js");
+
+    vi.mocked(scrapeNoticeList)
+      .mockRejectedValueOnce(new Error("general failed"))
+      .mockRejectedValueOnce(new Error("scholarship failed"))
+      .mockRejectedValueOnce(new Error("event failed"))
+      .mockRejectedValueOnce(new Error("career failed"));
+
+    await expect(
+      collectNotices({} as never, "public_data", createCollectOptions()),
+    ).rejects.toThrow(/one or more notice sources failed/);
+
+    expect(repositoryMock.recordSourceRun).toHaveBeenCalledTimes(4);
+    expect(repositoryMock.finishScrapeRun).toHaveBeenCalledWith(
+      101,
+      "failed",
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "one or more sources failed",
+    );
+  });
 });

@@ -135,6 +135,8 @@ export async function runSchedulerTick(
               processedCount: result.processedCount,
               insertedCount: result.insertedCount,
               updatedCount: result.updatedCount,
+              failedSourceCount: result.failedSourceCount,
+              failedSources: result.failedSources,
               noticeNormalizationSucceededCount:
                 result.noticeNormalizationSucceededCount,
               noticeNormalizationFailedCount:

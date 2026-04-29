@@ -5,7 +5,9 @@ import { createPool } from "./db/client.js";
 import { runMigrations } from "./db/migrator.js";
 import { checkReachability } from "./http/client.js";
 import { NOTICE_SOURCES } from "./notices/sources.js";
+import { runNoticeNormalizationEvaluation } from "./notices/normalization-evaluator.js";
 import { collectCafeteriaInstagramPosts } from "./workers/cafeteria-instagram-collector.js";
+import { collectCafeteriaOfficialPages } from "./workers/cafeteria-official-page-collector.js";
 import { collectNotices } from "./workers/notice-collector.js";
 import { runSchedulerTick } from "./workers/scheduler-tick.js";
 
@@ -49,6 +51,62 @@ function parseLimit(args: string[], defaultLimit: number): number {
 
 function hasFlag(args: string[], flag: string): boolean {
   return args.includes(flag);
+}
+
+function parseStringOption(args: string[], flag: string): string | undefined {
+  const index = args.findIndex((arg) => arg === flag);
+  if (index !== -1) {
+    return args[index + 1];
+  }
+
+  const equalStyle = args.find((arg) => arg.startsWith(`${flag}=`));
+  if (equalStyle) {
+    return equalStyle.split("=")[1];
+  }
+
+  return undefined;
+}
+
+function parsePositiveIntegerOption(name: string, raw: string): number {
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive integer, received: ${raw}`);
+  }
+
+  return parsed;
+}
+
+function parseDatasetOption(
+  args: string[],
+): "tuning" | "holdout" | "validation_v2" | "regression" {
+  const raw = parseStringOption(args, "--dataset") ?? "tuning";
+  if (
+    raw !== "tuning" &&
+    raw !== "holdout" &&
+    raw !== "validation_v2" &&
+    raw !== "regression"
+  ) {
+    throw new Error(
+      `--dataset must be one of: tuning, holdout, validation_v2, regression (received: ${raw})`,
+    );
+  }
+
+  return raw;
+}
+
+function parseModelsOption(args: string[]): string[] {
+  const raw =
+    parseStringOption(args, "--models") ?? "gpt-5.4-mini,gpt-5.4-nano";
+  const models = raw
+    .split(/[,\s]+/u)
+    .map((model) => model.trim())
+    .filter(Boolean);
+
+  if (models.length === 0) {
+    throw new Error("--models must contain at least one model name");
+  }
+
+  return models;
 }
 
 async function runDoctor(): Promise<void> {
@@ -101,6 +159,13 @@ async function runCollect(args: string[]): Promise<void> {
         triggerReason: "manual",
         storageLocalRoot: config.storageLocalRoot,
         ocrLanguages: config.ocrLanguages,
+        noticeNormalizationEnabled: config.noticeNormalizationEnabled,
+        noticeNormalizationModel: config.noticeNormalizationModel,
+        noticeNormalizationMaxOutputTokens:
+          config.noticeNormalizationMaxOutputTokens,
+        ...(config.openAiApiKey
+          ? { noticeNormalizationApiKey: config.openAiApiKey }
+          : {}),
       });
 
       console.log(
@@ -123,6 +188,10 @@ async function runCollect(args: string[]): Promise<void> {
               result.noticeImageOcrUnsupportedCount,
             totalNoticeImageOcrFailedCount:
               result.noticeImageOcrFailedCount,
+            totalNoticeNormalizationSucceededCount:
+              result.noticeNormalizationSucceededCount,
+            totalNoticeNormalizationFailedCount:
+              result.noticeNormalizationFailedCount,
             sources: result.sources,
           },
           null,
@@ -152,6 +221,28 @@ async function runCollect(args: string[]): Promise<void> {
             totalProcessedCount: result.processedCount,
             totalInsertedCount: result.insertedCount,
             totalUpdatedCount: result.updatedCount,
+            sources: result.sources,
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+
+    if (target === "cafeteria-official-pages") {
+      const result = await collectCafeteriaOfficialPages(pool, config.pgSchema, {
+        triggerReason: "manual",
+        includePreviousWeek: hasFlag(args, "--include-previous-week"),
+      });
+
+      console.log(
+        JSON.stringify(
+          {
+            scrapeRunId: result.scrapeRunId,
+            fetchedPageCount: result.fetchedPageCount,
+            processedPageCount: result.processedPageCount,
+            storedEntryCount: result.storedEntryCount,
             sources: result.sources,
           },
           null,
@@ -191,13 +282,56 @@ async function runSchedule(args: string[]): Promise<void> {
     const result = await runSchedulerTick(pool, config.pgSchema, {
       storageLocalRoot: config.storageLocalRoot,
       ocrLanguages: config.ocrLanguages,
+      noticeNormalizationEnabled: config.noticeNormalizationEnabled,
+      noticeNormalizationModel: config.noticeNormalizationModel,
+      noticeNormalizationMaxOutputTokens:
+        config.noticeNormalizationMaxOutputTokens,
       dryRun,
+      ...(config.openAiApiKey
+        ? { noticeNormalizationApiKey: config.openAiApiKey }
+        : {}),
     });
 
     console.log(JSON.stringify(result, null, 2));
   } finally {
     await pool.end();
   }
+}
+
+async function runEval(args: string[]): Promise<void> {
+  const target = args[1];
+  if (target !== "notice-normalization") {
+    throw new Error(
+      `unsupported eval target: ${target ?? "(missing)"} (expected: notice-normalization)`,
+    );
+  }
+
+  const dataset = parseDatasetOption(args);
+  const models = parseModelsOption(args);
+  const sampleLimitRaw = parseStringOption(args, "--sample-limit");
+  const sampleLimit = sampleLimitRaw
+    ? parsePositiveIntegerOption("--sample-limit", sampleLimitRaw)
+    : undefined;
+  const outputRoot = parseStringOption(args, "--output-root");
+
+  const result = await runNoticeNormalizationEvaluation({
+    dataset,
+    models,
+    ...(sampleLimit ? { sampleLimit } : {}),
+    ...(outputRoot ? { outputRoot } : {}),
+  });
+
+  console.log(
+    JSON.stringify(
+      {
+        summaryPath: result.summaryPath,
+        resultPaths: result.resultPaths,
+        summary: result.summary,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 async function main(): Promise<void> {
@@ -226,9 +360,12 @@ async function main(): Promise<void> {
     case "schedule":
       await runSchedule(args);
       return;
+    case "eval":
+      await runEval(args);
+      return;
     default:
       throw new Error(
-        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias | schedule tick)`,
+        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias | schedule tick | eval notice-normalization)`,
       );
   }
 }

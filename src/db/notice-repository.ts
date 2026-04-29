@@ -3,9 +3,16 @@ import type {
   NoticeAssetImage,
   NoticeAssetProcessingUpdate,
   NoticeAttachmentExtractionUpdate,
+  NoticeDetailsJsonb,
   NoticeImageOcrUpdate,
   NoticeAttachment,
   NoticeDetail,
+  NoticeReadModel,
+  NoticeReadModelNormalizationStatus,
+  NoticeReadModelUpsertInput,
+  NoticeNormalizationSourceAttachment,
+  NoticeNormalizationSourceBundle,
+  NoticeNormalizationSourceImage,
   NoticeSource,
   StoredNoticeAttachment,
   StoredNoticeImage,
@@ -22,6 +29,8 @@ export interface NoticeUpsertResult {
   wasInserted: boolean;
   obsoleteStorageKeys: string[];
 }
+
+type NoticeQueryExecutor = Pick<Pool, "query">;
 
 export class NoticeRepository {
   constructor(
@@ -86,6 +95,8 @@ export class NoticeRepository {
     totalNoticeImageOcrSucceededCount: number,
     totalNoticeImageOcrUnsupportedCount: number,
     totalNoticeImageOcrFailedCount: number,
+    totalNoticeNormalizationSucceededCount: number,
+    totalNoticeNormalizationFailedCount: number,
     errorMessage?: string,
   ): Promise<void> {
     await this.pool.query(
@@ -105,7 +116,9 @@ export class NoticeRepository {
           total_notice_image_ocr_succeeded_count = $10,
           total_notice_image_ocr_unsupported_count = $11,
           total_notice_image_ocr_failed_count = $12,
-          error_message = $13
+          total_notice_normalization_succeeded_count = $13,
+          total_notice_normalization_failed_count = $14,
+          error_message = $15
         WHERE id = $1
       `,
       [
@@ -121,6 +134,8 @@ export class NoticeRepository {
         totalNoticeImageOcrSucceededCount,
         totalNoticeImageOcrUnsupportedCount,
         totalNoticeImageOcrFailedCount,
+        totalNoticeNormalizationSucceededCount,
+        totalNoticeNormalizationFailedCount,
         errorMessage ?? null,
       ],
     );
@@ -140,6 +155,8 @@ export class NoticeRepository {
     noticeImageOcrSucceededCount: number;
     noticeImageOcrUnsupportedCount: number;
     noticeImageOcrFailedCount: number;
+    noticeNormalizationSucceededCount: number;
+    noticeNormalizationFailedCount: number;
     startedAt: string;
     errorMessage?: string;
   }): Promise<void> {
@@ -162,9 +179,11 @@ export class NoticeRepository {
           notice_image_ocr_succeeded_count,
           notice_image_ocr_unsupported_count,
           notice_image_ocr_failed_count,
+          notice_normalization_succeeded_count,
+          notice_normalization_failed_count,
           error_message
         )
-        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        VALUES ($1, $2, $3, $4, now(), $5, $6, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       `,
       [
         params.scrapeRunId,
@@ -181,7 +200,34 @@ export class NoticeRepository {
         params.noticeImageOcrSucceededCount,
         params.noticeImageOcrUnsupportedCount,
         params.noticeImageOcrFailedCount,
+        params.noticeNormalizationSucceededCount,
+        params.noticeNormalizationFailedCount,
         params.errorMessage ?? null,
+      ],
+    );
+  }
+
+  async updateNoticeNormalizationState(params: {
+    noticeItemId: number;
+    status: NoticeReadModelNormalizationStatus;
+    normalizedAt: string;
+    errorMessage?: string | null;
+  }): Promise<void> {
+    await this.pool.query(
+      `
+        UPDATE ${this.schema}.notice_items
+        SET
+          latest_normalization_status = $2,
+          latest_normalization_error_message = $3,
+          latest_normalized_at = $4,
+          updated_at = now()
+        WHERE id = $1
+      `,
+      [
+        params.noticeItemId,
+        params.status,
+        params.errorMessage ?? null,
+        params.normalizedAt,
       ],
     );
   }
@@ -475,6 +521,527 @@ export class NoticeRepository {
     );
   }
 
+  async upsertReadModel(input: NoticeReadModelUpsertInput): Promise<void> {
+    await this.upsertReadModelWithExecutor(this.pool, input);
+  }
+
+  async upsertReadModelWithClient(
+    client: PoolClient,
+    input: NoticeReadModelUpsertInput,
+  ): Promise<void> {
+    await this.upsertReadModelWithExecutor(client, input);
+  }
+
+  private async upsertReadModelWithExecutor(
+    executor: NoticeQueryExecutor,
+    input: NoticeReadModelUpsertInput,
+  ): Promise<void> {
+    const detailsJsonb = input.detailsJsonb === null
+      ? null
+      : JSON.stringify(input.detailsJsonb);
+    const result = await executor.query<{ id: number }>(
+      `
+        INSERT INTO ${this.schema}.notice_read_models (
+          notice_item_id,
+          source_id,
+          external_id,
+          notice_kind,
+          issuer_name,
+          issuer_scope,
+          target_campuses,
+          target_audiences,
+          target_program_levels,
+          target_departments,
+          target_grade_years,
+          primary_time_kind,
+          primary_start_at,
+          primary_end_at,
+          primary_deadline_at,
+          has_deadline,
+          action_required,
+          action_kind,
+          primary_action_channel,
+          primary_action_url,
+          primary_location,
+          participation_mode,
+          has_benefit,
+          benefit_kind,
+          benefit_amount_krw,
+          selection_count,
+          summary,
+          details_jsonb,
+          normalized_confidence,
+          normalized_at,
+          normalization_status,
+          normalization_error_message,
+          updated_at
+        )
+        SELECT
+          ni.id,
+          ni.source_id,
+          ni.external_id,
+          $2,
+          $3,
+          $4,
+          $5::text[],
+          $6::text[],
+          $7::text[],
+          $8::text[],
+          $9::integer[],
+          $10,
+          $11,
+          $12,
+          $13,
+          $14,
+          $15,
+          $16,
+          $17,
+          $18,
+          $19,
+          $20,
+          $21,
+          $22,
+          $23,
+          $24,
+          $25,
+          $26::jsonb,
+          $27,
+          $28,
+          $29,
+          $30,
+          now()
+        FROM ${this.schema}.notice_items ni
+        WHERE ni.id = $1
+        ON CONFLICT (notice_item_id) DO UPDATE
+        SET
+          source_id = EXCLUDED.source_id,
+          external_id = EXCLUDED.external_id,
+          notice_kind = EXCLUDED.notice_kind,
+          issuer_name = EXCLUDED.issuer_name,
+          issuer_scope = EXCLUDED.issuer_scope,
+          target_campuses = EXCLUDED.target_campuses,
+          target_audiences = EXCLUDED.target_audiences,
+          target_program_levels = EXCLUDED.target_program_levels,
+          target_departments = EXCLUDED.target_departments,
+          target_grade_years = EXCLUDED.target_grade_years,
+          primary_time_kind = EXCLUDED.primary_time_kind,
+          primary_start_at = EXCLUDED.primary_start_at,
+          primary_end_at = EXCLUDED.primary_end_at,
+          primary_deadline_at = EXCLUDED.primary_deadline_at,
+          has_deadline = EXCLUDED.has_deadline,
+          action_required = EXCLUDED.action_required,
+          action_kind = EXCLUDED.action_kind,
+          primary_action_channel = EXCLUDED.primary_action_channel,
+          primary_action_url = EXCLUDED.primary_action_url,
+          primary_location = EXCLUDED.primary_location,
+          participation_mode = EXCLUDED.participation_mode,
+          has_benefit = EXCLUDED.has_benefit,
+          benefit_kind = EXCLUDED.benefit_kind,
+          benefit_amount_krw = EXCLUDED.benefit_amount_krw,
+          selection_count = EXCLUDED.selection_count,
+          summary = EXCLUDED.summary,
+          details_jsonb = EXCLUDED.details_jsonb,
+          normalized_confidence = EXCLUDED.normalized_confidence,
+          normalized_at = EXCLUDED.normalized_at,
+          normalization_status = EXCLUDED.normalization_status,
+          normalization_error_message = EXCLUDED.normalization_error_message,
+          updated_at = now()
+        RETURNING id
+      `,
+      [
+        input.noticeItemId,
+        input.noticeKind ?? null,
+        input.issuerName ?? null,
+        input.issuerScope ?? null,
+        [...input.targetCampuses],
+        [...input.targetAudiences],
+        [...input.targetProgramLevels],
+        [...input.targetDepartments],
+        [...input.targetGradeYears],
+        input.primaryTimeKind ?? null,
+        input.primaryStartAt ?? null,
+        input.primaryEndAt ?? null,
+        input.primaryDeadlineAt ?? null,
+        input.hasDeadline,
+        input.actionRequired,
+        input.actionKind ?? null,
+        input.primaryActionChannel ?? null,
+        input.primaryActionUrl ?? null,
+        input.primaryLocation ?? null,
+        input.participationMode ?? null,
+        input.hasBenefit,
+        input.benefitKind ?? null,
+        input.benefitAmountKrw ?? null,
+        input.selectionCount ?? null,
+        input.summary ?? null,
+        detailsJsonb,
+        input.normalizedConfidence,
+        input.normalizedAt,
+        input.normalizationStatus,
+        input.normalizationErrorMessage ?? null,
+      ],
+    );
+
+    if (!result.rows[0]) {
+      throw new Error(
+        `notice item ${input.noticeItemId} was not found for read model upsert`,
+      );
+    }
+  }
+
+  async getReadModelByNoticeItemId(
+    noticeItemId: number,
+  ): Promise<NoticeReadModel | null> {
+    const result = await this.pool.query<{
+      id: number;
+      notice_item_id: number;
+      source_id: string;
+      external_id: string;
+      notice_kind: string | null;
+      issuer_name: string | null;
+      issuer_scope: string | null;
+      target_campuses: string[] | null;
+      target_audiences: string[] | null;
+      target_program_levels: string[] | null;
+      target_departments: string[] | null;
+      target_grade_years: Array<number | string> | null;
+      primary_time_kind: string | null;
+      primary_start_at: string | null;
+      primary_end_at: string | null;
+      primary_deadline_at: string | null;
+      has_deadline: boolean;
+      action_required: boolean;
+      action_kind: string | null;
+      primary_action_channel: string | null;
+      primary_action_url: string | null;
+      primary_location: string | null;
+      participation_mode: string | null;
+      has_benefit: boolean;
+      benefit_kind: string | null;
+      benefit_amount_krw: number | null;
+      selection_count: number | null;
+      summary: string | null;
+      details_jsonb: NoticeDetailsJsonb | null;
+      normalized_confidence: number;
+      normalized_at: string;
+      normalization_status: NoticeReadModelNormalizationStatus;
+      normalization_error_message: string | null;
+      created_at: string;
+      updated_at: string;
+    }>(
+      `
+        SELECT
+          id,
+          notice_item_id,
+          source_id,
+          external_id,
+          notice_kind,
+          issuer_name,
+          issuer_scope,
+          target_campuses,
+          target_audiences,
+          target_program_levels,
+          target_departments,
+          target_grade_years,
+          primary_time_kind,
+          primary_start_at::text,
+          primary_end_at::text,
+          primary_deadline_at::text,
+          has_deadline,
+          action_required,
+          action_kind,
+          primary_action_channel,
+          primary_action_url,
+          primary_location,
+          participation_mode,
+          has_benefit,
+          benefit_kind,
+          benefit_amount_krw,
+          selection_count,
+          summary,
+          details_jsonb,
+          normalized_confidence,
+          normalized_at::text,
+          normalization_status,
+          normalization_error_message,
+          created_at::text,
+          updated_at::text
+        FROM ${this.schema}.notice_read_models
+        WHERE notice_item_id = $1
+      `,
+      [noticeItemId],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: Number(row.id),
+      noticeItemId: Number(row.notice_item_id),
+      sourceId: row.source_id,
+      externalId: row.external_id,
+      noticeKind:
+        row.notice_kind as Exclude<NoticeReadModel["noticeKind"], undefined>,
+      issuerName: row.issuer_name,
+      issuerScope:
+        row.issuer_scope as Exclude<NoticeReadModel["issuerScope"], undefined>,
+      targetCampuses: row.target_campuses ?? [],
+      targetAudiences: row.target_audiences ?? [],
+      targetProgramLevels: row.target_program_levels ?? [],
+      targetDepartments: row.target_departments ?? [],
+      targetGradeYears: (row.target_grade_years ?? []).map((value) =>
+        Number(value)
+      ),
+      primaryTimeKind:
+        row.primary_time_kind as Exclude<
+          NoticeReadModel["primaryTimeKind"],
+          undefined
+        >,
+      primaryStartAt: row.primary_start_at,
+      primaryEndAt: row.primary_end_at,
+      primaryDeadlineAt: row.primary_deadline_at,
+      hasDeadline: row.has_deadline,
+      actionRequired: row.action_required,
+      actionKind:
+        row.action_kind as Exclude<NoticeReadModel["actionKind"], undefined>,
+      primaryActionChannel:
+        row.primary_action_channel as Exclude<
+          NoticeReadModel["primaryActionChannel"],
+          undefined
+        >,
+      primaryActionUrl: row.primary_action_url,
+      primaryLocation: row.primary_location,
+      participationMode:
+        row.participation_mode as Exclude<
+          NoticeReadModel["participationMode"],
+          undefined
+        >,
+      hasBenefit: row.has_benefit,
+      benefitKind:
+        row.benefit_kind as Exclude<NoticeReadModel["benefitKind"], undefined>,
+      benefitAmountKrw: row.benefit_amount_krw,
+      selectionCount: row.selection_count,
+      summary: row.summary,
+      detailsJsonb: row.details_jsonb,
+      normalizedConfidence: row.normalized_confidence,
+      normalizedAt: row.normalized_at,
+      normalizationStatus: row.normalization_status,
+      normalizationErrorMessage: row.normalization_error_message,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  async getNormalizationSourceBundle(
+    noticeItemId: number,
+  ): Promise<NoticeNormalizationSourceBundle> {
+    return this.getNormalizationSourceBundleWithExecutor(this.pool, noticeItemId);
+  }
+
+  async findNoticeItemIdBySourceExternalId(
+    sourceId: string,
+    externalId: string,
+  ): Promise<number | null> {
+    const result = await this.pool.query<{ id: number }>(
+      `
+        SELECT id
+        FROM ${this.schema}.notice_items
+        WHERE source_id = $1
+          AND external_id = $2
+      `,
+      [sourceId, externalId],
+    );
+
+    const row = result.rows[0];
+    return row ? Number(row.id) : null;
+  }
+
+  async getNormalizationSourceBundleWithClient(
+    client: PoolClient,
+    noticeItemId: number,
+  ): Promise<NoticeNormalizationSourceBundle> {
+    return this.getNormalizationSourceBundleWithExecutor(client, noticeItemId);
+  }
+
+  private async getNormalizationSourceBundleWithExecutor(
+    executor: NoticeQueryExecutor,
+    noticeItemId: number,
+  ): Promise<NoticeNormalizationSourceBundle> {
+    const noticeResult = await executor.query<{
+      notice_item_id: number;
+      source_id: string;
+      source_name: string;
+      source_description: string;
+      source_list_url: string;
+      external_id: string;
+      title: string;
+      category_label: string | null;
+      detail_url: string;
+      list_url: string;
+      author: string | null;
+      published_at: string;
+      published_at_raw: string;
+      body_text: string | null;
+      body_html: string | null;
+      content_hash: string | null;
+      attachments_count: number;
+      images_count: number;
+      first_seen_at: string;
+      last_seen_at: string;
+      last_scraped_at: string;
+    }>(
+      `
+        SELECT
+          ni.id AS notice_item_id,
+          ns.id AS source_id,
+          ns.name AS source_name,
+          ns.description AS source_description,
+          ns.list_url AS source_list_url,
+          ni.external_id,
+          ni.title,
+          ni.category_label,
+          ni.detail_url,
+          ni.list_url,
+          ni.author,
+          ni.published_at::text,
+          ni.published_at_raw,
+          ni.body_text,
+          ni.body_html,
+          ni.content_hash,
+          ni.attachments_count,
+          ni.images_count,
+          ni.first_seen_at::text,
+          ni.last_seen_at::text,
+          ni.last_scraped_at::text
+        FROM ${this.schema}.notice_items ni
+        INNER JOIN ${this.schema}.notice_sources ns
+          ON ns.id = ni.source_id
+        WHERE ni.id = $1
+      `,
+      [noticeItemId],
+    );
+
+    const noticeRow = noticeResult.rows[0];
+    if (!noticeRow) {
+      throw new Error(
+        `notice item ${noticeItemId} was not found for normalization context`,
+      );
+    }
+
+    const attachmentsResult = await executor.query<{
+      attachment_id: number;
+      file_name: string;
+      download_url: string;
+      sort_order: number;
+      storage_key: string | null;
+      content_type: string | null;
+      download_status: "pending" | "succeeded" | "failed";
+      extraction_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+      extractor_type: "pdf" | "docx" | "hwpx" | null;
+      extracted_text: string | null;
+      extracted_char_count: number | null;
+      extracted_at: string | null;
+      error_message: string | null;
+    }>(
+      `
+        SELECT
+          na.id AS attachment_id,
+          na.file_name,
+          na.download_url,
+          na.sort_order,
+          na.storage_key,
+          na.content_type,
+          na.download_status,
+          nae.extraction_status,
+          nae.extractor_type,
+          nae.extracted_text,
+          nae.extracted_char_count,
+          nae.extracted_at::text,
+          nae.error_message
+        FROM ${this.schema}.notice_attachments na
+        LEFT JOIN ${this.schema}.notice_attachment_extractions nae
+          ON nae.attachment_id = na.id
+        WHERE na.notice_item_id = $1
+        ORDER BY na.sort_order ASC
+      `,
+      [noticeItemId],
+    );
+
+    const imagesResult = await executor.query<{
+      image_id: number;
+      image_url: string;
+      alt_text: string | null;
+      sort_order: number;
+      storage_key: string | null;
+      content_type: string | null;
+      download_status: "pending" | "succeeded" | "failed";
+      ocr_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+      ocr_text: string | null;
+      ocr_confidence: string | number | null;
+      ocr_language: string | null;
+      ocr_extracted_at: string | null;
+      error_message: string | null;
+    }>(
+      `
+        SELECT
+          ni.id AS image_id,
+          ni.image_url,
+          ni.alt_text,
+          ni.sort_order,
+          ni.storage_key,
+          ni.content_type,
+          ni.download_status,
+          nior.ocr_status,
+          nior.ocr_text,
+          nior.ocr_confidence,
+          nior.ocr_language,
+          nior.ocr_extracted_at::text,
+          nior.error_message
+        FROM ${this.schema}.notice_images ni
+        LEFT JOIN ${this.schema}.notice_image_ocr_results nior
+          ON nior.image_id = ni.id
+        WHERE ni.notice_item_id = $1
+        ORDER BY ni.sort_order ASC
+      `,
+      [noticeItemId],
+    );
+
+    return {
+      source: {
+        id: noticeRow.source_id,
+        name: noticeRow.source_name,
+        description: noticeRow.source_description,
+        listUrl: noticeRow.source_list_url,
+      },
+      notice: {
+        noticeItemId: Number(noticeRow.notice_item_id),
+        sourceId: noticeRow.source_id,
+        externalId: noticeRow.external_id,
+        title: noticeRow.title,
+        categoryLabel: noticeRow.category_label,
+        detailUrl: noticeRow.detail_url,
+        listUrl: noticeRow.list_url,
+        author: noticeRow.author,
+        publishedAt: noticeRow.published_at,
+        publishedAtRaw: noticeRow.published_at_raw,
+        bodyText: noticeRow.body_text,
+        bodyHtml: noticeRow.body_html,
+        contentHash: noticeRow.content_hash,
+        attachmentsCount: Number(noticeRow.attachments_count),
+        imagesCount: Number(noticeRow.images_count),
+        firstSeenAt: noticeRow.first_seen_at,
+        lastSeenAt: noticeRow.last_seen_at,
+        lastScrapedAt: noticeRow.last_scraped_at,
+      },
+      attachments: attachmentsResult.rows.map((row) =>
+        mapNormalizationSourceAttachment(row)
+      ),
+      images: imagesResult.rows.map((row) => mapNormalizationSourceImage(row)),
+    };
+  }
+
   private async upsertNoticeRow(
     client: PoolClient,
     input: NoticeUpsertInput,
@@ -678,4 +1245,68 @@ export class NoticeRepository {
       .map((row) => row.storage_key)
       .filter((storageKey): storageKey is string => Boolean(storageKey));
   }
+}
+
+function mapNormalizationSourceAttachment(row: {
+  attachment_id: number;
+  file_name: string;
+  download_url: string;
+  sort_order: number;
+  storage_key: string | null;
+  content_type: string | null;
+  download_status: "pending" | "succeeded" | "failed";
+  extraction_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+  extractor_type: "pdf" | "docx" | "hwpx" | null;
+  extracted_text: string | null;
+  extracted_char_count: number | null;
+  extracted_at: string | null;
+  error_message: string | null;
+}): NoticeNormalizationSourceAttachment {
+  return {
+    attachmentId: Number(row.attachment_id),
+    fileName: row.file_name,
+    downloadUrl: row.download_url,
+    sortOrder: Number(row.sort_order),
+    storageKey: row.storage_key,
+    contentType: row.content_type,
+    downloadStatus: row.download_status,
+    extractionStatus: row.extraction_status ?? "pending",
+    extractorType: row.extractor_type,
+    extractedText: row.extracted_text,
+    extractedCharCount: row.extracted_char_count,
+    extractedAt: row.extracted_at,
+    errorMessage: row.error_message,
+  };
+}
+
+function mapNormalizationSourceImage(row: {
+  image_id: number;
+  image_url: string;
+  alt_text: string | null;
+  sort_order: number;
+  storage_key: string | null;
+  content_type: string | null;
+  download_status: "pending" | "succeeded" | "failed";
+  ocr_status: "pending" | "succeeded" | "failed" | "unsupported" | null;
+  ocr_text: string | null;
+  ocr_confidence: string | number | null;
+  ocr_language: string | null;
+  ocr_extracted_at: string | null;
+  error_message: string | null;
+}): NoticeNormalizationSourceImage {
+  return {
+    imageId: Number(row.image_id),
+    imageUrl: row.image_url,
+    altText: row.alt_text,
+    sortOrder: Number(row.sort_order),
+    storageKey: row.storage_key,
+    contentType: row.content_type,
+    downloadStatus: row.download_status,
+    ocrStatus: row.ocr_status ?? "pending",
+    ocrText: row.ocr_text,
+    ocrConfidence: row.ocr_confidence === null ? null : Number(row.ocr_confidence),
+    ocrLanguage: row.ocr_language,
+    ocrExtractedAt: row.ocr_extracted_at,
+    errorMessage: row.error_message,
+  };
 }

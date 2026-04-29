@@ -135,3 +135,83 @@ export interface CafeteriaMenuNormalizationResult {
   entries: CafeteriaNormalizedMenuEntry[];
   errorMessage?: string | null;
 }
+
+export type CafeteriaOfficialPageWeekScope =
+  | "current"
+  | "previous"
+  | "next";
+
+export type CafeteriaOfficialMenuDocumentStatus =
+  | "succeeded"
+  | "empty"
+  | "failed";
+
+export interface CafeteriaOfficialPageSource {
+  sourceId: string;
+  pageKey: string;
+  pageUrl: string;
+  viewActionPath: string;
+  name: string;
+  active?: boolean;
+}
+
+export interface CafeteriaOfficialFetchedPage {
+  source: CafeteriaOfficialPageSource;
+  weekScope: CafeteriaOfficialPageWeekScope;
+  weekStartDate: string;
+  rawHtml: string;
+  fetchedAt: string;
+}
+
+export interface CafeteriaOfficialMenuDocumentInput {
+  sourceId: string;
+  weekStartDate: string;
+  rawHtml: string;
+  contentHash: string;
+  fetchedAt: string;
+  status: CafeteriaOfficialMenuDocumentStatus;
+  errorMessage?: string | null;
+  documentScope: CafeteriaMenuDocumentScope;
+  serviceStartDate?: string | null;
+  serviceEndDate?: string | null;
+  breakfastAvailable: boolean;
+  lunchAvailable: boolean;
+  dinnerAvailable: boolean;
+  normalizedAt?: string | null;
+}
+
+export interface CafeteriaOfficialMenuEntryInput {
+  serviceDate: string;
+  mealType: CafeteriaMenuMealType;
+  isClosed: boolean;
+  menuText: string;
+  menuItems: string[];
+  confidence?: number | null;
+}
+
+export interface CafeteriaOfficialParsedMenuDocument {
+  weekStartDate: string;
+  status: CafeteriaOfficialMenuDocumentStatus;
+  documentScope: CafeteriaMenuDocumentScope;
+  serviceStartDate?: string | null;
+  serviceEndDate?: string | null;
+  breakfastAvailable: boolean;
+  lunchAvailable: boolean;
+  dinnerAvailable: boolean;
+  entries: CafeteriaOfficialMenuEntryInput[];
+}
+
+export type CafeteriaResolvedMenuSourceKind =
+  | "instagram_ocr"
+  | "official_page";
+
+export interface CafeteriaResolvedMenuEntryInput {
+  sourceId: string;
+  serviceDate: string;
+  mealType: CafeteriaMenuMealType;
+  selectedSourceKind: CafeteriaResolvedMenuSourceKind;
+  isClosed: boolean;
+  menuText: string;
+  menuItems: string[];
+  selectedAt?: string | null;
+}

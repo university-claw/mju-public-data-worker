@@ -1,4 +1,7 @@
-import type { CafeteriaInstagramSource } from "./types.js";
+import type {
+  CafeteriaInstagramSource,
+  CafeteriaOfficialPageSource,
+} from "./types.js";
 
 /**
  * 학식 인스타 계정은 식당마다 따로 운영되지만, 실제 메뉴 이미지는 두 그룹으로
@@ -41,5 +44,40 @@ export const CAFETERIA_INSTAGRAM_SOURCES: CafeteriaInstagramSource[] = [
     instagramUsername: "mj_bangmok_foodist",
     menuImageGroup: "bokji-bangmok",
     supportsWeekendMenu: false,
+  },
+];
+
+export const CAFETERIA_OFFICIAL_PAGE_SOURCES: CafeteriaOfficialPageSource[] = [
+  {
+    sourceId: "myeongjin",
+    pageKey: "485",
+    pageUrl: "https://mjedu.mju.ac.kr/mjukr/485/subview.do",
+    viewActionPath: "/diet/mjukr/4/view.do",
+    name: "명진당",
+    active: true,
+  },
+  {
+    sourceId: "student-hall",
+    pageKey: "486",
+    pageUrl: "https://mjedu.mju.ac.kr/mjukr/486/subview.do",
+    viewActionPath: "/diet/mjukr/5/view.do",
+    name: "학생회관",
+    active: true,
+  },
+  {
+    sourceId: "bokji",
+    pageKey: "487",
+    pageUrl: "https://mjedu.mju.ac.kr/mjukr/487/subview.do",
+    viewActionPath: "/diet/mjukr/6/view.do",
+    name: "생활관식당",
+    active: true,
+  },
+  {
+    sourceId: "bangmok",
+    pageKey: "488",
+    pageUrl: "https://mjedu.mju.ac.kr/mjukr/488/subview.do",
+    viewActionPath: "/diet/mjukr/7/view.do",
+    name: "교직원식당",
+    active: true,
   },
 ];

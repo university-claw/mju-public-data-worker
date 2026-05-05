@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   dedupeItems,
   parseHtmlListItems,
+  isExplicitEmptyNoticeBoard,
   parseRssItems,
   parseRssUrl,
   scrapeNoticeList,
@@ -65,6 +66,7 @@ describe("list-scraper pure parsers", () => {
 
     const items = parseHtmlListItems(html, SOURCE, "https://www.mju.ac.kr");
     expect(items).toHaveLength(0);
+    expect(isExplicitEmptyNoticeBoard(html)).toBe(true);
   });
 
   it("finds an RSS link from a list page", async () => {
@@ -221,8 +223,37 @@ describe("scrapeNoticeList", () => {
     expect(fetchHtmlMock).toHaveBeenCalledTimes(2);
   });
 
-  it("throws when no usable items survive and there is no RSS fallback", async () => {
+  it("returns an empty list when the board explicitly reports no posts", async () => {
     const html = await fs.readFile(fixture("empty-board.html"), "utf-8");
+    fetchHtmlMock.mockResolvedValueOnce(html);
+
+    await expect(scrapeNoticeList(SOURCE, 1)).resolves.toEqual([]);
+    expect(fetchHtmlMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not use RSS fallback when the board explicitly reports no posts", async () => {
+    const html = `${await fs.readFile(fixture("empty-board.html"), "utf-8")}
+      <a href="/rssBoard/255/list.rss">RSS 2.0</a>`;
+    const xml = await fs.readFile(fixture("notice-rss.xml"), "utf-8");
+    fetchHtmlMock.mockResolvedValueOnce(html).mockResolvedValueOnce(xml);
+
+    await expect(scrapeNoticeList(SOURCE, 1)).resolves.toEqual([]);
+    expect(fetchHtmlMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when no usable items survive without an explicit empty board message", async () => {
+    const html = `
+      <table class="artclTable">
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td class="td-subject"><span>2026학년도 안내</span></td>
+            <td>학사지원팀</td>
+            <td>2026.04.07</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
     fetchHtmlMock.mockResolvedValueOnce(html);
 
     await expect(scrapeNoticeList(SOURCE, 1)).rejects.toThrow(/parsed 0 notice items/);

@@ -42,6 +42,145 @@ export type NoticeImageOcrStatus =
   | "succeeded"
   | "failed"
   | "unsupported";
+export type NoticeReadModelNormalizationStatus =
+  | "succeeded"
+  | "failed";
+export const NOTICE_READ_MODEL_NOTICE_KINDS = [
+  "announcement",
+  "scholarship",
+  "recruitment",
+  "event",
+  "survey",
+  "system_notice",
+  "application",
+  "contest",
+  "result",
+  "other",
+] as const;
+export type NoticeReadModelNoticeKind =
+  typeof NOTICE_READ_MODEL_NOTICE_KINDS[number];
+
+export const NOTICE_READ_MODEL_ISSUER_SCOPES = [
+  "internal",
+  "external",
+] as const;
+export type NoticeReadModelIssuerScope =
+  typeof NOTICE_READ_MODEL_ISSUER_SCOPES[number];
+
+export const NOTICE_READ_MODEL_PRIMARY_TIME_KINDS = [
+  "application_period",
+  "event_period",
+  "operation_period",
+  "response_deadline",
+  "announcement_period",
+  "other",
+] as const;
+export type NoticeReadModelPrimaryTimeKind =
+  typeof NOTICE_READ_MODEL_PRIMARY_TIME_KINDS[number];
+
+export const NOTICE_READ_MODEL_ACTION_KINDS = [
+  "apply",
+  "register",
+  "participate",
+  "respond",
+  "check",
+  "support",
+  "other",
+] as const;
+export type NoticeReadModelActionKind =
+  typeof NOTICE_READ_MODEL_ACTION_KINDS[number];
+
+export const NOTICE_READ_MODEL_ACTION_CHANNELS = [
+  "web_form",
+  "system",
+  "email",
+  "in_person",
+  "onsite",
+  "phone",
+  "other",
+] as const;
+export type NoticeReadModelActionChannel =
+  typeof NOTICE_READ_MODEL_ACTION_CHANNELS[number];
+
+export const NOTICE_READ_MODEL_PARTICIPATION_MODES = [
+  "online",
+  "offline",
+  "hybrid",
+  "remote",
+  "onsite",
+  "other",
+] as const;
+export type NoticeReadModelParticipationMode =
+  typeof NOTICE_READ_MODEL_PARTICIPATION_MODES[number];
+
+export const NOTICE_READ_MODEL_BENEFIT_KINDS = [
+  "scholarship",
+  "grant",
+  "tuition",
+  "interest_support",
+  "prize",
+  "free_issue",
+  "coupon",
+  "other",
+] as const;
+export type NoticeReadModelBenefitKind =
+  typeof NOTICE_READ_MODEL_BENEFIT_KINDS[number];
+
+export type NoticeReadModelJsonPrimitive = string | number | boolean | null;
+export interface NoticeReadModelJsonObject {
+  [key: string]: NoticeReadModelJsonValue;
+}
+export type NoticeReadModelJsonValue =
+  | NoticeReadModelJsonPrimitive
+  | NoticeReadModelJsonObject
+  | NoticeReadModelJsonValue[];
+
+export const NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS = [
+  "eligibility",
+  "required_documents",
+  "application_process",
+  "schedule_details",
+  "benefit_details",
+  "selection_details",
+  "content_details",
+  "resource_links",
+  "contact",
+  "important_notes",
+  "extra",
+] as const;
+export type NoticeDetailsJsonbTopLevelKey =
+  typeof NOTICE_DETAILS_JSONB_TOP_LEVEL_KEYS[number];
+
+export interface NoticeDetailsEntry {
+  title: string | null;
+  content: string;
+}
+
+export interface NoticeDetailsResourceLink {
+  label: string | null;
+  url: string;
+  purpose: string | null;
+}
+
+export interface NoticeDetailsContactItem {
+  label: string | null;
+  value: string;
+  channel: string | null;
+}
+
+export interface NoticeDetailsJsonb {
+  eligibility: NoticeDetailsEntry[] | null;
+  required_documents: NoticeDetailsEntry[] | null;
+  application_process: NoticeDetailsEntry[] | null;
+  schedule_details: NoticeDetailsEntry[] | null;
+  benefit_details: NoticeDetailsEntry[] | null;
+  selection_details: NoticeDetailsEntry[] | null;
+  content_details: NoticeDetailsEntry[] | null;
+  resource_links: NoticeDetailsResourceLink[] | null;
+  contact: NoticeDetailsContactItem[] | null;
+  important_notes: string[] | null;
+  extra: NoticeDetailsEntry[] | null;
+}
 
 export interface NoticeAssetProcessingUpdate {
   storageProvider?: "local" | null;
@@ -107,4 +246,187 @@ export interface NoticeDetail extends NoticeListItem {
   contentHash: string;
   attachments: NoticeAttachment[];
   images: NoticeAssetImage[];
+}
+
+export interface NoticeReadModelUpsertInput {
+  noticeItemId: number;
+  noticeKind?: NoticeReadModelNoticeKind | null;
+  issuerName?: string | null;
+  issuerScope?: NoticeReadModelIssuerScope | null;
+  targetCampuses: readonly string[];
+  targetAudiences: readonly string[];
+  targetProgramLevels: readonly string[];
+  targetDepartments: readonly string[];
+  targetGradeYears: readonly number[];
+  primaryTimeKind?: NoticeReadModelPrimaryTimeKind | null;
+  primaryStartAt?: string | null;
+  primaryEndAt?: string | null;
+  primaryDeadlineAt?: string | null;
+  hasDeadline: boolean;
+  actionRequired: boolean;
+  actionKind?: NoticeReadModelActionKind | null;
+  primaryActionChannel?: NoticeReadModelActionChannel | null;
+  primaryActionUrl?: string | null;
+  primaryLocation?: string | null;
+  participationMode?: NoticeReadModelParticipationMode | null;
+  hasBenefit: boolean;
+  benefitKind?: NoticeReadModelBenefitKind | null;
+  benefitAmountKrw?: number | null;
+  selectionCount?: number | null;
+  summary?: string | null;
+  detailsJsonb: NoticeDetailsJsonb | null;
+  normalizedConfidence: number;
+  normalizedAt: string;
+  normalizationStatus: NoticeReadModelNormalizationStatus;
+  normalizationErrorMessage?: string | null;
+}
+
+export interface NoticeReadModel extends NoticeReadModelUpsertInput {
+  id: number;
+  sourceId: string;
+  externalId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoticeNormalizationSourceMetadata {
+  id: string;
+  name: string;
+  description: string;
+  listUrl: string;
+}
+
+export interface NoticeNormalizationSourceNotice {
+  noticeItemId: number;
+  sourceId: string;
+  externalId: string;
+  title: string;
+  categoryLabel?: string | null;
+  detailUrl: string;
+  listUrl: string;
+  author?: string | null;
+  publishedAt: string;
+  publishedAtRaw: string;
+  bodyText?: string | null;
+  bodyHtml?: string | null;
+  contentHash?: string | null;
+  attachmentsCount: number;
+  imagesCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  lastScrapedAt: string;
+}
+
+export interface NoticeNormalizationSourceAttachment {
+  attachmentId: number;
+  fileName: string;
+  downloadUrl: string;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  extractionStatus: NoticeAttachmentExtractionStatus;
+  extractorType?: NoticeAttachmentExtractorType | null;
+  extractedText?: string | null;
+  extractedCharCount?: number | null;
+  extractedAt?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface NoticeNormalizationSourceImage {
+  imageId: number;
+  imageUrl: string;
+  altText?: string | null;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  ocrStatus: NoticeImageOcrStatus;
+  ocrText?: string | null;
+  ocrConfidence?: number | null;
+  ocrLanguage?: string | null;
+  ocrExtractedAt?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface NoticeNormalizationSourceBundle {
+  source: NoticeNormalizationSourceMetadata;
+  notice: NoticeNormalizationSourceNotice;
+  attachments: readonly NoticeNormalizationSourceAttachment[];
+  images: readonly NoticeNormalizationSourceImage[];
+}
+
+export interface NoticeNormalizationContextTextBlock {
+  text: string | null;
+  originalCharCount: number;
+  includedCharCount: number;
+  truncated: boolean;
+}
+
+export interface NoticeNormalizationContextBodyLink {
+  href: string;
+  text?: string | null;
+}
+
+export interface NoticeNormalizationContextAttachment {
+  attachmentId: number;
+  fileName: string;
+  downloadUrl: string;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  extractionStatus: NoticeAttachmentExtractionStatus;
+  extractorType?: NoticeAttachmentExtractorType | null;
+  extractedAt?: string | null;
+  errorMessage?: string | null;
+  textBlock: NoticeNormalizationContextTextBlock | null;
+}
+
+export interface NoticeNormalizationContextImage {
+  imageId: number;
+  imageUrl: string;
+  altText?: string | null;
+  sortOrder: number;
+  storageKey?: string | null;
+  contentType?: string | null;
+  downloadStatus: NoticeAssetDownloadStatus;
+  ocrStatus: NoticeImageOcrStatus;
+  ocrConfidence?: number | null;
+  ocrLanguage?: string | null;
+  ocrExtractedAt?: string | null;
+  errorMessage?: string | null;
+  textBlock: NoticeNormalizationContextTextBlock | null;
+}
+
+export interface NoticeNormalizationContextStats {
+  attachmentCount: number;
+  attachmentTextAvailableCount: number;
+  attachmentTextMissingCount: number;
+  attachmentOmittedCount: number;
+  imageCount: number;
+  imageTextAvailableCount: number;
+  imageTextMissingCount: number;
+  imageOmittedCount: number;
+}
+
+export interface NoticeNormalizationContext {
+  source: NoticeNormalizationSourceMetadata;
+  notice: NoticeNormalizationSourceNotice;
+  bodyTextBlock: NoticeNormalizationContextTextBlock;
+  bodyLinks: readonly NoticeNormalizationContextBodyLink[];
+  attachments: readonly NoticeNormalizationContextAttachment[];
+  images: readonly NoticeNormalizationContextImage[];
+  stats: NoticeNormalizationContextStats;
+  promptInput: string;
+}
+
+export interface NoticeNormalizationContextOptions {
+  maxBodyChars?: number;
+  maxAttachmentChars?: number;
+  maxImageChars?: number;
+  maxAttachmentCount?: number;
+  maxImageCount?: number;
+  maxBodyLinkCount?: number;
+  maxTotalChars?: number;
 }

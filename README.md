@@ -129,6 +129,15 @@ STORAGE_LOCAL_ROOT=/absolute/path/to/mjuclaw-data/assets
 OCR_LANGUAGES=kor+eng
 ```
 
+공지 normalization을 함께 사용할 때는 아래 환경변수도 설정합니다.
+
+```env
+OPENAI_API_KEY=your-openai-api-key
+NOTICE_NORMALIZATION_ENABLED=true
+NOTICE_NORMALIZATION_MODEL=gpt-5.4-mini
+NOTICE_NORMALIZATION_MAX_OUTPUT_TOKENS=4000
+```
+
 설명:
 
 - `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`
@@ -141,6 +150,22 @@ OCR_LANGUAGES=kor+eng
   - 자산을 저장할 로컬 루트 디렉터리
 - `OCR_LANGUAGES`
   - `tesseract.js`에 넘길 OCR 언어 조합
+- `OPENAI_API_KEY`
+  - 공지 normalization에 사용하는 OpenAI API 키
+- `NOTICE_NORMALIZATION_ENABLED`
+  - `true`면 공지 수집 후 LLM normalization을 실행
+  - 값을 비워두면 `OPENAI_API_KEY` 존재 여부로 자동 결정
+- `NOTICE_NORMALIZATION_MODEL`
+  - 공지 normalization에 사용할 OpenAI 모델
+  - 현재 권장 기본값은 `gpt-5.4-mini`
+- `NOTICE_NORMALIZATION_MAX_OUTPUT_TOKENS`
+  - normalization 응답의 최대 출력 토큰 수
+  - 기본값은 `4000`
+
+주의:
+
+- `NOTICE_NORMALIZATION_ENABLED=true`인데 `OPENAI_API_KEY`가 없으면 worker가 시작 단계에서 에러를 냅니다.
+- `OPENAI_API_KEY`가 없고 `NOTICE_NORMALIZATION_ENABLED`도 비워두면, 공지 normalization은 꺼진 상태로 수집만 수행합니다.
 
 Windows 예시:
 
@@ -183,6 +208,8 @@ npm run doctor
 npm run collect:notices -- --limit 30
 ```
 
+OpenAI normalization을 켜 둔 상태에서는 이 명령이 공지 원문/첨부/OCR 수집 뒤에 `notice_read_models` 적재까지 함께 수행합니다.
+
 학식:
 
 ```bash
@@ -200,6 +227,8 @@ dry-run:
 ```bash
 tsx src/main.ts schedule tick --dry-run
 ```
+
+공지 normalization을 켜 둔 상태에서는 스케줄 tick이 due인 notice task를 실행할 때도 같은 normalization 흐름을 사용합니다.
 
 ## 사용 가능한 CLI 명령
 
@@ -241,6 +270,7 @@ tsx src/main.ts schedule tick --dry-run
 주요 테이블 예시:
 
 - `notice_items`
+- `notice_read_models`
 - `notice_attachments`
 - `notice_attachment_extractions`
 - `notice_images`
@@ -252,6 +282,20 @@ tsx src/main.ts schedule tick --dry-run
 - `scheduler_tasks`
 
 자세한 스키마는 [migrations](/C:/Users/김준현/Desktop/mju-public-data-worker/migrations) 디렉터리에서 확인할 수 있습니다.
+
+공지 normalization 결과는 아래 위치에 저장됩니다.
+
+- `public_data.notice_read_models`
+  - 서비스가 직접 읽을 `normalized facts + details_jsonb`
+- `public_data.notice_items.latest_normalization_status`
+- `public_data.notice_items.latest_normalized_at`
+- `public_data.notice_items.latest_normalization_error_message`
+  - 원문 정본 row 기준 최신 normalization 상태
+- `public_data.scrape_runs.total_notice_normalization_succeeded_count`
+- `public_data.scrape_runs.total_notice_normalization_failed_count`
+- `public_data.scrape_run_sources.notice_normalization_succeeded_count`
+- `public_data.scrape_run_sources.notice_normalization_failed_count`
+  - 실행 집계
 
 ### Local Storage
 
@@ -267,7 +311,7 @@ DB에는 절대경로가 아니라 `storage_key`만 저장합니다.
 
 ### 공지
 
-현재는 **문서 / 자산 / 추출 결과**까지 정리되어 있습니다.
+현재는 **문서 / 자산 / 추출 결과 + notice read model**까지 생성됩니다.
 
 즉 다음과 같은 용도에 적합합니다.
 
@@ -276,16 +320,20 @@ DB에는 절대경로가 아니라 `storage_key`만 저장합니다.
 - 첨부파일 목록 확인
 - 첨부 텍스트 추출 결과 확인
 - 본문 이미지 OCR 확인
+- `public_data.notice_read_models` 기반 핵심 fact 조회
 
-하지만 아직 공지 전용 **읽기용 의미 정규화 모델**은 없습니다.
+현재 공지는 아래 read model이 생성됩니다.
 
-예를 들면 아직 아래 같은 구조는 별도 설계 대상입니다.
+- `public_data.notice_read_models`
 
-- 마감일
-- 대상 학과 / 학년
-- 장학금 액수
-- 제출 서류 목록
-- 핵심 fact 분해
+이 테이블에는 다음이 저장됩니다.
+
+- `normalized facts`
+  - 공지 종류, 대상, 대표 기간/마감, 행동 필요 여부, 대표 링크, 혜택 등
+- `details_jsonb`
+  - 고정 컬럼으로 올리지 않은 중요 상세 구조
+
+원문/provenance는 계속 별도 테이블에 유지되며, `notice_read_models.notice_item_id`를 통해 따라갈 수 있습니다.
 
 ### 학식
 

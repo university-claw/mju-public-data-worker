@@ -51,6 +51,10 @@ export interface AppConfig {
   storageProvider: "local";
   storageLocalRoot?: string;
   ocrLanguages: string[];
+  openAiApiKey?: string;
+  noticeNormalizationEnabled: boolean;
+  noticeNormalizationModel: string;
+  noticeNormalizationMaxOutputTokens: number;
 }
 
 function parseStorageProvider(raw: string): "local" {
@@ -76,6 +80,18 @@ function parseOcrLanguages(raw: string): string[] {
   return languages;
 }
 
+function parseBoolean(name: string, raw: string): boolean {
+  if (raw === "true") {
+    return true;
+  }
+
+  if (raw === "false") {
+    return false;
+  }
+
+  throw new Error(`${name} must be "true" or "false", received: ${raw}`);
+}
+
 export function loadConfig(): AppConfig {
   const pgPort = parsePositiveInteger("PGPORT", requireEnv("PGPORT"));
   const pgSchema = validateSchemaIdentifier(requireEnv("PGSCHEMA"));
@@ -85,6 +101,26 @@ export function loadConfig(): AppConfig {
   const storageLocalRoot = process.env.STORAGE_LOCAL_ROOT?.trim() || undefined;
   const ocrLanguages = parseOcrLanguages(
     process.env.OCR_LANGUAGES?.trim() || "kor+eng",
+  );
+  const openAiApiKey = process.env.OPENAI_API_KEY?.trim() || undefined;
+  const explicitNormalizationEnabled =
+    process.env.NOTICE_NORMALIZATION_ENABLED?.trim();
+  const noticeNormalizationEnabled = explicitNormalizationEnabled
+    ? parseBoolean(
+        "NOTICE_NORMALIZATION_ENABLED",
+        explicitNormalizationEnabled,
+      )
+    : Boolean(openAiApiKey);
+  if (noticeNormalizationEnabled && !openAiApiKey) {
+    throw new Error(
+      "OPENAI_API_KEY is required when NOTICE_NORMALIZATION_ENABLED=true",
+    );
+  }
+  const noticeNormalizationModel =
+    process.env.NOTICE_NORMALIZATION_MODEL?.trim() || "gpt-5.4-mini";
+  const noticeNormalizationMaxOutputTokens = parsePositiveInteger(
+    "NOTICE_NORMALIZATION_MAX_OUTPUT_TOKENS",
+    process.env.NOTICE_NORMALIZATION_MAX_OUTPUT_TOKENS?.trim() || "4000",
   );
 
   return {
@@ -97,5 +133,9 @@ export function loadConfig(): AppConfig {
     storageProvider,
     ...(storageLocalRoot ? { storageLocalRoot } : {}),
     ocrLanguages,
+    ...(openAiApiKey ? { openAiApiKey } : {}),
+    noticeNormalizationEnabled,
+    noticeNormalizationModel,
+    noticeNormalizationMaxOutputTokens,
   };
 }

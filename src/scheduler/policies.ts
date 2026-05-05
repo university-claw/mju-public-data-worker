@@ -111,4 +111,18 @@ export const SCHEDULER_TASKS: SchedulerTaskDefinition[] = [
     cafeteriaSourceId: "bangmok",
     cafeteriaLimit: 10,
   },
+  {
+    taskKey: "cafeterias/official-pages-current",
+    name: "학식 공식 페이지 후행 정정",
+    description:
+      "학교 식단표 페이지 4개를 6시간 간격으로 확인해서 현재 주 식단을 후행 정정한다.",
+    collectorType: "cafeteria-official-pages",
+    taskType: "cafeteria-official-refresh",
+    active: true,
+    schedule: {
+      kind: "fixed_interval",
+      intervalHours: 6,
+    },
+    cafeteriaOfficialIncludePreviousWeek: false,
+  },
 ];

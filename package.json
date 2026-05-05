@@ -10,6 +10,7 @@
     "migrate": "tsx src/main.ts migrate",
     "doctor": "tsx src/main.ts doctor",
     "collect:cafeterias": "tsx src/main.ts collect cafeterias",
+    "collect:cafeteria-official-pages": "tsx src/main.ts collect cafeteria-official-pages",
     "collect:notices": "tsx src/main.ts collect notices",
     "schedule:tick": "tsx src/main.ts schedule tick",
     "test": "vitest run",

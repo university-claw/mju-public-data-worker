@@ -9,6 +9,7 @@
     "check": "tsc --noEmit",
     "migrate": "tsx src/main.ts migrate",
     "doctor": "tsx src/main.ts doctor",
+    "benchmark:cafeteria-ocr": "tsx src/cafeterias/ocr-benchmark.ts",
     "collect:cafeterias": "tsx src/main.ts collect cafeterias",
     "collect:notices": "tsx src/main.ts collect notices",
     "schedule:tick": "tsx src/main.ts schedule tick",

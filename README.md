@@ -100,7 +100,8 @@
 - `cheerio` for HTML parsing
 - `pdf-parse` for PDF text extraction
 - `jszip` for `docx` / `hwpx` extraction
-- `tesseract.js` for OCR
+- `tesseract.js` for notice image OCR and fallback OCR paths
+- PaddleOCR as the default Korean cafeteria OCR engine
 - `jimp` for image crop / preprocessing / fingerprint
 
 ## 실행 환경
@@ -127,6 +128,8 @@ PGSCHEMA=public_data
 STORAGE_PROVIDER=local
 STORAGE_LOCAL_ROOT=/absolute/path/to/mjuclaw-data/assets
 OCR_LANGUAGES=kor+eng
+CAFETERIA_OCR_COMMAND=python scripts/cafeteria_paddleocr_candidate.py {image}
+PADDLE_OCR_REC_MODEL_NAME=korean_PP-OCRv5_mobile_rec
 ```
 
 설명:
@@ -141,6 +144,11 @@ OCR_LANGUAGES=kor+eng
   - 자산을 저장할 로컬 루트 디렉터리
 - `OCR_LANGUAGES`
   - `tesseract.js`에 넘길 OCR 언어 조합
+- `CAFETERIA_OCR_COMMAND`
+  - 선택값. 설정하면 학식 원본 이미지 OCR과 메뉴 cell crop OCR에 `tesseract.js` 대신 외부 로컬 OCR 명령을 사용
+  - 명령 안의 `{image}`는 worker가 저장한 이미지 파일 경로로 치환
+  - EasyOCR 후보를 쓰려면 `python -m pip install --user easyocr` 후 `python scripts/cafeteria_easyocr_candidate.py {image}`를 지정
+  - PaddleOCR 후보를 쓰려면 `paddlepaddle==3.2.0`, `paddleocr==3.3.0` 설치 후 `PADDLE_OCR_REC_MODEL_NAME=korean_PP-OCRv5_mobile_rec`와 `python scripts/cafeteria_paddleocr_candidate.py {image}`를 지정
 
 Windows 예시:
 
@@ -200,6 +208,31 @@ dry-run:
 ```bash
 tsx src/main.ts schedule tick --dry-run
 ```
+
+## 학식 OCR 벤치마크
+
+현재 OCR 기준선과 외부 후보를 같은 이미지에서 비교하려면:
+
+```bash
+npm run benchmark:cafeteria-ocr -- --input-dir reports/cafeteria-ocr/smoke-sample-korean --output-dir reports/cafeteria-ocr/smoke-korean-easyocr --candidate-command "python scripts/cafeteria_easyocr_candidate.py {image}"
+```
+
+PaddleOCR 후보를 로컬 Docker로 비교하려면:
+
+```bash
+docker build -f scripts/Dockerfile.paddleocr -t mju-cafeteria-paddleocr:local scripts
+PADDLE_OCR_REC_MODEL_NAME=korean_PP-OCRv5_mobile_rec npm run benchmark:cafeteria-ocr -- --input-dir reports/cafeteria-ocr/manual-samples --output-dir reports/cafeteria-ocr/manual-paddleocr --candidate-command "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cafeteria_paddleocr_docker_candidate.ps1 {image}"
+```
+
+운영 worker 컨테이너 안에서는 Docker-in-Docker 대신 같은 Python 의존성을 이미지에 넣고 `CAFETERIA_OCR_COMMAND=python scripts/cafeteria_paddleocr_candidate.py {image}`로 직접 실행합니다.
+
+인스타그램 수집까지 포함해 시도하려면:
+
+```bash
+npm run benchmark:cafeteria-ocr -- --collect-instagram --limit-per-source 1 --output-dir reports/cafeteria-ocr/live-attempt
+```
+
+인증 없는 Instagram API가 401/403을 반환하면 `--input-dir`로 로컬 이미지 샘플을 넣어 비교합니다.
 
 ## 사용 가능한 CLI 명령
 

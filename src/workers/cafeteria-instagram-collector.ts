@@ -6,6 +6,7 @@ import {
 } from "../cafeterias/menu-normalizer.js";
 import { structureCafeteriaMenuDocument } from "../cafeterias/menu-document-structurer.js";
 import { CAFETERIA_INSTAGRAM_SOURCES } from "../cafeterias/sources.js";
+import { DEFAULT_CAFETERIA_OCR_COMMAND } from "../cafeterias/ocr-defaults.js";
 import {
   createCafeteriaPostAssetProcessor,
   type CafeteriaPostAssetProcessorLike,
@@ -29,6 +30,7 @@ export interface CollectCafeteriaInstagramOptions {
   triggerReason: string;
   storageLocalRoot: string;
   ocrLanguages: string[];
+  cafeteriaOcrCommand?: string;
   sourceIds?: string[];
 }
 
@@ -136,6 +138,8 @@ export async function collectCafeteriaInstagramPosts(
   options: CollectCafeteriaInstagramOptions,
 ): Promise<CollectCafeteriaInstagramResult> {
   const repository = new CafeteriaRepository(pool, schema);
+  const cafeteriaOcrCommand =
+    options.cafeteriaOcrCommand?.trim() || DEFAULT_CAFETERIA_OCR_COMMAND;
   const sources = options.sourceIds?.length
     ? CAFETERIA_INSTAGRAM_SOURCES.filter((source) =>
         options.sourceIds?.includes(source.id),
@@ -151,18 +155,20 @@ export async function collectCafeteriaInstagramPosts(
       repository,
       sources,
       scrapePosts: scrapeCafeteriaInstagramPosts,
-        assetProcessor: createCafeteriaPostAssetProcessor({
-          repository,
-          storageLocalRoot: options.storageLocalRoot,
-          ocrLanguages: options.ocrLanguages,
-        }),
-        menuNormalizer: createCafeteriaMenuNormalizer({
-          storageLocalRoot: options.storageLocalRoot,
-          ocrLanguages: options.ocrLanguages,
-        }),
-      },
-      options,
-    );
+      assetProcessor: createCafeteriaPostAssetProcessor({
+        repository,
+        storageLocalRoot: options.storageLocalRoot,
+        ocrLanguages: options.ocrLanguages,
+        ocrCommand: cafeteriaOcrCommand,
+      }),
+      menuNormalizer: createCafeteriaMenuNormalizer({
+        storageLocalRoot: options.storageLocalRoot,
+        ocrLanguages: options.ocrLanguages,
+        ocrCommand: cafeteriaOcrCommand,
+      }),
+    },
+    options,
+  );
 }
 
 export async function collectCafeteriaInstagramPostsWithDependencies(

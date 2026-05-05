@@ -8,6 +8,7 @@ import type {
 import { LocalAssetStore, type StoredLocalAsset } from "../storage/local-asset-store.js";
 import { OcrRecognizer } from "./ocr-recognizer.js";
 import { buildCafeteriaImageFingerprint } from "./image-fingerprint.js";
+import { DEFAULT_CAFETERIA_OCR_COMMAND } from "./ocr-defaults.js";
 
 export interface CafeteriaPostAssetRepositoryLike {
   updateInstagramPostProcessing(
@@ -213,13 +214,17 @@ export function createCafeteriaPostAssetProcessor(params: {
   repository: CafeteriaPostAssetRepositoryLike;
   storageLocalRoot: string;
   ocrLanguages: string[];
+  ocrCommand?: string;
 }): CafeteriaPostAssetProcessor {
+  const ocrCommand = params.ocrCommand?.trim() || DEFAULT_CAFETERIA_OCR_COMMAND;
+
   return new CafeteriaPostAssetProcessor({
     repository: params.repository,
     assetStore: new LocalAssetStore(params.storageLocalRoot),
     ocrRecognizer: new OcrRecognizer(
       params.ocrLanguages,
       path.join(params.storageLocalRoot, ".tesseract-cache"),
+      { externalCommand: ocrCommand },
     ),
     downloadImage,
   }, params.ocrLanguages);

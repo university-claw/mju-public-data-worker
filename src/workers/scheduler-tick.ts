@@ -17,6 +17,7 @@ import type {
 export interface RunSchedulerTickOptions {
   storageLocalRoot: string;
   ocrLanguages: string[];
+  cafeteriaOcrCommand?: string;
   dryRun?: boolean;
   now?: Date;
 }
@@ -129,6 +130,7 @@ export async function runSchedulerTick(
                 triggerReason: `scheduled:${definition.taskKey}`,
                 storageLocalRoot: options.storageLocalRoot,
                 ocrLanguages: options.ocrLanguages,
+                ...(options.cafeteriaOcrCommand ? { cafeteriaOcrCommand: options.cafeteriaOcrCommand } : {}),
                 sourceIds: [sourceId],
               });
 

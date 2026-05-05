@@ -4,6 +4,7 @@ import {
   createCafeteriaMenuNormalizer,
   type CafeteriaMenuNormalizer,
 } from "../cafeterias/menu-normalizer.js";
+import { refreshResolvedMenusForDateRange } from "../cafeterias/resolved-menu-selector.js";
 import { structureCafeteriaMenuDocument } from "../cafeterias/menu-document-structurer.js";
 import { CAFETERIA_INSTAGRAM_SOURCES } from "../cafeterias/sources.js";
 import { DEFAULT_CAFETERIA_OCR_COMMAND } from "../cafeterias/ocr-defaults.js";
@@ -93,12 +94,84 @@ export interface CafeteriaCollectorRepositoryLike {
     classification: CafeteriaPostClassificationResult,
     documentStructure?: CafeteriaMenuDocumentStructureResult,
   ): Promise<void>;
+  getExistingMenuDocumentRangeForSourcePost(
+    postId: number,
+  ): Promise<{
+    sourceId: string;
+    serviceStartDate: string | null;
+    serviceEndDate: string | null;
+  } | null>;
   getMenuNormalizationContext(
     postId: number,
   ): Promise<CafeteriaMenuNormalizationContext>;
   syncMenuNormalization(
     context: CafeteriaMenuNormalizationContext,
     result: CafeteriaMenuNormalizationResult,
+  ): Promise<void>;
+  listInstagramMenuEntryCandidates(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    Array<{
+      entryId: number;
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+    }>
+  >;
+  listOfficialMenuEntryCandidates(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    Array<{
+      entryId: number;
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+    }>
+  >;
+  listResolvedMenuEntryKeys(
+    sourceId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ serviceDate: string; mealType: "breakfast" | "lunch" | "dinner" }>>;
+  syncResolvedMenuEntriesForDateRange(params: {
+    sourceId: string;
+    startDate: string;
+    endDate: string;
+    entries: Array<{
+      sourceId: string;
+      serviceDate: string;
+      mealType: "breakfast" | "lunch" | "dinner";
+      selectedSourceKind: "instagram_ocr" | "official_page";
+      isClosed: boolean;
+      menuText: string;
+      menuItems: string[];
+      selectedAt?: string | null;
+    }>;
+  }): Promise<{ upsertedCount: number; deletedCount: number }>;
+  upsertResolvedMenuEntry(input: {
+    sourceId: string;
+    serviceDate: string;
+    mealType: "breakfast" | "lunch" | "dinner";
+    selectedSourceKind: "instagram_ocr" | "official_page";
+    isClosed: boolean;
+    menuText: string;
+    menuItems: string[];
+    selectedAt?: string | null;
+  }): Promise<void>;
+  deleteResolvedMenuEntry(
+    sourceId: string,
+    serviceDate: string,
+    mealType: "breakfast" | "lunch" | "dinner",
   ): Promise<void>;
   updateInstagramPostProcessing(
     postId: number,
@@ -335,6 +408,12 @@ async function collectSingleCafeteriaSource(
         snapshot,
         referenceHashes,
       });
+      const existingMenuDocumentRange =
+        classification.postKind === "menu_sheet"
+          ? null
+          : await repository.getExistingMenuDocumentRangeForSourcePost(
+              upsertResult.cafeteriaInstagramPostId,
+            );
       const documentStructure =
         classification.postKind === "menu_sheet"
           ? structureCafeteriaMenuDocument(source, snapshot)
@@ -357,6 +436,27 @@ async function collectSingleCafeteriaSource(
           normalizationContext,
           normalizationResult,
         );
+        const resolvedRange = resolveCafeteriaSelectionRange(
+          normalizationContext.serviceStartDate ?? null,
+          normalizationContext.serviceEndDate ?? null,
+          normalizationResult.entries,
+        );
+        if (resolvedRange) {
+          await refreshResolvedMenusForDateRange(repository, {
+            sourceId: normalizationContext.source.id,
+            startDate: resolvedRange.startDate,
+            endDate: resolvedRange.endDate,
+          });
+        }
+      } else if (
+        existingMenuDocumentRange?.serviceStartDate
+        && existingMenuDocumentRange.serviceEndDate
+      ) {
+        await refreshResolvedMenusForDateRange(repository, {
+          sourceId: existingMenuDocumentRange.sourceId,
+          startDate: existingMenuDocumentRange.serviceStartDate,
+          endDate: existingMenuDocumentRange.serviceEndDate,
+        });
       }
 
       metrics.processedCount += 1;
@@ -376,6 +476,22 @@ async function collectSingleCafeteriaSource(
   }
 
   return metrics;
+}
+
+function resolveCafeteriaSelectionRange(
+  serviceStartDate: string | null,
+  serviceEndDate: string | null,
+  entries: Array<{ serviceDate: string }>,
+): { startDate: string; endDate: string } | null {
+  const entryDates = entries.map((entry) => entry.serviceDate).sort();
+  const startDate = serviceStartDate ?? entryDates[0] ?? null;
+  const endDate = serviceEndDate ?? entryDates.at(-1) ?? startDate;
+
+  if (!startDate || !endDate) {
+    return null;
+  }
+
+  return { startDate, endDate };
 }
 
 async function safelyNormalizeMenuDocument(

@@ -1,6 +1,12 @@
-export type SchedulerCollectorType = "notices" | "cafeteria-instagram";
+export type SchedulerCollectorType =
+  | "notices"
+  | "cafeteria-instagram"
+  | "cafeteria-official-pages";
 
-export type SchedulerTaskType = "notice-full" | "cafeteria-source-check";
+export type SchedulerTaskType =
+  | "notice-full"
+  | "cafeteria-source-check"
+  | "cafeteria-official-refresh";
 
 export interface IntervalScheduleDefinition {
   kind: "fixed_interval";
@@ -35,6 +41,7 @@ export interface SchedulerTaskDefinition {
   noticeLimit?: number;
   cafeteriaSourceId?: string;
   cafeteriaLimit?: number;
+  cafeteriaOfficialIncludePreviousWeek?: boolean;
 }
 
 export interface SchedulerTaskState {

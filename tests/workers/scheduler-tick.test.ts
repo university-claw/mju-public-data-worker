@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  runScheduledOfficialCafeteriaTask,
   runScheduledCafeteriaTask,
   runSchedulerTickWithDependencies,
 } from "../../src/workers/scheduler-tick.js";
@@ -111,9 +112,16 @@ describe("scheduler tick", () => {
     ];
     const runTask = vi.fn(async (definition: SchedulerTaskDefinition) => ({
       status: definition.collectorType === "notices" ? "success" : "skipped",
-      resultSummary: {
-        taskKey: definition.taskKey,
-      },
+      resultSummary:
+        definition.collectorType === "notices"
+          ? {
+            taskKey: definition.taskKey,
+            failedSourceCount: 1,
+            failedSources: [{ sourceId: "event", errorMessage: "empty board" }],
+          }
+          : {
+            taskKey: definition.taskKey,
+          },
     }));
 
     const result = await runSchedulerTickWithDependencies(
@@ -133,8 +141,19 @@ describe("scheduler tick", () => {
     expect(repository.updatedEvaluations[0]?.taskKey).toBe("cafeterias/bokji-weekday");
     expect(repository.startedRuns).toHaveLength(1);
     expect(repository.finishedRuns).toHaveLength(1);
+    expect(repository.finishedRuns[0]?.summary).toMatchObject({
+      status: "success",
+      resultSummary: {
+        failedSourceCount: 1,
+        failedSources: [{ sourceId: "event", errorMessage: "empty board" }],
+      },
+    });
     expect(result.executed).toHaveLength(1);
     expect(result.executed[0]?.status).toBe("success");
+    expect(result.executed[0]?.resultSummary).toMatchObject({
+      failedSourceCount: 1,
+      failedSources: [{ sourceId: "event", errorMessage: "empty board" }],
+    });
   });
 
   it("supports dry-run evaluation without mutating repository state", async () => {
@@ -295,6 +314,47 @@ describe("scheduled cafeteria task", () => {
       processedCount: 6,
       insertedCount: 3,
       updatedCount: 3,
+    });
+  });
+});
+
+describe("scheduled cafeteria official page task", () => {
+  const definition: SchedulerTaskDefinition = {
+    taskKey: "cafeterias/official-pages-current",
+    name: "학식 공식 페이지 후행 정정",
+    description: "학교 식단표 페이지 후행 정정",
+    collectorType: "cafeteria-official-pages",
+    taskType: "cafeteria-official-refresh",
+    active: true,
+    schedule: {
+      kind: "fixed_interval",
+      intervalHours: 6,
+    },
+    cafeteriaOfficialIncludePreviousWeek: false,
+  };
+
+  it("runs official page collection with the configured previous-week option", async () => {
+    const collect = vi.fn(async () => ({
+      scrapeRunId: 105,
+      fetchedPageCount: 4,
+      processedPageCount: 4,
+      storedEntryCount: 35,
+    }));
+
+    const result = await runScheduledOfficialCafeteriaTask(definition, {
+      collect,
+    });
+
+    expect(collect).toHaveBeenCalledWith(false);
+    expect(result).toMatchObject({
+      status: "success",
+      resultSummary: {
+        scrapeRunId: 105,
+        fetchedPageCount: 4,
+        processedPageCount: 4,
+        storedEntryCount: 35,
+        includePreviousWeek: false,
+      },
     });
   });
 });

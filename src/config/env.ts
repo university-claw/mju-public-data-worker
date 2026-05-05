@@ -53,6 +53,10 @@ export interface AppConfig {
   storageLocalRoot?: string;
   ocrLanguages: string[];
   cafeteriaOcrCommand: string;
+  openAiApiKey?: string;
+  noticeNormalizationEnabled: boolean;
+  noticeNormalizationModel: string;
+  noticeNormalizationMaxOutputTokens: number;
 }
 
 function parseStorageProvider(raw: string): "local" {
@@ -78,6 +82,18 @@ function parseOcrLanguages(raw: string): string[] {
   return languages;
 }
 
+function parseBoolean(name: string, raw: string): boolean {
+  if (raw === "true") {
+    return true;
+  }
+
+  if (raw === "false") {
+    return false;
+  }
+
+  throw new Error(`${name} must be "true" or "false", received: ${raw}`);
+}
+
 export function loadConfig(): AppConfig {
   const pgPort = parsePositiveInteger("PGPORT", requireEnv("PGPORT"));
   const pgSchema = validateSchemaIdentifier(requireEnv("PGSCHEMA"));
@@ -90,6 +106,26 @@ export function loadConfig(): AppConfig {
   );
   const cafeteriaOcrCommand =
     process.env.CAFETERIA_OCR_COMMAND?.trim() || DEFAULT_CAFETERIA_OCR_COMMAND;
+  const openAiApiKey = process.env.OPENAI_API_KEY?.trim() || undefined;
+  const explicitNormalizationEnabled =
+    process.env.NOTICE_NORMALIZATION_ENABLED?.trim();
+  const noticeNormalizationEnabled = explicitNormalizationEnabled
+    ? parseBoolean(
+        "NOTICE_NORMALIZATION_ENABLED",
+        explicitNormalizationEnabled,
+      )
+    : Boolean(openAiApiKey);
+  if (noticeNormalizationEnabled && !openAiApiKey) {
+    throw new Error(
+      "OPENAI_API_KEY is required when NOTICE_NORMALIZATION_ENABLED=true",
+    );
+  }
+  const noticeNormalizationModel =
+    process.env.NOTICE_NORMALIZATION_MODEL?.trim() || "gpt-5.4-mini";
+  const noticeNormalizationMaxOutputTokens = parsePositiveInteger(
+    "NOTICE_NORMALIZATION_MAX_OUTPUT_TOKENS",
+    process.env.NOTICE_NORMALIZATION_MAX_OUTPUT_TOKENS?.trim() || "4000",
+  );
 
   return {
     pgHost: requireEnv("PGHOST"),
@@ -102,5 +138,9 @@ export function loadConfig(): AppConfig {
     ...(storageLocalRoot ? { storageLocalRoot } : {}),
     ocrLanguages,
     cafeteriaOcrCommand,
+    ...(openAiApiKey ? { openAiApiKey } : {}),
+    noticeNormalizationEnabled,
+    noticeNormalizationModel,
+    noticeNormalizationMaxOutputTokens,
   };
 }

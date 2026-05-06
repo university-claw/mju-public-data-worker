@@ -6,7 +6,18 @@ import { runMigrations } from "../../src/db/migrator.js";
 import { NoticeRepository } from "../../src/db/notice-repository.js";
 import { createNoticeNormalizationContext } from "../../src/notices/normalization-context.js";
 
-describe("notice repository integration", () => {
+const hasPostgresEnv = [
+  "PGHOST",
+  "PGPORT",
+  "PGDATABASE",
+  "PGUSER",
+  "PGPASSWORD",
+  "PGSCHEMA",
+].every((name) => Boolean(process.env[name]?.trim()));
+
+const describePostgres = hasPostgresEnv ? describe : describe.skip;
+
+describePostgres("notice repository integration", () => {
   let pool: Pool;
   let schema: string;
   let repository: NoticeRepository;
@@ -20,7 +31,7 @@ describe("notice repository integration", () => {
   });
 
   afterAll(async () => {
-    await pool.end();
+    await pool?.end();
   });
 
   it("upserts and reads a notice read model against postgres", async () => {

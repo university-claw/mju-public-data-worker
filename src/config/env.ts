@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
+import { DEFAULT_CAFETERIA_OCR_COMMAND } from "../cafeterias/ocr-defaults.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,7 @@ export interface AppConfig {
   storageProvider: "local";
   storageLocalRoot?: string;
   ocrLanguages: string[];
+  cafeteriaOcrCommand: string;
   openAiApiKey?: string;
   noticeNormalizationEnabled: boolean;
   noticeNormalizationModel: string;
@@ -102,6 +104,8 @@ export function loadConfig(): AppConfig {
   const ocrLanguages = parseOcrLanguages(
     process.env.OCR_LANGUAGES?.trim() || "kor+eng",
   );
+  const cafeteriaOcrCommand =
+    process.env.CAFETERIA_OCR_COMMAND?.trim() || DEFAULT_CAFETERIA_OCR_COMMAND;
   const openAiApiKey = process.env.OPENAI_API_KEY?.trim() || undefined;
   const explicitNormalizationEnabled =
     process.env.NOTICE_NORMALIZATION_ENABLED?.trim();
@@ -133,6 +137,7 @@ export function loadConfig(): AppConfig {
     storageProvider,
     ...(storageLocalRoot ? { storageLocalRoot } : {}),
     ocrLanguages,
+    cafeteriaOcrCommand,
     ...(openAiApiKey ? { openAiApiKey } : {}),
     noticeNormalizationEnabled,
     noticeNormalizationModel,

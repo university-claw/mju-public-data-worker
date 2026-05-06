@@ -1,40 +1,56 @@
-# mju-public-data-worker — 공지/학식 정본 생성 worker.
-# 컨테이너 안에서 매 15분 `npm run schedule:tick` 실행. 호스트 launchd 의존 제거.
-# build context = mju-public-data-worker 루트.
+FROM node:22-slim AS build
 
-FROM node:22-slim AS base
+WORKDIR /app
 
-ENV NODE_ENV=production \
-    LOG_LEVEL=info
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
 
-# tesseract.js native deps + pdf/docx/hwpx 추출 도구
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       ca-certificates curl tini \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /opt/worker
-
-# package.json 먼저 → 레이어 캐시
-COPY package.json package-lock.json* ./
-# tsx는 dev deps이지만 schedule:tick / migrate 모두 tsx로 도므로 포함 필요
-RUN npm ci --include=dev || npm install --include=dev
-
-# source
 COPY tsconfig.json ./
 COPY src/ ./src/
+RUN npm run build
+RUN npm prune --omit=dev
+
+FROM node:22-slim AS runtime
+
+ARG PADDLEPADDLE_VERSION=3.2.0
+ARG PADDLEOCR_VERSION=3.3.0
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    NODE_ENV=production \
+    PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True \
+    PYTHONIOENCODING=utf-8 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    CAFETERIA_OCR_COMMAND="python scripts/cafeteria_paddleocr_candidate.py {image}" \
+    PADDLE_OCR_REC_MODEL_NAME=korean_PP-OCRv5_mobile_rec
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 \
+        libgomp1 \
+        python3 \
+        python3-pip \
+        python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /opt/paddleocr-venv \
+    && /opt/paddleocr-venv/bin/python -m pip install --upgrade pip \
+    && /opt/paddleocr-venv/bin/python -m pip install "paddlepaddle==${PADDLEPADDLE_VERSION}" -i https://www.paddlepaddle.org.cn/packages/stable/cpu/ \
+    && /opt/paddleocr-venv/bin/python -m pip install "paddleocr==${PADDLEOCR_VERSION}"
+
+ENV PATH="/opt/paddleocr-venv/bin:${PATH}"
+
+WORKDIR /app
+
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/package-lock.json ./package-lock.json
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
 COPY migrations/ ./migrations/
+COPY scripts/ ./scripts/
 
-# 자산 디렉토리 (compose의 named volume 또는 host mount)
-RUN mkdir -p /data/assets && chown -R node:node /opt/worker /data/assets
+RUN mkdir -p /data/public-assets /root/.paddlex \
+    && chmod +x scripts/cafeteria_paddleocr_candidate.py scripts/run-scheduler-loop.sh
 
-USER node
-
-ENV STORAGE_LOCAL_ROOT=/data/assets
-
-# entrypoint:
-#  1) 시작 시 마이그레이션 1회 (멱등 — 이미 적용된 마이그레이션은 skip).
-#  2) 매 15분 schedule:tick. 실패해도 다음 tick에서 회복하도록 || true.
-#     (장애 상황을 silent하게 흘리지 않도록 stderr는 그대로 컨테이너 로그로.)
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["bash", "-c", "set -e; npm run migrate; while true; do echo \"[$(date -Iseconds)] schedule:tick start\"; npm run schedule:tick || echo \"[$(date -Iseconds)] schedule:tick failed (will retry next tick)\"; sleep 900; done"]
+CMD ["scripts/run-scheduler-loop.sh"]

@@ -5,7 +5,18 @@ import { createPool } from "../../src/db/client.js";
 import { runMigrations } from "../../src/db/migrator.js";
 import { CafeteriaRepository } from "../../src/db/cafeteria-repository.js";
 
-describe("cafeteria repository integration", () => {
+const hasPostgresEnv = [
+  "PGHOST",
+  "PGPORT",
+  "PGDATABASE",
+  "PGUSER",
+  "PGPASSWORD",
+  "PGSCHEMA",
+].every((name) => Boolean(process.env[name]?.trim()));
+
+const describePostgres = hasPostgresEnv ? describe : describe.skip;
+
+describePostgres("cafeteria repository integration", () => {
   let pool: Pool;
   let schema: string;
   let repository: CafeteriaRepository;
@@ -19,7 +30,7 @@ describe("cafeteria repository integration", () => {
   });
 
   afterAll(async () => {
-    await pool.end();
+    await pool?.end();
   });
 
   it("stores official page provenance rows and resolved selection rows against postgres", async () => {

@@ -4,6 +4,7 @@ import path from "node:path";
 import { Jimp, JimpMime } from "jimp";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CafeteriaMenuNormalizer, cafeteriaMenuNormalizerTestHelpers } from "../../src/cafeterias/menu-normalizer.js";
+import type { OcrTextBlock } from "../../src/cafeterias/ocr-recognizer.js";
 import type { CafeteriaMenuNormalizationContext } from "../../src/cafeterias/types.js";
 
 async function createBlankImageFile(): Promise<string> {
@@ -48,6 +49,24 @@ function createContext(
 }
 
 const temporaryFiles = new Set<string>();
+
+function makeBlock(
+  text: string,
+  x: number,
+  y: number,
+  confidence = 95,
+): OcrTextBlock {
+  return {
+    text,
+    confidence,
+    box: {
+      x1: x - 40,
+      y1: y - 8,
+      x2: x + 40,
+      y2: y + 8,
+    },
+  };
+}
 
 afterEach(async () => {
   await Promise.all(
@@ -188,6 +207,137 @@ describe("cafeteria menu normalizer", () => {
       }),
     ]);
   });
+
+  it("uses full-image OCR coordinates before falling back to cell crops", async () => {
+    const imagePath = await createBlankImageFile();
+    temporaryFiles.add(imagePath);
+    const recognize = vi.fn().mockResolvedValue({
+      text: "공휴일\n오코노미온더까스\n(퓨전식돈까스)\n쉬림프콥샐러드\n*시저D",
+      confidence: 96,
+      blocks: [
+        makeBlock("공휴일", 450, 545),
+        makeBlock("오코노미온더까스", 780, 555),
+        makeBlock("(퓨전식돈까스)", 780, 580),
+        makeBlock("쉬림프콥샐러드", 780, 710),
+        makeBlock("*시저D", 780, 735),
+      ],
+    });
+    const recognizeBuffer = vi.fn();
+    const normalizer = new CafeteriaMenuNormalizer({
+      assetStore: {
+        resolve: () => imagePath,
+      },
+      ocrRecognizer: {
+        recognize,
+        recognizeBuffer,
+        terminate: vi.fn(),
+      },
+    });
+
+    const result = await normalizer.normalizeDocument(
+      createContext({
+        serviceStartDate: "2026-05-04",
+        serviceEndDate: "2026-05-08",
+        breakfastAvailable: true,
+        lunchAvailable: true,
+      }),
+    );
+
+    expect(recognize).toHaveBeenCalledWith(imagePath);
+    expect(recognizeBuffer).not.toHaveBeenCalled();
+    expect(result.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          serviceDate: "2026-05-05",
+          mealType: "breakfast",
+          isClosed: true,
+          menuText: "공휴일",
+        }),
+        expect.objectContaining({
+          serviceDate: "2026-05-05",
+          mealType: "lunch",
+          isClosed: true,
+          menuText: "공휴일",
+        }),
+        expect.objectContaining({
+          serviceDate: "2026-05-06",
+          mealType: "lunch",
+          menuItems: [
+            "오코노미온더까스(퓨전식돈까스)",
+            "쉬림프콥샐러드",
+            "*시저D",
+          ],
+        }),
+      ]),
+    );
+  });
+
+  it.each([
+    ["bokji", 530, 857],
+    ["bangmok", 532, 872],
+  ])(
+    "keeps %s Foodist lunch footer lines in lunch and includes lower dinner lines",
+    async (sourceId, lunchFooterY, dinnerFooterY) => {
+      const imagePath = await createBlankImageFile();
+      temporaryFiles.add(imagePath);
+      const recognize = vi.fn().mockResolvedValue({
+        text: "lunch-main\nlunch-footer\ndinner-main\ndinner-footer",
+        confidence: 96,
+        blocks: [
+          makeBlock("lunch-main", 240, 350),
+          makeBlock("lunch-footer", 240, lunchFooterY),
+          makeBlock("dinner-main", 240, 675),
+          makeBlock("dinner-footer", 240, dinnerFooterY),
+        ],
+      });
+      const recognizeBuffer = vi.fn();
+      const normalizer = new CafeteriaMenuNormalizer({
+        assetStore: {
+          resolve: () => imagePath,
+        },
+        ocrRecognizer: {
+          recognize,
+          recognizeBuffer,
+          terminate: vi.fn(),
+        },
+      });
+
+      const result = await normalizer.normalizeDocument(
+        createContext({
+          source: {
+            id: sourceId,
+            name: sourceId,
+            description: sourceId,
+            profileUrl: "https://example.com",
+            instagramUsername: sourceId,
+            menuImageGroup: "bokji-bangmok",
+            supportsWeekendMenu: false,
+          },
+          serviceStartDate: "2026-05-04",
+          serviceEndDate: "2026-05-04",
+          breakfastAvailable: false,
+          lunchAvailable: true,
+          dinnerAvailable: true,
+        }),
+      );
+
+      expect(recognize).toHaveBeenCalledWith(imagePath);
+      expect(recognizeBuffer).not.toHaveBeenCalled();
+      expect(result.status).toBe("succeeded");
+      expect(result.entries).toEqual([
+        expect.objectContaining({
+          serviceDate: "2026-05-04",
+          mealType: "lunch",
+          menuItems: ["lunch-main", "lunch-footer"],
+        }),
+        expect.objectContaining({
+          serviceDate: "2026-05-04",
+          mealType: "dinner",
+          menuItems: ["dinner-main", "dinner-footer"],
+        }),
+      ]);
+    },
+  );
 
   it("returns partial when some expected menu cells are empty", async () => {
     const imagePath = await createBlankImageFile();

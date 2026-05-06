@@ -213,6 +213,7 @@ async function runCollect(args: string[]): Promise<void> {
         triggerReason: "manual",
         storageLocalRoot: config.storageLocalRoot,
         ocrLanguages: config.ocrLanguages,
+        cafeteriaOcrCommand: config.cafeteriaOcrCommand,
       });
 
       console.log(
@@ -284,6 +285,7 @@ async function runSchedule(args: string[]): Promise<void> {
     const result = await runSchedulerTick(pool, config.pgSchema, {
       storageLocalRoot: config.storageLocalRoot,
       ocrLanguages: config.ocrLanguages,
+      cafeteriaOcrCommand: config.cafeteriaOcrCommand,
       noticeNormalizationEnabled: config.noticeNormalizationEnabled,
       noticeNormalizationModel: config.noticeNormalizationModel,
       noticeNormalizationMaxOutputTokens:

@@ -2,7 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Jimp, JimpMime } from "jimp";
 import { PSM } from "tesseract.js";
-import { OcrRecognizer } from "./ocr-recognizer.js";
+import { OcrRecognizer, type OcrTextBlock } from "./ocr-recognizer.js";
+import { DEFAULT_CAFETERIA_OCR_COMMAND } from "./ocr-defaults.js";
 import { LocalAssetStore } from "../storage/local-asset-store.js";
 import type {
   CafeteriaMenuMealType,
@@ -37,7 +38,8 @@ interface CellOcrResult {
 
 interface CafeteriaMenuNormalizerDependencies {
   assetStore: Pick<LocalAssetStore, "resolve">;
-  ocrRecognizer: Pick<OcrRecognizer, "recognizeBuffer" | "terminate">;
+  ocrRecognizer: Pick<OcrRecognizer, "recognizeBuffer" | "terminate"> &
+    Partial<Pick<OcrRecognizer, "recognize">>;
 }
 
 const LAYOUT_PROFILES: Record<string, LayoutProfile> = {
@@ -45,12 +47,12 @@ const LAYOUT_PROFILES: Record<string, LayoutProfile> = {
     dayCount: 5,
     tableRect: {
       x: 0.055,
-      y: 0.16,
+      y: 0.19,
       width: 0.90,
-      height: 0.61,
+      height: 0.65,
     },
     labelColumnRatio: 0.12,
-    headerHeightRatio: 0.14,
+    headerHeightRatio: 0.105,
     cellPaddingXRatio: 0.08,
     cellPaddingYRatio: 0.10,
     mealBands: [
@@ -106,28 +108,53 @@ const LAYOUT_PROFILES: Record<string, LayoutProfile> = {
       },
     ],
   },
-  "bokji-bangmok:weekday": {
+  "bokji:weekday": {
     dayCount: 5,
     tableRect: {
-      x: 0.03,
-      y: 0.175,
-      width: 0.94,
-      height: 0.58,
+      x: 0.018,
+      y: 0.214,
+      width: 0.97,
+      height: 0.72,
     },
-    labelColumnRatio: 0.055,
-    headerHeightRatio: 0.115,
+    labelColumnRatio: 0.064,
+    headerHeightRatio: 0.083,
     cellPaddingXRatio: 0.06,
     cellPaddingYRatio: 0.08,
     mealBands: [
       {
         mealType: "lunch",
         startRatio: 0,
-        heightRatio: 0.52,
+        heightRatio: 0.505,
       },
       {
         mealType: "dinner",
-        startRatio: 0.52,
-        heightRatio: 0.48,
+        startRatio: 0.505,
+        heightRatio: 0.495,
+      },
+    ],
+  },
+  "bangmok:weekday": {
+    dayCount: 5,
+    tableRect: {
+      x: 0.01,
+      y: 0.188,
+      width: 0.98,
+      height: 0.735,
+    },
+    labelColumnRatio: 0.058,
+    headerHeightRatio: 0.09,
+    cellPaddingXRatio: 0.06,
+    cellPaddingYRatio: 0.08,
+    mealBands: [
+      {
+        mealType: "lunch",
+        startRatio: 0,
+        heightRatio: 0.49,
+      },
+      {
+        mealType: "dinner",
+        startRatio: 0.49,
+        heightRatio: 0.51,
       },
     ],
   },
@@ -157,8 +184,12 @@ function toKey(context: CafeteriaMenuNormalizationContext): string | null {
     return "myeongjin:weekday";
   }
 
-  if (context.source.id === "bokji" || context.source.id === "bangmok") {
-    return "bokji-bangmok:weekday";
+  if (context.source.id === "bokji") {
+    return "bokji:weekday";
+  }
+
+  if (context.source.id === "bangmok") {
+    return "bangmok:weekday";
   }
 
   return null;
@@ -186,6 +217,20 @@ function expandServiceDates(
 
 function collapseWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function repairKnownMenuOcrText(value: string): string {
+  return value
+    .replace(/행김치볶음밥/g, "햄김치볶음밥")
+    .replace(/햄김치복음밥/g, "햄김치볶음밥")
+    .replace(/비[밤빙범방]밥/g, "비빔밥")
+    .replace(/비[밤빙범방]우동/g, "비빔우동")
+    .replace(/깨잎/g, "깻잎")
+    .replace(/케칩/g, "케찹")
+    .replace(/동그랑맹/g, "동그랑땡")
+    .replace(/[숙쑥]갖어묵우동/g, "쑥갓어묵우동")
+    .replace(/숙갓어묵우동/g, "쑥갓어묵우동")
+    .replace(/마늘[쯤쯩]무침/g, "마늘쫑무침");
 }
 
 function isNoiseLine(line: string): boolean {
@@ -216,12 +261,14 @@ function cleanMenuItems(text: string): string[] {
   const rawLines = text
     .split(/\r?\n/)
     .map((line) =>
-      collapseWhitespace(
-        line
-          .replace(/[|]/g, " ")
-          .replace(/[•·]/g, " ")
-          .replace(/[“”"]/g, " ")
-          .replace(/\s*\*\s*/g, " *"),
+      repairKnownMenuOcrText(
+        collapseWhitespace(
+          line
+            .replace(/[|]/g, " ")
+            .replace(/[•·]/g, " ")
+            .replace(/[“”"]/g, " ")
+            .replace(/\s*\*\s*/g, " *"),
+        ),
       ),
     )
     .filter(Boolean);
@@ -242,12 +289,34 @@ function cleanMenuItems(text: string): string[] {
   return items;
 }
 
+function mergeMenuContinuationItems(items: string[]): string[] {
+  const merged: string[] = [];
+  for (const item of items) {
+    if (/^\([^)]*\)$/u.test(item) && merged.length > 0) {
+      merged[merged.length - 1] = `${merged.at(-1)}${item}`;
+    } else {
+      merged.push(item);
+    }
+  }
+
+  return merged;
+}
+
+function isClosedMarker(item: string): boolean {
+  return /^(미운영|공휴일|휴무|휴일)$/u.test(item);
+}
+
 function shouldMarkClosedCell(menuItems: string[]): boolean {
   if (menuItems.length === 0) {
     return false;
   }
 
-  return menuItems.every((item) => /^(미운영|휴무|휴일)$/u.test(item));
+  return menuItems.every(isClosedMarker);
+}
+
+function getClosedMarker(menuItems: string[]): string | null {
+  const marker = menuItems.find(isClosedMarker);
+  return marker ?? null;
 }
 
 function clampCropValue(value: number, max: number): number {
@@ -313,15 +382,95 @@ async function cropCellBuffer(params: {
 function createClosedEntry(params: {
   serviceDate: string;
   mealType: CafeteriaMenuMealType;
+  closedText?: string;
 }): CafeteriaNormalizedMenuEntry {
+  const closedText = params.closedText ?? "미운영";
   return {
     serviceDate: params.serviceDate,
     mealType: params.mealType,
     isClosed: true,
-    menuItems: ["미운영"],
-    menuText: "미운영",
+    menuItems: [closedText],
+    menuText: closedText,
     confidence: 1,
   };
+}
+
+function blockCenter(block: OcrTextBlock): { x: number; y: number } {
+  return {
+    x: (block.box.x1 + block.box.x2) / 2,
+    y: (block.box.y1 + block.box.y2) / 2,
+  };
+}
+
+function resolveDayIndexFromBlock(params: {
+  block: OcrTextBlock;
+  image: any;
+  profile: LayoutProfile;
+}): number | null {
+  const { block, image, profile } = params;
+  const tableX = image.width * profile.tableRect.x;
+  const tableWidth = image.width * profile.tableRect.width;
+  const labelColumnWidth = tableWidth * profile.labelColumnRatio;
+  const dayColumnWidth = (tableWidth - labelColumnWidth) / profile.dayCount;
+  const contentX = tableX + labelColumnWidth;
+  const center = blockCenter(block);
+
+  if (center.x < contentX || center.x >= contentX + dayColumnWidth * profile.dayCount) {
+    return null;
+  }
+
+  return Math.min(
+    profile.dayCount - 1,
+    Math.max(0, Math.floor((center.x - contentX) / dayColumnWidth)),
+  );
+}
+
+function isBlockInsideBand(params: {
+  block: OcrTextBlock;
+  image: any;
+  profile: LayoutProfile;
+  band: LayoutProfile["mealBands"][number];
+}): boolean {
+  const { block, image, profile, band } = params;
+  const tableY = image.height * profile.tableRect.y;
+  const tableHeight = image.height * profile.tableRect.height;
+  const headerHeight = tableHeight * profile.headerHeightRatio;
+  const bodyHeight = tableHeight - headerHeight;
+  const bandY = tableY + headerHeight + bodyHeight * band.startRatio;
+  const bandHeight = bodyHeight * band.heightRatio;
+  const center = blockCenter(block);
+
+  return center.y >= bandY && center.y < bandY + bandHeight;
+}
+
+function cleanMenuItemsFromBlocks(blocks: OcrTextBlock[]): string[] {
+  const text = [...blocks]
+    .sort((a, b) => {
+      const yDelta = a.box.y1 - b.box.y1;
+      if (Math.abs(yDelta) > 6) {
+        return yDelta;
+      }
+      return a.box.x1 - b.box.x1;
+    })
+    .map((block) => block.text)
+    .join("\n");
+
+  return mergeMenuContinuationItems(cleanMenuItems(text));
+}
+
+function confidenceFromBlocks(blocks: OcrTextBlock[]): number {
+  const confidences = blocks
+    .map((block) => block.confidence)
+    .filter((confidence): confidence is number =>
+      typeof confidence === "number" && Number.isFinite(confidence),
+    );
+  if (confidences.length === 0) {
+    return 0.72;
+  }
+
+  const average = confidences.reduce((sum, confidence) => sum + confidence, 0) /
+    confidences.length;
+  return Number((average / 100).toFixed(2));
 }
 
 function summariseNormalizationResult(params: {
@@ -413,6 +562,17 @@ export class CafeteriaMenuNormalizer {
 
     const imagePath = this.dependencies.assetStore.resolve(context.imageStorageKey);
     const image = await Jimp.read(await fs.readFile(imagePath));
+    const coordinateResult = await this.normalizeDocumentWithOcrBlocks({
+      context,
+      profile,
+      serviceDates,
+      imagePath,
+      image,
+    });
+    if (coordinateResult) {
+      return coordinateResult;
+    }
+
     const expectedDays = Math.min(profile.dayCount, serviceDates.length);
     const entries: CafeteriaNormalizedMenuEntry[] = [];
     const errors: string[] = [];
@@ -436,13 +596,15 @@ export class CafeteriaMenuNormalizer {
             buffer,
             { psm: PSM.SINGLE_BLOCK },
           );
-          const menuItems = cleanMenuItems(ocrResult.text);
+          const menuItems = mergeMenuContinuationItems(cleanMenuItems(ocrResult.text));
 
           if (shouldMarkClosedCell(menuItems)) {
+            const closedText = getClosedMarker(menuItems);
             entries.push(
               createClosedEntry({
                 serviceDate,
                 mealType: band.mealType,
+                ...(closedText ? { closedText } : {}),
               }),
             );
             continue;
@@ -488,6 +650,126 @@ export class CafeteriaMenuNormalizer {
     };
   }
 
+  private async normalizeDocumentWithOcrBlocks(params: {
+    context: CafeteriaMenuNormalizationContext;
+    profile: LayoutProfile;
+    serviceDates: string[];
+    imagePath: string;
+    image: any;
+  }): Promise<CafeteriaMenuNormalizationResult | null> {
+    const recognize = this.dependencies.ocrRecognizer.recognize;
+    if (typeof recognize !== "function") {
+      return null;
+    }
+
+    let blocks: OcrTextBlock[] | undefined;
+    try {
+      const ocrResult = await recognize.call(
+        this.dependencies.ocrRecognizer,
+        params.imagePath,
+      );
+      blocks = ocrResult.blocks;
+    } catch {
+      return null;
+    }
+
+    if (!blocks?.length) {
+      return null;
+    }
+
+    const expectedDays = Math.min(params.profile.dayCount, params.serviceDates.length);
+    const entries: CafeteriaNormalizedMenuEntry[] = [];
+    const errors: string[] = [];
+    const closedDays = new Map<number, string>();
+
+    for (const block of blocks) {
+      const dayIndex = resolveDayIndexFromBlock({
+        block,
+        image: params.image,
+        profile: params.profile,
+      });
+      if (dayIndex === null) {
+        continue;
+      }
+
+      const marker = getClosedMarker(cleanMenuItems(block.text));
+      if (marker) {
+        closedDays.set(dayIndex, marker);
+      }
+    }
+
+    for (let dayIndex = 0; dayIndex < expectedDays; dayIndex += 1) {
+      const serviceDate = params.serviceDates[dayIndex]!;
+      const closedText = closedDays.get(dayIndex);
+
+      for (const band of params.profile.mealBands) {
+        if (!isMealEnabled(params.context, band.mealType)) {
+          continue;
+        }
+
+        const cellBlocks = blocks.filter((block) => {
+          const blockDayIndex = resolveDayIndexFromBlock({
+            block,
+            image: params.image,
+            profile: params.profile,
+          });
+          return blockDayIndex === dayIndex &&
+            isBlockInsideBand({
+              block,
+              image: params.image,
+              profile: params.profile,
+              band,
+            });
+        });
+        const menuItems = cleanMenuItemsFromBlocks(cellBlocks);
+        const cellClosedText = getClosedMarker(menuItems) ?? closedText;
+
+        if (cellClosedText && (menuItems.length === 0 || shouldMarkClosedCell(menuItems))) {
+          entries.push(
+            createClosedEntry({
+              serviceDate,
+              mealType: band.mealType,
+              closedText: cellClosedText,
+            }),
+          );
+          continue;
+        }
+
+        if (menuItems.length === 0) {
+          errors.push(
+            `${params.context.source.id}:${serviceDate}:${band.mealType} produced no menu lines`,
+          );
+          continue;
+        }
+
+        entries.push({
+          serviceDate,
+          mealType: band.mealType,
+          isClosed: false,
+          menuItems,
+          menuText: menuItems.join("\n"),
+          confidence: confidenceFromBlocks(cellBlocks),
+        });
+      }
+    }
+
+    const expectedEntryCount =
+      expectedDays *
+      params.profile.mealBands.filter((band) =>
+        isMealEnabled(params.context, band.mealType),
+      ).length;
+    const result = {
+      entries,
+      ...summariseNormalizationResult({
+        expectedCount: expectedEntryCount,
+        entries,
+        errors,
+      }),
+    };
+
+    return result.status === "failed" ? null : result;
+  }
+
   async close(): Promise<void> {
     await this.dependencies.ocrRecognizer.terminate();
   }
@@ -510,12 +792,16 @@ function isMealEnabled(
 export function createCafeteriaMenuNormalizer(params: {
   storageLocalRoot: string;
   ocrLanguages: string[];
+  ocrCommand?: string;
 }): CafeteriaMenuNormalizer {
+  const ocrCommand = params.ocrCommand?.trim() || DEFAULT_CAFETERIA_OCR_COMMAND;
+
   return new CafeteriaMenuNormalizer({
     assetStore: new LocalAssetStore(params.storageLocalRoot),
     ocrRecognizer: new OcrRecognizer(
       params.ocrLanguages,
       path.join(params.storageLocalRoot, ".tesseract-cache"),
+      { externalCommand: ocrCommand },
     ),
   });
 }

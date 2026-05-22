@@ -1,12 +1,14 @@
 export type SchedulerCollectorType =
   | "notices"
   | "cafeteria-instagram"
-  | "cafeteria-official-pages";
+  | "cafeteria-official-pages"
+  | "shuttles";
 
 export type SchedulerTaskType =
   | "notice-full"
   | "cafeteria-source-check"
-  | "cafeteria-official-refresh";
+  | "cafeteria-official-refresh"
+  | "shuttle-current-semester";
 
 export interface IntervalScheduleDefinition {
   kind: "fixed_interval";

@@ -9,6 +9,7 @@ import { runNoticeNormalizationEvaluation } from "./notices/normalization-evalua
 import { collectCafeteriaInstagramPosts } from "./workers/cafeteria-instagram-collector.js";
 import { collectCafeteriaOfficialPages } from "./workers/cafeteria-official-page-collector.js";
 import { collectNotices } from "./workers/notice-collector.js";
+import { collectShuttleTimetable } from "./workers/shuttle-collector.js";
 import { runSchedulerTick } from "./workers/scheduler-tick.js";
 
 function parseLimit(args: string[], defaultLimit: number): number {
@@ -255,6 +256,21 @@ async function runCollect(args: string[]): Promise<void> {
       return;
     }
 
+    if (target === "shuttles") {
+      if (!config.storageLocalRoot) {
+        throw new Error("collect shuttles requires STORAGE_LOCAL_ROOT");
+      }
+
+      const result = await collectShuttleTimetable(pool, config.pgSchema, {
+        limit: parseLimit(args, 20),
+        triggerReason: "manual",
+        storageLocalRoot: config.storageLocalRoot,
+      });
+
+      console.log(JSON.stringify(result, null, 2));
+      return;
+    }
+
     throw new Error(`unsupported collect target: ${target ?? "(missing)"}`);
   } finally {
     await pool.end();
@@ -369,7 +385,7 @@ async function main(): Promise<void> {
       return;
     default:
       throw new Error(
-        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias | schedule tick | eval notice-normalization)`,
+        `unsupported command: ${command ?? "(missing)"} (expected: migrate | doctor | collect notices | collect cafeterias | collect shuttles | schedule tick | eval notice-normalization)`,
       );
   }
 }

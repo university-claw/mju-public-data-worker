@@ -4,7 +4,6 @@ import {
   runScheduledCafeteriaTask,
   runSchedulerTickWithDependencies,
 } from "../../src/workers/scheduler-tick.js";
-import { SCHEDULER_TASKS } from "../../src/scheduler/policies.js";
 import type {
   SchedulerTaskDefinition,
   SchedulerTaskRunSummary,
@@ -72,36 +71,6 @@ class FakeSchedulerRepository {
 }
 
 describe("scheduler tick", () => {
-  it("includes the current semester shuttle timetable task in dry-run evaluation", async () => {
-    const repository = new FakeSchedulerRepository();
-    const shuttleTask = SCHEDULER_TASKS.find(
-      (definition) => definition.taskKey === "shuttles/current-semester",
-    );
-
-    expect(shuttleTask).toMatchObject({
-      collectorType: "shuttles",
-      taskType: "shuttle-current-semester",
-      active: true,
-    });
-
-    const result = await runSchedulerTickWithDependencies(
-      {
-        definitions: shuttleTask ? [shuttleTask] : [],
-        repository,
-        runTask: vi.fn(),
-      },
-      {
-        now: new Date("2026-05-22T03:00:00.000Z"),
-        dryRun: true,
-      },
-    );
-
-    expect(result.tasks[0]).toMatchObject({
-      taskKey: "shuttles/current-semester",
-      status: "dry_run",
-    });
-  });
-
   it("runs due tasks and skips tasks outside their window", async () => {
     const repository = new FakeSchedulerRepository();
     const definitions: SchedulerTaskDefinition[] = [

@@ -125,18 +125,4 @@ export const SCHEDULER_TASKS: SchedulerTaskDefinition[] = [
     },
     cafeteriaOfficialIncludePreviousWeek: false,
   },
-  {
-    taskKey: "shuttles/current-semester",
-    name: "현재 학기 셔틀 시간표 수집",
-    description:
-      "일반공지의 셔틀 검색 결과에서 현재 학기 운행 안내를 찾아 셔틀 시간표 read model을 갱신한다.",
-    collectorType: "shuttles",
-    taskType: "shuttle-current-semester",
-    active: true,
-    schedule: {
-      kind: "fixed_interval",
-      intervalHours: 6,
-    },
-    noticeLimit: 20,
-  },
 ];

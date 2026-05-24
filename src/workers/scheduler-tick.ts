@@ -6,7 +6,6 @@ import { SchedulerRepository } from "../db/scheduler-repository.js";
 import { collectNotices } from "./notice-collector.js";
 import { collectCafeteriaInstagramPosts } from "./cafeteria-instagram-collector.js";
 import { collectCafeteriaOfficialPages } from "./cafeteria-official-page-collector.js";
-import { collectShuttleTimetable } from "./shuttle-collector.js";
 import { SCHEDULER_TASKS } from "../scheduler/policies.js";
 import { evaluateSchedulerTask } from "../scheduler/evaluator.js";
 import type {
@@ -163,23 +162,6 @@ export async function runSchedulerTick(
               };
             },
           });
-        }
-
-        if (definition.collectorType === "shuttles") {
-          if (!options.storageLocalRoot) {
-            throw new Error("scheduled shuttle collection requires STORAGE_LOCAL_ROOT");
-          }
-
-          const result = await collectShuttleTimetable(pool, schema, {
-            limit: definition.noticeLimit ?? 20,
-            triggerReason: `scheduled:${definition.taskKey}`,
-            storageLocalRoot: options.storageLocalRoot,
-          });
-
-          return {
-            status: "success",
-            resultSummary: result,
-          };
         }
 
         if (!options.storageLocalRoot) {

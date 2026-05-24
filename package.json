@@ -13,7 +13,6 @@
     "collect:cafeterias": "tsx src/main.ts collect cafeterias",
     "collect:cafeteria-official-pages": "tsx src/main.ts collect cafeteria-official-pages",
     "collect:notices": "tsx src/main.ts collect notices",
-    "collect:shuttles": "tsx src/main.ts collect shuttles",
     "schedule:tick": "tsx src/main.ts schedule tick",
     "test": "vitest run",
     "test:watch": "vitest"

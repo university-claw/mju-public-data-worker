@@ -51,6 +51,6 @@ COPY migrations/ ./migrations/
 COPY scripts/ ./scripts/
 
 RUN mkdir -p /data/public-assets /root/.paddlex \
-    && chmod +x scripts/cafeteria_paddleocr_candidate.py scripts/run-scheduler-loop.sh
+    && chmod +x scripts/cafeteria_paddleocr_candidate.py scripts/run-scheduler-loop.sh scripts/import-seeds-from-release.mjs
 
 CMD ["scripts/run-scheduler-loop.sh"]

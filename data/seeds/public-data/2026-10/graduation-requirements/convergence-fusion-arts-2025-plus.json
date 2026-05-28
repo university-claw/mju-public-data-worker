@@ -1,0 +1,111 @@
+{
+  "department": "융합예술학",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 융합예술학 융합전공",
+  "sourceUrl": "https://youth.mju.ac.kr/mjukr/9714/subview.do",
+  "sourceEvidence": [
+    "융합예술학 제2전공: 전공필수 14, 전공선택 22, 최소전공학점 36",
+    "융합예술학 부전공: 전공필수 11, 전공선택 10, 최소전공학점 21"
+  ],
+  "rules": [
+    {
+      "requirementKey": "convergence-major-second-credit",
+      "label": "제2전공 최소전공학점",
+      "category": "융합전공",
+      "requiredCredits": 36,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "융합예술학 제2전공 최소전공학점"
+    },
+    {
+      "requirementKey": "convergence-major-required-credit",
+      "label": "제2전공 전공필수",
+      "category": "융합전공",
+      "requiredCredits": 14,
+      "courseGroups": [
+        {
+          "groupKey": "fusion-arts-required-choice",
+          "label": "필수과목 중 선택",
+          "requiredCredits": 14,
+          "requiredCourseTitles": [
+            "융합예술학입문",
+            "미학의흐름",
+            "동양미학",
+            "서양철학개론",
+            "한국의문화와미학",
+            "세계영화사",
+            "영화비평의이해",
+            "서양음악사",
+            "예술경영과기업가정신",
+            "공간디자인사",
+            "한국의공간문화"
+          ],
+          "groupType": "choice",
+          "note": "공식 페이지의 필수과목 후보 중 14학점 이상 선택 이수"
+        }
+      ],
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "필수과목 중 14학점 이상 선택 이수"
+    },
+    {
+      "requirementKey": "convergence-major-elective-credit",
+      "label": "제2전공 전공선택",
+      "category": "융합전공",
+      "requiredCredits": 22,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "선택과목 중 나머지 학점을 이수하여 최소 36학점 충족"
+    },
+    {
+      "requirementKey": "convergence-minor-credit",
+      "label": "부전공 최소전공학점",
+      "category": "융합전공",
+      "requiredCredits": 21,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "융합예술학 부전공 최소전공학점"
+    },
+    {
+      "requirementKey": "convergence-minor-required-credit",
+      "label": "부전공 전공필수",
+      "category": "융합전공",
+      "requiredCredits": 11,
+      "courseGroups": [
+        {
+          "groupKey": "fusion-arts-minor-required-choice",
+          "label": "필수과목 중 선택",
+          "requiredCredits": 11,
+          "requiredCourseTitles": [
+            "융합예술학입문",
+            "미학의흐름",
+            "동양미학",
+            "서양철학개론",
+            "한국의문화와미학",
+            "세계영화사",
+            "영화비평의이해",
+            "서양음악사",
+            "예술경영과기업가정신",
+            "공간디자인사",
+            "한국의공간문화"
+          ],
+          "groupType": "choice",
+          "note": "공식 페이지의 필수과목 후보 중 11학점 이상 선택 이수"
+        }
+      ],
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "부전공은 필수과목 중 11학점 이상 선택 이수"
+    },
+    {
+      "requirementKey": "convergence-minor-elective-credit",
+      "label": "부전공 전공선택",
+      "category": "융합전공",
+      "requiredCredits": 10,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "부전공은 선택과목 중 나머지 학점을 이수하여 최소 21학점 충족"
+    }
+  ]
+}

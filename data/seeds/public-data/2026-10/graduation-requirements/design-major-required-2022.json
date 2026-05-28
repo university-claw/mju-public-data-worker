@@ -1,0 +1,101 @@
+{
+  "department": "디자인학부",
+  "admissionYear": 2009,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2022학년도 신입생 수강신청 안내자료[디자인학부]",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/135697/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "안내자료 2. 전공필수 표는 디자인학부 세부 전공별 전공필수 교과목을 제시한다.",
+    "산업디자인의 시스템디자인1/2, 융합디자인1/2는 표에서 2015~2017학번 적용으로 확인되어 2026학번 규칙에서 제외한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-visual-design-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "시각디자인전공",
+      "requiredCredits": 1,
+      "minCourses": 1,
+      "requiredCourseTitles": [
+        "졸업연구"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:17610)\\b",
+          "디자인학부|비주얼커뮤니케이션디자인|시각디자인"
+        ]
+      },
+      "status": "confirmed",
+      "note": "디자인학부(시각) 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-industrial-design-2018-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "인더스트리얼디자인전공",
+      "requiredCredits": 19,
+      "minCourses": 7,
+      "requiredCourseTitles": [
+        "졸업연구",
+        "공공시스템디자인",
+        "어드밴스드디자인",
+        "디자인컨셉",
+        "CMF",
+        "PUI",
+        "포트폴리오디자인"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "departmentPatterns": [
+          "^(?:17610)\\b",
+          "디자인학부|인더스트리얼디자인|산업디자인"
+        ]
+      },
+      "status": "confirmed",
+      "note": "디자인학부(산업) 전공필수 표 중 2018학번 이후 적용 과목 기준. 구 교과목명은 공식 표 비고에만 남기고 현행 교과목명으로 기록한다."
+    },
+    {
+      "requirementKey": "major-required-video-design-2009-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "영상애니메이션디자인전공",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "requiredCourseTitles": [
+        "영상졸업연구1",
+        "영상졸업연구2"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2009,
+        "departmentPatterns": [
+          "^(?:17610)\\b",
+          "디자인학부|영상애니메이션디자인|영상디자인"
+        ]
+      },
+      "status": "confirmed",
+      "note": "디자인학부(영상) 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-fashion-design-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "패션디자인전공",
+      "requiredCredits": 1,
+      "minCourses": 1,
+      "requiredCourseTitles": [
+        "졸업연구"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:17610)\\b",
+          "디자인학부|패션디자인"
+        ]
+      },
+      "status": "confirmed",
+      "note": "디자인학부(패션) 전공필수 표 기준"
+    }
+  ]
+}

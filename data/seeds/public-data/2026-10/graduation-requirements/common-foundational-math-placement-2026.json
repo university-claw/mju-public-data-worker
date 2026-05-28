@@ -1,0 +1,66 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2026,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 방목기초교육대학 2026학년도 신입생 학습능력평가",
+  "sourceUrl": "https://bangmok.mju.ac.kr/bangmok/10034/subview.do",
+  "sourcePublishedAt": "2025-12-29",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "대학기초수학 응시대상: 자연캠퍼스 화학·생명과학대학(식품영양학전공 제외), 스마트시스템공과대학, 반도체·ICT대학, 아너칼리지(자연) 소속 신입생",
+    "학문기초교양 영역 교과목인 미적분학의 단계별 수업을 위한 기초자료",
+    "1단계(평가 미응시자 포함): 기초미적분학→미적분학1→미적분학2",
+    "2단계: 미적분학1→미적분학2",
+    "대상이 아닌 경우 대학기초수학시험에 응시할 수 없으므로 응시대상을 확인해야 한다고 공지되어 있다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "foundational-math-placement-2026",
+      "label": "미적분학 배치 단계",
+      "category": "학문기초교양",
+      "courseGroups": [
+        {
+          "groupKey": "math-placement-basic",
+          "label": "대학기초수학 1단계",
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "기초미적분학",
+            "미적분학1",
+            "미적분학2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "math-placement-sequence",
+          "note": "대학기초수학 1단계 또는 평가 미응시자 배치: 기초미적분학→미적분학1→미적분학2"
+        },
+        {
+          "groupKey": "math-placement-standard",
+          "label": "대학기초수학 2단계",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "미적분학2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "math-placement-sequence",
+          "note": "대학기초수학 2단계 배치: 미적분학1→미적분학2"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2026,
+        "departmentPatterns": [
+          "^(?:154(?:11|12|21|22|23|24|31|32|40)|156(?:11|12|21|22|30|40|50)|158(?:08|09|11|12|21|22))\\b",
+          "(?:화학나노|융합에너지|시스템생명과학|화학과|생명과학정보학|화학·생명과학)",
+          "(?:화공신소재|화학공학|신소재공학|스마트인프라|건설환경공학|환경시스템공학|스마트모빌리티|기계시스템|기계공학|로봇공학)",
+          "(?:반도체|ICT|컴퓨터정보통신|컴퓨터공학|정보통신공학|전기전자|전기공학|전자공학|산업경영공학)",
+          "(?:아너칼리지.*자연|자연.*아너칼리지)"
+        ],
+        "departmentExcludes": [
+          "식품영양",
+          "^(?:15400|15420|15430|15600|15610|15620|15800)\\b"
+        ]
+      },
+      "status": "confirmed",
+      "note": "방목기초교육대학 2026학년도 신입생 학습능력평가의 대학기초수학 진단/배치 기준. 학과별 학문기초교양 필수 과목과 별도로, 평가 단계에 따라 미적분학 수강 순서가 정해진다."
+    }
+  ]
+}

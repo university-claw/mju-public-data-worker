@@ -1,0 +1,204 @@
+{
+  "department": "정보통신공학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 정보통신공학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/676/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "정보통신공학전공 2025학년도 입학생 졸업 최소이수학점 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "핵심교양은 각 영역별로 1과목을 선택하여 4개 영역 모두 이수"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "courseGroups": [
+        {
+          "groupKey": "calculus-required",
+          "label": "미적분학 필수",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "미적분학1"
+          ],
+          "note": "미적분학1 필수 적용은 2025학년도 이후 입학생부터 적용"
+        },
+        {
+          "groupKey": "math-science-foundation",
+          "label": "수학·과학 기초",
+          "requiredCredits": 12,
+          "minCourses": 4,
+          "requiredCourseTitles": [
+            "미적분학2",
+            "이산수학개론",
+            "일반물리학",
+            "일반화학",
+            "선형대수학개론",
+            "통계학개론",
+            "공학수학1",
+            "공학수학2"
+          ],
+          "note": "미적분학1 필수 외 학문기초교양 잔여 12학점"
+        }
+      ],
+      "status": "confirmed",
+      "note": "정보통신공학전공 2025학년도 학문기초교양 변경 사항"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "일반교양 영역에서 10학점 이수"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "정보통신공학전공 2025학년도 입학생 졸업 최소이수학점 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 6,
+      "requiredCourseTitles": [
+        "캡스톤디자인1",
+        "캡스톤디자인2"
+      ],
+      "minCourses": 2,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "2025 정보통신공학전공 교과과정상 캡스톤디자인1, 캡스톤디자인2 필수"
+    },
+    {
+      "requirementKey": "common-liberal-english-level-policy-2025-plus",
+      "label": "공통교양 영어 수준별 이수",
+      "category": "공통교양",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "english-basic",
+          "label": "영어 기본",
+          "requiredCredits": 4,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어1",
+            "영어2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-sequence",
+          "note": "영어1, 영어2 이수"
+        },
+        {
+          "groupKey": "english-advanced",
+          "label": "영어 심화",
+          "requiredCredits": 4,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어3",
+            "영어4"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-sequence",
+          "note": "영어성적우수자는 영어1/2 대신 영어3/4 이수"
+        },
+        {
+          "groupKey": "conversation-basic",
+          "label": "영어회화 기본",
+          "requiredCredits": 2,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어회화1",
+            "영어회화2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-sequence",
+          "note": "영어회화1, 영어회화2 이수"
+        },
+        {
+          "groupKey": "conversation-advanced",
+          "label": "영어회화 심화",
+          "requiredCredits": 2,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어회화3",
+            "영어회화4"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-sequence",
+          "note": "영어성적우수자는 영어회화1/2 대신 영어회화3/4 이수"
+        }
+      ],
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "영어영역 이수면제는 허용하지 않음"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "공통교양, 핵심교양, 학문기초교양, 일반교양에서 졸업이수학점 초과 시 자유선택 학점으로 인정"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "정보통신공학전공 2025학년도 입학생 졸업 최소이수학점 기준"
+    }
+  ]
+}

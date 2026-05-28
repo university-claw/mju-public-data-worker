@@ -1,0 +1,83 @@
+{
+  "department": "2025학번 스마트모빌리티공학전공",
+  "admissionYear": 2025,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 졸업요건 2025학번 이후",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/473/subview.do",
+  "sourceEvidence": [
+    "2025학번 이후 스마트모빌리티공학전공: 공통교양 17, 핵심교양 12, 학문기초교양 22, 일반교양 3, 전공 70, 자유선택 10, 최소이수졸업학점 134"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 학점표 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 학점표 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 22,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 학점표 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 3,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 학점표 기준"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 학점표 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "unprovided",
+      "note": "공식 졸업요건 표는 전공필수 세부 교과목을 제공하지 않음"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 학점표 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "confirmed",
+      "note": "2025학번 이후 스마트모빌리티공학전공 최소이수졸업학점"
+    }
+  ]
+}

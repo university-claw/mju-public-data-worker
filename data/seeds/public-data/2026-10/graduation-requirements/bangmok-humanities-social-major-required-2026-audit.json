@@ -1,0 +1,417 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2003,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 방목기초교육대학 전공필수",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/bangmok/291/157898/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 전공필수 표는 인문캠퍼스의 학과별 전공필수 교과목, 적용시작학번, 학점, 필수해제·폐지 여부를 제시한다.",
+    "폐지 또는 필수해제가 명시된 과목과 2025학번 이후에 적용되지 않는 한정 적용 과목은 제외했다.",
+    "글로벌한국어학과는 전공필수가 없고 한국어교원 자격증 과정은 별도 커리큘럼이라고 명시되어 있다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-korean-literature-2005-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2005,
+        "departmentPatterns": [
+          "^(?:14421\\b|.*국어국문학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "현대문학사",
+            "국어사",
+            "고전문학사"
+          ],
+          "note": "외국인학생 중 2015학번부터는 필수해제"
+        }
+      ],
+      "status": "confirmed",
+      "note": "국어국문학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-english-literature-2003-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2003,
+        "departmentPatterns": [
+          "^(?:14422\\b|.*영어영문학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "영문학개론",
+            "영어학개론",
+            "중급영어회화"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "영어영문학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-japanese-literature-2005-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2005,
+        "departmentPatterns": [
+          "^(?:14412\\b|.*일어일문학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "일어학의이해",
+            "일문학의이해",
+            "중급일본어회화2"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "일어일문학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-library-information-2005-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 18,
+      "minCourses": 6,
+      "appliesTo": {
+        "admissionYearFrom": 2005,
+        "departmentPatterns": [
+          "^(?:14424\\b|.*문헌정보학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 18,
+          "minCourses": 6,
+          "requiredCourseTitles": [
+            "문헌정보학의이해",
+            "정보학입문",
+            "서지정보학입문",
+            "도서관정보센터경영론",
+            "정보조직론",
+            "정보검색론"
+          ],
+          "note": "도서관정보센터실습은 공식 표에 필수해제로 표기되어 제외"
+        }
+      ],
+      "status": "confirmed",
+      "note": "문헌정보학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-history-2003-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2003,
+        "departmentPatterns": [
+          "^(?:14190\\b|.*사학과$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "한국사사료이해",
+            "동아시아사사료이해",
+            "서양사사료이해"
+          ],
+          "note": "한국사강독, 동양사강독, 서양사강독은 폐지로 표기되어 대체 현행 과목만 반영"
+        }
+      ],
+      "status": "confirmed",
+      "note": "사학과 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-art-history-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:14212\\b|.*미술사학과$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "한국미술사",
+            "서양미술사"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "미술사학과 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-philosophy-2022-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 12,
+      "minCourses": 4,
+      "appliesTo": {
+        "admissionYearFrom": 2022,
+        "departmentPatterns": [
+          "^(?:14240\\b|.*철학과$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 12,
+          "minCourses": 4,
+          "requiredCourseTitles": [
+            "논리학",
+            "서양철학개론",
+            "동양철학개론",
+            "철학적글쓰기"
+          ],
+          "note": "답사1은 2021학번 이전 적용, 필수해제·폐지 과목은 제외"
+        }
+      ],
+      "status": "confirmed",
+      "note": "철학과 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-none-creative-writing-2019-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 0,
+      "minCourses": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2019,
+        "departmentPatterns": [
+          "^(?:14250\\b|.*문예창작학과$)"
+        ]
+      },
+      "courseGroups": [],
+      "status": "confirmed",
+      "note": "공식 표의 문예창작학과 전공필수 항목은 필수해제 또는 2005~2018학번 한정 적용으로 표기되어 2026학번 기준 전공필수 없음"
+    },
+    {
+      "requirementKey": "major-required-none-global-korean-current",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 0,
+      "minCourses": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "departmentPatterns": [
+          "^(?:14414\\b|.*글로벌한국어학전공$)"
+        ]
+      },
+      "courseGroups": [],
+      "status": "confirmed",
+      "note": "공식 표는 글로벌한국어학과 전공필수는 없고 한국어교원 자격증 과정은 별도 커리큘럼이라고 명시"
+    },
+    {
+      "requirementKey": "major-required-political-diplomacy-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:16472\\b|.*정치외교학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "정치학개론",
+            "국제정치론",
+            "비교정치론"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "정치외교학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-digital-media-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:14620\\b|.*디지털미디어학부$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "커뮤니케이션이론",
+            "미디어조사방법론"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "디지털미디어학부 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-none-child-studies-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 0,
+      "minCourses": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:14612\\b|.*아동학전공$)"
+        ]
+      },
+      "courseGroups": [],
+      "status": "confirmed",
+      "note": "공식 표의 아동학전공 전공필수 항목은 2015학번 적용 항목까지 모두 필수해제 또는 폐지로 표기되어 2015학번 이후 기준 전공필수 없음"
+    },
+    {
+      "requirementKey": "major-required-youth-guidance-2009-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "appliesTo": {
+        "admissionYearFrom": 2009,
+        "departmentPatterns": [
+          "^(?:14611\\b|.*청소년지도학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "청소년기관실습Ⅰ",
+            "청소년기관실습Ⅱ"
+          ],
+          "note": "2005~2008학번 한정·폐지 항목은 제외"
+        }
+      ],
+      "status": "confirmed",
+      "note": "청소년지도학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-social-welfare-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:1645[56]\\b|.*사회복지학과(?: \\(야간\\))?$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "사회복지실천론",
+            "사회복지실천기술론"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "사회복지학과 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "major-required-international-trade-2009-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "minCourses": 4,
+      "appliesTo": {
+        "admissionYearFrom": 2009,
+        "departmentPatterns": [
+          "^(?:16650\\b|.*국제통상학과$)",
+          "^(?:16483\\b|.*국제통상학전공$)"
+        ]
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required-choice",
+          "label": "전공필수 선택",
+          "minCourses": 4,
+          "requiredCourseTitles": [
+            "회계원리",
+            "마케팅원론",
+            "재무관리원론",
+            "인적자원관리",
+            "운영관리"
+          ],
+          "groupType": "choice",
+          "note": "공식 표 기준 2009학번부터 5개 과목 중 4개 선택. 생산운영관리는 폐지되어 운영관리로 반영"
+        },
+        {
+          "groupKey": "major-required-fixed",
+          "label": "전공필수",
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "국제통상원론",
+            "글로벌경영전략",
+            "국제경영학"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "국제통상학과/국제통상학전공 전공필수 표 기준"
+    }
+  ]
+}

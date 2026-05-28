@@ -1,0 +1,129 @@
+{
+  "department": "행정학전공",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 2024-2학기 학사안내문 전공필수 표",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/143/163451/download.do",
+  "sourceEvidence": [
+    "2024-2학기 학사안내문은 학번별/소속 학과별 졸업에 필요한 이수학점과 필수과목 확인 자료로 제공된다.",
+    "전공필수 표의 사회과학 / 행정 항목은 사회조사방법론Ⅰ, 행정학의이해(eng), 리더십과조직행동(eng), 감성과현대행정(eng), 비교정책론(eng), 비영리조직(eng), 커뮤니티개발연구(eng), 정부예산의이해를 제시한다.",
+    "정부예산의이해는 적용시작학번 2021로 표시되며, 비고는 구 재무행정론이다.",
+    "2023-2학기 학사안내문(v1.11)에서도 같은 전공필수 표 계열을 확인했다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2018-2020",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "courseGroups": [
+        {
+          "groupKey": "public-administration-required-core",
+          "label": "전공필수 공통",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseCodes": [
+            "HBA01632",
+            "행정632"
+          ],
+          "requiredCourseTitles": [
+            "사회조사방법론Ⅰ"
+          ],
+          "note": "적용시작학번 2003"
+        },
+        {
+          "groupKey": "public-administration-eng-choice",
+          "label": "eng 전공필수 중 택2",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseCodes": [
+            "HBA01109",
+            "HBA01110",
+            "HBA01111",
+            "HBA01112",
+            "HBA01113",
+            "HBA01222"
+          ],
+          "requiredCourseTitles": [
+            "행정학의이해(eng)",
+            "리더십과조직행동(eng)",
+            "감성과현대행정(eng)",
+            "비교정책론(eng)",
+            "비영리조직(eng)",
+            "커뮤니티개발연구(eng)"
+          ],
+          "groupType": "choice",
+          "note": "공식 표의 eng 과목군 중 2과목, 6학점 이상 선택"
+        }
+      ],
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2020 },
+      "status": "confirmed",
+      "note": "사회과학 / 행정 전공필수 표 기준. 2018~2020학번은 사회조사방법론Ⅰ과 eng 선택군 택2를 합산해 최소 9학점으로 모델링한다."
+    },
+    {
+      "requirementKey": "major-required-courses-2021-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 12,
+      "minCourses": 4,
+      "courseGroups": [
+        {
+          "groupKey": "public-administration-required-core",
+          "label": "전공필수 공통",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseCodes": [
+            "HBA01632",
+            "행정632"
+          ],
+          "requiredCourseTitles": [
+            "사회조사방법론Ⅰ"
+          ],
+          "note": "적용시작학번 2003"
+        },
+        {
+          "groupKey": "public-administration-eng-choice",
+          "label": "eng 전공필수 중 택2",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseCodes": [
+            "HBA01109",
+            "HBA01110",
+            "HBA01111",
+            "HBA01112",
+            "HBA01113",
+            "HBA01222"
+          ],
+          "requiredCourseTitles": [
+            "행정학의이해(eng)",
+            "리더십과조직행동(eng)",
+            "감성과현대행정(eng)",
+            "비교정책론(eng)",
+            "비영리조직(eng)",
+            "커뮤니티개발연구(eng)"
+          ],
+          "groupType": "choice",
+          "note": "공식 표의 eng 과목군 중 2과목, 6학점 이상 선택"
+        },
+        {
+          "groupKey": "public-administration-budget-required",
+          "label": "2021학번 이후 추가 전공필수",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseCodes": [
+            "HBA01624",
+            "행정624"
+          ],
+          "requiredCourseTitles": [
+            "정부예산의이해"
+          ],
+          "note": "적용시작학번 2021, 구 재무행정론"
+        }
+      ],
+      "appliesTo": { "admissionYearFrom": 2021, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "사회과학 / 행정 전공필수 표 기준. 2021~2024학번은 정부예산의이해가 추가되어 최소 12학점으로 모델링한다."
+    }
+  ]
+}

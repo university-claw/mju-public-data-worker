@@ -1,0 +1,129 @@
+{
+  "department": "경영정보학과",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 경영정보학과 교육과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/636/subview.do",
+  "sourceEvidence": [
+    "공식 학과 페이지는 2018학년도 입학생까지 전공필수와 2019학년도 입학생부터 전공필수 선택 묶음을 별도 표기한다.",
+    "2018학년도 입학생까지 전공필수는 경영정보, 컴퓨터프로그래밍(자바), 회계원리, 운영관리, 마케팅원론, 재무관리, 인적자원관리이다.",
+    "2019학년도 입학생부터 전공필수는 경영정보, 프로그래밍기초(파이썬), 컴퓨터프로그래밍(자바), 회계원리, 운영관리와 마케팅원론, 재무관리, 인적자원관리 중 택2이다.",
+    "공식 학과 페이지는 2025학년도 입학생부터 학문기초교양을 경영학입문, 경제학원론, 경상통계학으로 명시한다.",
+    "공식 학과 페이지는 경영정보, 프로그래밍기초(파이썬), 컴퓨터프로그래밍(자바), 회계원리, 운영관리를 전공필수로 명시한다.",
+    "공식 학과 페이지는 2019학년도 입학생부터 마케팅원론, 재무관리, 인적자원관리 중 2과목 선택을 전공필수로 명시한다.",
+    "2026학년도 경영대학 학사제도 안내문은 경영정보학과의 전공필수 이수학점을 21학점으로 명시한다.",
+    "2025학년도 이후 무전공 입학생 전용 전공탐색세미나는 현재 학생 입학유형 필드가 없어 전체 학과 규칙으로 강제하지 않는다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2018",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 21,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2018
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required-2018",
+          "label": "전공필수",
+          "requiredCredits": 21,
+          "minCourses": 7,
+          "requiredCourseTitles": [
+            "경영정보",
+            "컴퓨터프로그래밍(자바)",
+            "회계원리",
+            "운영관리",
+            "마케팅원론",
+            "재무관리",
+            "인적자원관리"
+          ],
+          "note": "공식 경영정보학과 교육과정의 2018학년도 입학생까지 전공필수 표시 기준"
+        }
+      ],
+      "status": "confirmed",
+      "note": "2018학년도 입학생까지 경영정보학과 전공필수"
+    },
+    {
+      "requirementKey": "major-required-courses-2019-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 21,
+      "appliesTo": {
+        "admissionYearFrom": 2019,
+        "admissionYearTo": 2024
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required-core-2019-2024",
+          "label": "전공필수",
+          "requiredCredits": 15,
+          "minCourses": 5,
+          "requiredCourseTitles": [
+            "경영정보",
+            "프로그래밍기초(파이썬)",
+            "컴퓨터프로그래밍(자바)",
+            "회계원리",
+            "운영관리"
+          ],
+          "note": "공식 경영정보학과 교육과정의 2019학년도 입학생부터 공통 전공필수"
+        },
+        {
+          "groupKey": "major-required-choice-2019-2024",
+          "label": "전공필수 선택",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "마케팅원론",
+            "재무관리",
+            "인적자원관리"
+          ],
+          "groupType": "choice",
+          "note": "2019학년도 입학생부터 세 과목 중 2과목 선택"
+        }
+      ],
+      "status": "confirmed",
+      "note": "2019~2024학년도 입학생 경영정보학과 전공필수"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 21,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required-core",
+          "label": "전공필수",
+          "requiredCredits": 15,
+          "minCourses": 5,
+          "requiredCourseTitles": [
+            "경영정보",
+            "프로그래밍기초(파이썬)",
+            "컴퓨터프로그래밍(자바)",
+            "회계원리",
+            "운영관리"
+          ],
+          "note": "2025학년도 입학생부터 적용되는 경영정보학과 공통 전공필수"
+        },
+        {
+          "groupKey": "major-required-choice",
+          "label": "전공필수 선택",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "마케팅원론",
+            "재무관리",
+            "인적자원관리"
+          ],
+          "note": "2019학년도 입학생부터 세 과목 중 2과목 선택"
+        }
+      ],
+      "status": "confirmed",
+      "note": "무전공 입학생 전용 요건은 학생 입학유형 지원 추가 후 별도 rule로 분리해야 한다."
+    }
+  ]
+}

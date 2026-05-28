@@ -1,0 +1,46 @@
+{
+  "department": "법학과",
+  "admissionYear": 2013,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 방목기초교육대학 전공필수",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/bangmok/291/157898/download.do",
+  "sourcePublishedAt": null,
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 전공필수 표는 법학과의 2013학번 이후 전공필수 대체 체계를 민법총칙, 채권총론과 기존 법학 전공필수 과목으로 제시한다.",
+    "폐지로 표시된 민법총칙1, 민법총칙2, 상법총론(구 과목)은 2026학번 전공필수 산정에서 제외한다.",
+    "전공필수 표의 각 법학과 과목은 3학점으로 표시된다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2013-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 21,
+      "minCourses": 7,
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 21,
+          "minCourses": 7,
+          "requiredCourseTitles": [
+            "민법총칙",
+            "채권총론",
+            "형법총론1",
+            "형법총론2",
+            "헌법1",
+            "상법총칙",
+            "행정법1"
+          ],
+          "note": "방목 전공필수 표의 법학과 2013학번 이후 과목 기준"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2013
+      },
+      "status": "confirmed",
+      "note": "방목기초교육대학 전공필수 표의 법학과 2013학번 이후 현행 과목 기준"
+    }
+  ]
+}

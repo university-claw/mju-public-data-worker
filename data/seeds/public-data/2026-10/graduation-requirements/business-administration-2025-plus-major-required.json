@@ -1,0 +1,89 @@
+{
+  "department": "경영학전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 경영학부 경영학전공 교육과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/622/subview.do",
+  "sourceEvidence": [
+    "공식 학과 페이지는 2019학년도 입학생까지 학문기초교양 필수와 2024학년도 입학생까지 전공필수 선택 묶음을 별도 표기한다.",
+    "공식 학과 페이지는 회계원리, 인적자원관리, 운영관리, 마케팅원론, 재무관리, 재무회계를 전공필수로 명시한다.",
+    "2024학년도 입학생까지는 국제경영학, 국제통상원론, 경영정보 중 택1을 전공필수로 명시한다.",
+    "공식 학과 페이지는 2025학년도 입학생부터 학문기초교양을 경영학입문, 경제학원론, 경상통계학으로 명시한다.",
+    "공식 학과 페이지는 회계원리, 인적자원관리, 운영관리, 마케팅원론, 재무관리, 재무회계, 경영전략론을 전공필수로 명시한다.",
+    "2026학년도 경영대학 학사제도 안내문은 경영학부 경영학전공의 전공필수 이수학점을 내국인 21학점으로 명시한다.",
+    "2025학년도 이후 단과대학모집/무전공 입학생 전용 전공탐색세미나는 현재 학생 입학유형 필드가 없어 전체 학과 규칙으로 강제하지 않는다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 21,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required-fixed-2018-2024",
+          "label": "전공필수",
+          "requiredCredits": 18,
+          "minCourses": 6,
+          "requiredCourseTitles": [
+            "회계원리",
+            "인적자원관리",
+            "운영관리",
+            "마케팅원론",
+            "재무관리",
+            "재무회계"
+          ],
+          "note": "공식 경영학전공 교육과정의 전공필수 표시 기준"
+        },
+        {
+          "groupKey": "major-required-choice-2018-2024",
+          "label": "전공필수 선택",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "국제경영학",
+            "국제통상원론",
+            "경영정보"
+          ],
+          "groupType": "choice",
+          "note": "2024학년도 입학생까지 국제경영학, 국제통상원론, 경영정보 중 택1 전공필수"
+        }
+      ],
+      "status": "confirmed",
+      "note": "공식 경영학전공 교육과정의 2024학년도 입학생까지 전공필수 표기 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 21,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 21,
+          "minCourses": 7,
+          "requiredCourseTitles": [
+            "회계원리",
+            "인적자원관리",
+            "운영관리",
+            "마케팅원론",
+            "재무관리",
+            "재무회계",
+            "경영전략론"
+          ],
+          "note": "2025학년도 입학생부터 적용되는 경영학전공 전공필수 21학점"
+        }
+      ],
+      "status": "confirmed",
+      "note": "무전공/단과대학모집 입학생 전용 요건은 학생 입학유형 지원 추가 후 별도 rule로 분리해야 한다."
+    }
+  ]
+}

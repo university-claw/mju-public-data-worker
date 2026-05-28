@@ -1,0 +1,50 @@
+{
+  "department": "제약바이오",
+  "admissionYear": 2018,
+  "sourceKind": "official_notice",
+  "sourceTitle": "2025학년도 1학기 제약바이오 융합전공 모집 및 신청 안내",
+  "sourceUrl": "https://innov.mju.ac.kr/bbs/innovation/56/164559/download.do",
+  "sourceEvidence": [
+    "공식 제약바이오 융합전공 모집 안내는 2024학번 이전 입학생을 별도 구분한다.",
+    "2024학번 이전 입학생의 제약바이오 융합전공 단일전공은 '-'로 표시되어 단일전공 이수 기준을 제공하지 않는다.",
+    "2024학번 이전 입학생의 다전공/제2전공은 36학점, 부전공은 21학점으로 표시된다.",
+    "2025 신입생부터 적용되는 단일전공 전공필수 11학점 및 약물전달학·바이오의약품학·생물공정공학은 2018-2023학번에 소급하지 않는다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "convergence-single-major-unavailable-2018-2023",
+      "label": "단일전공",
+      "category": "융합전공",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2023 },
+      "status": "confirmed",
+      "note": "공식 모집 안내의 2024학번 이전 입학생 표에서 단일전공은 '-'로 표시된다."
+    },
+    {
+      "requirementKey": "convergence-multiple-major-credit-2018-2023",
+      "label": "다전공",
+      "category": "융합전공",
+      "requiredCredits": 36,
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2023 },
+      "status": "confirmed",
+      "note": "2024학번 이전 입학생 제약바이오 융합전공 다전공 최소 이수학점"
+    },
+    {
+      "requirementKey": "convergence-major-second-credit-2018-2023",
+      "label": "제2전공",
+      "category": "융합전공",
+      "requiredCredits": 36,
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2023 },
+      "status": "confirmed",
+      "note": "2024학번 이전 입학생 제약바이오 융합전공 제2전공 최소 이수학점"
+    },
+    {
+      "requirementKey": "convergence-minor-credit-2018-2023",
+      "label": "부전공",
+      "category": "융합전공",
+      "requiredCredits": 21,
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2023 },
+      "status": "confirmed",
+      "note": "2024학번 이전 입학생 제약바이오 융합전공 부전공 최소 이수학점"
+    }
+  ]
+}

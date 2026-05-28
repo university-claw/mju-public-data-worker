@@ -1,0 +1,129 @@
+{
+  "department": "기계공학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 기계공학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/794/subview.do",
+  "sourceEvidence": [
+    "심화프로그램 비적용대상: 2027년 8월 및 이후 졸업자, 2018학년도 이후 입학생 공통교양 17, 핵심교양 12, 학문기초교양 19, 일반교양 6, 전공 70, 자유선택 10, 총 학점 134",
+    "전공필수 이수학점 및 교과목: 24학점, 정역학, 고체역학, 열역학, 유체역학, 공통기계공학실험, 기계공학실험, 캡스톤디자인1, 캡스톤디자인2",
+    "전공필수 24학점은 2025학년도 입학생부터 적용"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 19,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 6,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 24,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 24,
+          "minCourses": 8,
+          "requiredCourseTitles": [
+            "정역학",
+            "고체역학",
+            "열역학",
+            "유체역학",
+            "공통기계공학실험",
+            "기계공학실험",
+            "캡스톤디자인1",
+            "캡스톤디자인2"
+          ],
+          "note": "공식 교과과정 페이지의 2025학년도 입학생부터 적용되는 전공필수 24학점"
+        }
+      ],
+      "status": "confirmed",
+      "note": "기계공학전공 전공필수 24학점은 2025학년도 입학생부터 적용"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 25학번부터 적용"
+    }
+  ]
+}

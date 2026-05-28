@@ -1,0 +1,113 @@
+{
+  "department": "디지털콘텐츠디자인학과",
+  "admissionYear": 2025,
+  "sourceKind": "official_notice",
+  "sourceTitle": "2025학년도 인공지능·소프트웨어융합대학 교과과정 개편 안내",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/software/1420/165101/download.do",
+  "sourceEvidence": [
+    "적용 대상 : 2025학번부터 적용함",
+    "전학부(과) 공통교양 17, 핵심교양 12, 학문기초교양 15, 일반교양 10, 전공 70, 자유선택 10, 최소이수 졸업학점 134",
+    "디지털콘텐츠디자인학과 표: 졸업연구가 필수(25학번~)로 표시됨"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "공지 PDF가 디지털콘텐츠디자인학과 학문기초교양 총 15학점은 확정하나, 세부 교과목 표는 수작업 공식 확인 전까지 로드맵에 미제공으로 표시"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 3,
+      "requiredCourseTitles": [
+        "졸업연구"
+      ],
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "2025학년도 인공지능·소프트웨어융합대학 교과과정 개편 안내 PDF의 디지털콘텐츠디자인학과 표에서 2025학번 이후 전공필수로 표시된 교과목"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    }
+  ]
+}

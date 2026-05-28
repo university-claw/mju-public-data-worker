@@ -1,0 +1,43 @@
+{
+  "department": "글로벌비즈니스학전공",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2023학년도 1학기 명지대학교 외국인학생 신·편입생 생활안내서",
+  "sourceUrl": "https://enter.mju.ac.kr/mju/up_file/2023/2023-03-14_111832_1.pdf",
+  "sourcePublishedAt": "2023-03-14",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "53쪽 자연캠퍼스 전공필수 표는 국제학부 글로벌비지니스전공 전공필수 교과목을 제시한다.",
+    "표 하단은 자연캠퍼스 전공필수 적용 학번은 각 학과 기준을 우선하고 별도 기준이 없으면 2009학년도 입학생 기준이라고 안내한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-global-business-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "글로벌비즈니스학전공",
+      "requiredCredits": 24,
+      "minCourses": 8,
+      "requiredCourseTitles": [
+        "경영학원론",
+        "창의적컴퓨팅",
+        "경영통계",
+        "마케팅관리",
+        "경영전략",
+        "인사관리",
+        "조직행동",
+        "국제경영"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^16672\\b",
+          "글로벌비즈니스"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2023학년도 자연캠퍼스 전공필수 표의 국제학부 글로벌비지니스전공 기준."
+    }
+  ]
+}

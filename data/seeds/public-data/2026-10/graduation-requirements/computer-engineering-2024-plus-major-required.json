@@ -1,0 +1,30 @@
+{
+  "department": "컴퓨터공학전공",
+  "admissionYear": 2024,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 컴퓨터공학전공 교과과정",
+  "sourceUrl": "https://cs.mju.ac.kr/cs/10762/subview.do",
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2024-plus",
+      "label": "전공 필수 과목",
+      "category": "전공",
+      "requiredCourseTitles": [
+        "C언어",
+        "객체지향프로그래밍1",
+        "자료구조",
+        "알고리즘",
+        "운영체제",
+        "소프트웨어공학",
+        "캡스톤디자인"
+      ],
+      "programTrack": "비인증",
+      "minCourses": 7,
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 교과과정 공식 페이지의 전공 필수 과목은 24학번부터 적용 기준"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "department": "아시아·중동어문학부 중어중문학전공",
+  "admissionYear": 2016,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 아시아·중동어문학부 중어중문학전공 필수 교과목 안내",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/524/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 학과 페이지는 전공필수과목(16학번 이후)을 중국문학개론, 중국고문의이해, 중국어문법으로 명시한다.",
+    "같은 페이지의 교과과정 표는 세 과목을 각 3학점으로 표시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2016-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "appliesTo": {
+        "admissionYearFrom": 2016
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "중국문학개론",
+            "중국고문의이해",
+            "중국어문법"
+          ],
+          "note": "16학번 이후 적용"
+        }
+      ],
+      "status": "confirmed",
+      "note": "15학번 이전은 주임교수 별도 문의 대상"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "department": "스포츠학부(체육학전공, 스포츠산업학전공)",
+  "admissionYear": 2015,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2022학년도 신입생 수강신청 안내자료[스포츠학부]",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/135698/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "안내자료 2. 전공필수 표는 스포츠학부(체육학, 스포츠산업학)의 전공필수로 산악훈련 1학점을 제시한다.",
+    "스포츠지도학전공 야간 안내 파트에는 전공필수 표가 별도 제공되지 않아 이 규칙에 포함하지 않는다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-mountain-training-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 1,
+      "minCourses": 1,
+      "requiredCourseTitles": [
+        "산악훈련"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2015,
+        "departmentPatterns": [
+          "^(?:17621)\\b",
+          "스포츠학부.*(?:체육학|스포츠산업)"
+        ],
+        "departmentExcludes": [
+          "스포츠지도"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2022학년도 스포츠학부 신입생 안내자료 전공필수 표 기준. 스포츠지도학전공 야간은 같은 PDF에 전공필수 표가 없으므로 제외한다."
+    }
+  ]
+}

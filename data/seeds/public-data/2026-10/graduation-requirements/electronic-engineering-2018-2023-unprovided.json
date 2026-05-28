@@ -1,0 +1,296 @@
+{
+  "department": "전자공학전공",
+  "admissionYear": 2018,
+  "sourceKind": "official_notice",
+  "sourceTitle": "명지대학교 전자공학전공 공학교육인증 유지 및 종료 안내 사항",
+  "sourceUrl": "https://elec.mju.ac.kr/bbs/elec/711/164220/download.do",
+  "sourceEvidence": [
+    "공학교육인증 유지 및 종료 안내 PDF는 공학교육인증 유효기간을 2027년 2월 28일까지 유지 후 종료한다고 안내한다.",
+    "PDF는 2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자를 심화프로그램 적용대상으로, 2027년 8월 이후 졸업자를 심화프로그램 비적용대상으로 구분한다.",
+    "전자공학과 심화프로그램 적용대상 이수학점은 공통교양 17, 핵심교양 12, 학문기초 30, 일반교양 0, 전공 70, 자유선택 5, 총 134학점이다.",
+    "전자공학과 심화프로그램 비적용대상 이수학점은 공통교양 17, 핵심교양 12, 학문기초 25, 일반교양 0, 전공 70, 자유선택 10, 총 134학점이다.",
+    "PDF의 학과별 전공필수 교과목 표는 전자공학과 현재 기준 '캡스톤디자인2(3) - 필수 해제'를 제시하고, 신설 기준은 2027년 8월 졸업생부터 적용한다고 안내한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit-abek-2018-2023",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit-abek-2018-2023",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit-abek-2018-2023",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 30,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "공학교육인증 유지 및 종료 안내 PDF의 전자공학과 심화프로그램 적용대상 학문기초교양 30학점 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit-abek-2018-2023",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 0,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자 기준"
+    },
+    {
+      "requirementKey": "major-credit-abek-2018-2023",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자 기준"
+    },
+    {
+      "requirementKey": "free-elective-credit-abek-2018-2023",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 5,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자 기준"
+    },
+    {
+      "requirementKey": "total-credit-abek-2018-2023",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "공학교육인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "2027년 2월 이전 졸업자 중 심화 및 일반프로그램 이수자 기준"
+    },
+    {
+      "requirementKey": "major-required-current-2018-2023",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermTo": "2027-02"
+      },
+      "status": "confirmed",
+      "note": "PDF의 전자공학과 현재 기준 '캡스톤디자인2(3) - 필수 해제'에 따른 전공필수 0학점 처리"
+    },
+    {
+      "requirementKey": "common-liberal-credit-non-abek-2018-2023",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit-non-abek-2018-2023",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit-non-abek-2018-2023",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 25,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "courseGroups": [
+        {
+          "groupKey": "electronic-math",
+          "label": "수학",
+          "requiredCredits": 12,
+          "minCourses": 4,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "미적분학2",
+            "공학수학1",
+            "공학수학2"
+          ]
+        },
+        {
+          "groupKey": "electronic-science",
+          "label": "과학",
+          "requiredCredits": 7,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "물리학1",
+            "물리학2",
+            "물리학실험2"
+          ]
+        },
+        {
+          "groupKey": "electronic-computer",
+          "label": "컴퓨터",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "C언어",
+            "파이썬프로그래밍입문"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준 전자공학과 학문기초교양 25학점"
+    },
+    {
+      "requirementKey": "general-liberal-credit-non-abek-2018-2023",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 0,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준"
+    },
+    {
+      "requirementKey": "major-credit-non-abek-2018-2023",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2027-aug-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 30,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required-2027-aug-plus",
+          "label": "전공필수",
+          "requiredCredits": 30,
+          "minCourses": 11,
+          "requiredCourseTitles": [
+            "회로이론",
+            "디지털논리회로",
+            "전기자기학",
+            "기초전자회로",
+            "지능형센서응용",
+            "반도체공학",
+            "디지털시스템",
+            "신호및시스템",
+            "고급C언어",
+            "회로실험",
+            "캡스톤디자인1"
+          ],
+          "note": "고급C언어와 회로실험은 2학점/1학점 과목이므로 전공필수 11개 교과목, 30학점으로 계산"
+        }
+      ],
+      "status": "confirmed",
+      "note": "PDF의 전자공학과 신설 전공필수 교과목은 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "free-elective-credit-non-abek-2018-2023",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준"
+    },
+    {
+      "requirementKey": "total-credit-non-abek-2018-2023",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "공학교육인증 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 기준"
+    }
+  ]
+}

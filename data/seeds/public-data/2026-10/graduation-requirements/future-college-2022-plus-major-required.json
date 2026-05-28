@@ -1,0 +1,31 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2022,
+  "sourceKind": "department_notice",
+  "sourceTitle": "명지대학교 미래융합대학 2024-2학기 전체 시간표 안내",
+  "sourceUrl": "https://future.mju.ac.kr/bbs/board.php?bo_table=notice&page=7&sca=%ED%95%99%EC%82%AC&sod=asc&sop=and&sst=wr_datetime&wr_id=639",
+  "sourcePublishedAt": "2024-07-26",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "미래융합대학 공식 공지는 '2021학번 기준 학과별 전공필수 교과목 (2022학번부터는 전공필수 폐지)'라고 명시한다.",
+    "2026학번 미래융합대학 소속 학과에는 전공필수 교과목이 적용되지 않는다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2022-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 0,
+      "minCourses": 0,
+      "courseGroups": [],
+      "appliesTo": {
+        "admissionYearFrom": 2022,
+        "departmentPatterns": [
+          "^(?:172\\d{2}|173\\d{2})\\b"
+        ]
+      },
+      "status": "confirmed",
+      "note": "미래융합대학 공식 공지의 2022학번부터 전공필수 폐지 기준"
+    }
+  ]
+}

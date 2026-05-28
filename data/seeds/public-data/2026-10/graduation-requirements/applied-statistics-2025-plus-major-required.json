@@ -1,0 +1,105 @@
+{
+  "department": "경상·통계학부 응용통계학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 경상·통계학부 응용통계학전공 전공이수로드맵",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/10194/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 학과 페이지는 필수전공 이수 요건을 15학점으로 명시한다.",
+    "필수전공 과목은 통계학1, 통계학2, 수리통계학1, 수리통계학2, 회귀분석이다.",
+    "공식 학과 페이지는 25학번은 통계학개론 이수 시 통계학1 대체 인정 가능하다고 명시한다.",
+    "학문기초교양은 25학번과 26학번 이후의 포함 과목을 별도 명시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 15,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "필수전공",
+          "requiredCredits": 15,
+          "minCourses": 5,
+          "requiredCourseTitles": [
+            "통계학1",
+            "통계학2",
+            "수리통계학1",
+            "수리통계학2",
+            "회귀분석"
+          ],
+          "note": "25학번은 통계학개론 이수 시 통계학1 대체 인정 가능"
+        }
+      ],
+      "status": "confirmed",
+      "note": "2025년 신설된 경상·통계학부 응용통계학전공 공식 전공이수로드맵 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-courses-2025",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 12,
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "admissionYearTo": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "foundational-required-2025",
+          "label": "학문기초교양",
+          "requiredCredits": 12,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "선형대수학개론"
+          ],
+          "note": "25학번은 미적분학1, 선형대수학개론 포함 12학점"
+        }
+      ],
+      "status": "confirmed",
+      "note": "응용통계학전공 25학번 학문기초교양 포함 과목"
+    },
+    {
+      "requirementKey": "foundational-liberal-courses-2026-plus",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 12,
+      "appliesTo": {
+        "admissionYearFrom": 2026
+      },
+      "courseGroups": [
+        {
+          "groupKey": "foundational-required-2026-plus",
+          "label": "학문기초교양",
+          "requiredCredits": 12,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "선형대수학개론"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "applied-statistics-foundational-choice",
+          "note": "26학번 이후는 미적분학1, 선형대수학개론, 경제학원론 또는 경영학입문 중 택1 포함 12학점"
+        },
+        {
+          "groupKey": "foundational-business-economics-choice",
+          "label": "경제/경영 기초 택1",
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "경제학원론",
+            "경영학입문"
+          ],
+          "groupType": "choice",
+          "note": "경제학원론 또는 경영학입문 중 1과목"
+        }
+      ],
+      "status": "confirmed",
+      "note": "응용통계학전공 26학번 이후 학문기초교양 포함 과목"
+    }
+  ]
+}

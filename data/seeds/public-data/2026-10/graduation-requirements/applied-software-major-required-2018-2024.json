@@ -1,0 +1,55 @@
+{
+  "department": "응용소프트웨어전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 융합소프트웨어학부 응용소프트웨어전공 교과 과정/전공이수로드맵",
+  "sourceUrl": "https://www.mju.ac.kr/software/9780/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 교과과정표의 2024년 이전 표는 패턴중심사고와프로그래밍과 DB설계 및 구현1을 필수로 표시한다.",
+    "같은 페이지는 2016~2024학번 응용소프트웨어전공에서 절차적사고와프로그래밍, 객체지향적사고와프로그래밍은 전공필수 지정이 해제되었다고 안내한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-applied-software-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "응용소프트웨어전공",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "courseGroups": [
+        {
+          "groupKey": "applied-software-pattern-thinking",
+          "label": "패턴중심사고와프로그래밍",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "패턴중심사고와프로그래밍"
+          ]
+        },
+        {
+          "groupKey": "applied-software-db-design-1",
+          "label": "DB설계 및 구현1",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "DB설계 및 구현1",
+            "DB설계및구현1",
+            "DB설계 및 구현 1"
+          ],
+          "groupType": "choice"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^18621\\b",
+          "응용소프트웨어"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2024년 이전 공식 교과과정표의 필수 표기 기준. 해제 공지된 1학년 공통전공 두 과목은 제외한다."
+    }
+  ]
+}

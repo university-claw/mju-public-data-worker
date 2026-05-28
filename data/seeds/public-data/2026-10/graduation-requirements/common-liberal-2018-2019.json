@@ -1,0 +1,181 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 방목기초교육대학 공통교양",
+  "sourceUrl": "https://www.mju.ac.kr/bangmok/1649/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-total-2018-2019",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2019
+      },
+      "status": "confirmed",
+      "note": "2018~2019학번 전체 학부(과) 학생 공통 적용"
+    },
+    {
+      "requirementKey": "common-liberal-christianity-2018-2019",
+      "label": "공통교양 기독교",
+      "category": "공통교양",
+      "courseGroups": [
+        {
+          "groupKey": "biblical-understanding",
+          "label": "성서 이해",
+          "requiredCredits": 2,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "성경개론",
+            "성서의 이해",
+            "성서와 인간이해"
+          ],
+          "note": "성경개론·성서의 이해는 폐지 과목이며 성서와 인간이해와 중복과목"
+        },
+        {
+          "groupKey": "chapel",
+          "label": "채플",
+          "requiredCredits": 2,
+          "minCourses": 4,
+          "requiredCourseTitles": [
+            "채플"
+          ],
+          "note": "0.5학점씩 최대 4회 이수"
+        },
+        {
+          "groupKey": "christianity-elective",
+          "label": "기독교 교과목",
+          "requiredCredits": 2,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "현대사회와 기독교 윤리",
+            "종교와 과학",
+            "기독교와 문화"
+          ],
+          "note": "1개 교과목 선택"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2019
+      },
+      "status": "confirmed",
+      "note": "2018~2019학번 공통교양 기독교 영역"
+    },
+    {
+      "requirementKey": "common-liberal-expression-2018-2019",
+      "label": "공통교양 사고와 표현",
+      "category": "공통교양",
+      "courseGroups": [
+        {
+          "groupKey": "writing-speaking",
+          "label": "사고와 표현",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "글쓰기",
+            "발표와토의"
+          ],
+          "note": "1개 교과목 선택"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2019
+      },
+      "status": "confirmed",
+      "note": "2018~2019학번 공통교양 사고와 표현 영역"
+    },
+    {
+      "requirementKey": "common-liberal-english-2018-2019",
+      "label": "공통교양 영어",
+      "category": "공통교양",
+      "courseGroups": [
+        {
+          "groupKey": "english-basic",
+          "label": "영어 기본",
+          "requiredCredits": 4,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어1",
+            "영어2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-sequence",
+          "note": "영어1, 영어2 이수"
+        },
+        {
+          "groupKey": "english-advanced",
+          "label": "영어 심화",
+          "requiredCredits": 4,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어3",
+            "영어4"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-sequence",
+          "note": "영어3, 영어4 이수"
+        },
+        {
+          "groupKey": "conversation-basic",
+          "label": "영어회화 기본",
+          "requiredCredits": 2,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어회화1",
+            "영어회화2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-sequence",
+          "note": "영어회화1, 영어회화2 이수"
+        },
+        {
+          "groupKey": "conversation-advanced",
+          "label": "영어회화 심화",
+          "requiredCredits": 2,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어회화3",
+            "영어회화4"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-sequence",
+          "note": "영어회화3, 영어회화4 이수"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2019
+      },
+      "status": "confirmed",
+      "note": "영어 1·2 / 영어 3·4 / 영어회화 1·2 / 영어회화 3·4는 같은 학기 동시 수강 불가"
+    },
+    {
+      "requirementKey": "common-liberal-career-2018-2019",
+      "label": "공통교양 진로",
+      "category": "공통교양",
+      "courseGroups": [
+        {
+          "groupKey": "career",
+          "label": "진로",
+          "requiredCredits": 2,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "4차산업혁명시대의진로선택",
+            "4차산업혁명과 미래사회 진로선택"
+          ],
+          "note": "1개 교과목 선택"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2019
+      },
+      "status": "confirmed",
+      "note": "4차산업혁명시대의진로선택은 폐지 과목이며 4차산업혁명과 미래사회 진로선택과 중복과목"
+    }
+  ]
+}

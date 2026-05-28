@@ -1,0 +1,101 @@
+{
+  "department": "디지털콘텐츠디자인학과",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 졸업요건 2018~2024학번 디지털콘텐츠디자인학과",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/473/subview.do",
+  "sourceEvidence": [
+    "2018학년도 ~ 2024학년도 입학생 표: ICT융합 디지털콘텐츠디자인학과/융합소프트웨어학부 공통교양 17, 핵심교양 12, 학문기초교양 18, 일반교양 10, 교양 소계 57, 전공 70, 자유선택 7, 최소이수졸업학점 134"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 학점표 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 학점표 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 18,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 학점표 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 학점표 기준"
+    },
+    {
+      "requirementKey": "liberal-total-credit",
+      "label": "교양학점",
+      "category": "교양학점",
+      "requiredCredits": 57,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공통교양, 핵심교양, 학문기초교양, 일반교양 소계"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 학점표 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "unprovided",
+      "note": "공식 졸업요건 표는 전공필수 세부 교과목을 제공하지 않음"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 7,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 학점표 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "최소이수졸업학점",
+      "category": "졸업학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 ICT융합 최소이수졸업학점"
+    }
+  ]
+}

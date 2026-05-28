@@ -1,0 +1,32 @@
+{
+  "department": "디지털콘텐츠디자인학과",
+  "admissionYear": 2018,
+  "sourceKind": "official_notice",
+  "sourceTitle": "2026학년도 인공지능·소프트웨어융합대학 교과과정 개편 안내",
+  "sourceUrl": "https://ie.mju.ac.kr/bbs/ict/422/175804/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 교과과정 개편 안내의 전공필수(~2024학번) 표는 디지털콘텐츠디자인학과를 전 학번 전공필수 해제로 제시한다.",
+    "같은 표는 응용소프트웨어전공, 데이터사이언스전공, 인공지능전공, 디지털콘텐츠디자인학과를 구분해 지정 현황을 제공한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-none-digital-content-design-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "디지털콘텐츠디자인학과",
+      "requiredCredits": 0,
+      "minCourses": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^18610\\b",
+          "디지털콘텐츠디자인"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026학년도 인공지능·소프트웨어융합대학 교과과정 개편 안내의 ~2024학번 전공필수 표 기준."
+    }
+  ]
+}

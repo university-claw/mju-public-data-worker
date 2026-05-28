@@ -1,0 +1,33 @@
+{
+  "department": "데이터사이언스전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 융합소프트웨어학부 데이터사이언스전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/10205/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 데이터사이언스전공 페이지는 2016~2024학번 데이터테크놀로지전공의 모든 전공필수 교과목이 해제되었다고 안내한다.",
+    "같은 페이지는 2025학번부터 데이터사이언스전공 전공필수 지정 교과목을 이수하여야 한다고 구분한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-none-data-science-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "데이터사이언스전공",
+      "requiredCredits": 0,
+      "minCourses": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^18622\\b",
+          "데이터사이언스",
+          "데이터테크놀로지"
+        ]
+      },
+      "status": "confirmed",
+      "note": "공식 페이지의 2016~2024학번 데이터테크놀로지전공 전공필수 전체 해제 안내 기준."
+    }
+  ]
+}

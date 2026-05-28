@@ -1,0 +1,65 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2025,
+  "sourceKind": "official_notice",
+  "sourceTitle": "명지대학교 2025학년도 신입생 학습능력평가 2차 원격고사 안내",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/218645/artclView.do",
+  "sourcePublishedAt": "2025-02-25",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "대학기초수학고사 응시대상: 화학·생명과학대학(식품영양학 전공제외), 스마트시스템 공과대학, 반도체·ICT 대학 소속 신입생",
+    "아너칼리지 소속 신입생 중 2학년 진입 시 위 학과를 선택하려는 학생도 응시대상",
+    "평가대상자가 대학기초수학을 미응시할 경우 미적분학1 수강이 불가하며 기초미적분학부터 단계적으로 수강해야 함",
+    "학문기초교양 영역 교과목인 미적분학의 단계별 수업을 위한 기초자료로 활용",
+    "일정 수준의 성적을 얻지 못한 학생과 미응시 학생은 기초미적분학부터, 일정 수준 도달 학생은 미적분학1부터 단계별 수강 가능"
+  ],
+  "rules": [
+    {
+      "requirementKey": "foundational-math-placement-2025",
+      "label": "미적분학 배치 단계",
+      "category": "학문기초교양",
+      "courseGroups": [
+        {
+          "groupKey": "math-placement-basic",
+          "label": "대학기초수학 기초 배치",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "기초미적분학",
+            "미적분학1"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "math-placement-sequence",
+          "note": "대학기초수학 미응시 또는 기준 미달: 기초미적분학부터 단계적으로 수강"
+        },
+        {
+          "groupKey": "math-placement-standard",
+          "label": "대학기초수학 표준 배치",
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "미적분학1"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "math-placement-sequence",
+          "note": "대학기초수학 일정 수준 도달: 미적분학1부터 단계적으로 수강"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "admissionYearTo": 2025,
+        "departmentPatterns": [
+          "^(?:154(?:11|12|21|22|23|24|31|32|40)|156(?:11|12|21|22|30|40|50)|158(?:08|09|11|12|21|22))\\b",
+          "(?:화학나노|융합에너지|시스템생명과학|화학과|생명과학정보학|화학·생명과학)",
+          "(?:화공신소재|화학공학|신소재공학|스마트인프라|건설환경공학|환경시스템공학|스마트모빌리티|기계시스템|기계공학|로봇공학)",
+          "(?:반도체|ICT|컴퓨터정보통신|컴퓨터공학|정보통신공학|전기전자|전기공학|전자공학|산업경영공학)",
+          "(?:아너칼리지.*자연|자연.*아너칼리지)"
+        ],
+        "departmentExcludes": [
+          "식품영양",
+          "^(?:15400|15420|15430|15600|15610|15620|15800)\\b"
+        ]
+      },
+      "status": "confirmed",
+      "note": "방목기초교육대학 2025학년도 신입생 학습능력평가 2차 공지 기준. 학과별 학문기초교양 필수 과목표를 대체하지 않고, 평가 단계별 미적분학 시작 과목을 추가로 보여준다."
+    }
+  ]
+}

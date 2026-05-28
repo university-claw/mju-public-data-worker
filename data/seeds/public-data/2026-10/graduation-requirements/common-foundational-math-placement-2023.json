@@ -1,0 +1,69 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2023,
+  "sourceKind": "official_notice",
+  "sourceTitle": "명지대학교 2023학년도 신입생 학습능력평가 원격고사 안내",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/196399/artclView.do",
+  "sourcePublishedAt": "2023-02-13",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "대학기초수학고사 응시대상: 자연캠퍼스 신입생 전원",
+    "단, 예술체육대학 전학과(부), 건축대학 전학과(부), 자연과학대학 식품영양학과, 국제학부 전학과(부) 소속 신입생 제외",
+    "학문기초교양 영역 교과목인 미적분학의 단계별 수업을 위한 기초자료로 활용",
+    "일정 수준의 성적을 얻지 못한 학생과 미응시 학생은 기초미적분학부터, 일정 수준 도달 학생은 미적분학1부터 단계별 수강 가능"
+  ],
+  "rules": [
+    {
+      "requirementKey": "foundational-math-placement-2023",
+      "label": "미적분학 배치 단계",
+      "category": "학문기초교양",
+      "courseGroups": [
+        {
+          "groupKey": "math-placement-basic",
+          "label": "대학기초수학 기초 배치",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "기초미적분학",
+            "미적분학1"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "math-placement-sequence",
+          "note": "대학기초수학 미응시 또는 기준 미달: 기초미적분학부터 단계적으로 수강"
+        },
+        {
+          "groupKey": "math-placement-standard",
+          "label": "대학기초수학 표준 배치",
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "미적분학1"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "math-placement-sequence",
+          "note": "대학기초수학 일정 수준 도달: 미적분학1부터 단계적으로 수강"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2023,
+        "admissionYearTo": 2023,
+        "departmentPatterns": [
+          "^(?:154|156|158|186)\\d{2}\\b",
+          "(?:화학나노|융합에너지|시스템생명과학|화학과|생명과학정보학|화학·생명과학|수학과|물리학과)",
+          "(?:화공신소재|화학공학|신소재공학|스마트인프라|건설환경공학|환경시스템공학|스마트모빌리티|기계시스템|기계공학|로봇공학)",
+          "(?:반도체|ICT|컴퓨터정보통신|컴퓨터공학|정보통신공학|전기전자|전기공학|전자공학|산업경영공학)",
+          "(?:인공지능|소프트웨어|디지털콘텐츠디자인|응용소프트웨어|데이터사이언스|융합소프트웨어)"
+        ],
+        "departmentExcludes": [
+          "식품영양",
+          "예술",
+          "체육",
+          "스포츠",
+          "건축",
+          "국제학부",
+          "^(?:15821|176\\d{2}|180\\d{2})\\b"
+        ]
+      },
+      "status": "confirmed",
+      "note": "방목기초교육대학 2023학년도 신입생 학습능력평가 공지 기준. 학과별 학문기초교양 필수 과목표를 대체하지 않고, 평가 단계별 미적분학 시작 과목을 추가로 보여준다."
+    }
+  ]
+}

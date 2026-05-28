@@ -1,0 +1,143 @@
+{
+  "department": "스마트모빌리티공학전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 스마트모빌리티공학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/787/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 22,
+      "courseGroups": [
+        {
+          "groupKey": "smart-mobility-foundational-core-2027-aug-plus",
+          "label": "학문기초교양 필수",
+          "requiredCredits": 19,
+          "minCourses": 7,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "공학수학1",
+            "응용통계학",
+            "물리학1",
+            "물리학실험1",
+            "CAD개론",
+            "파이썬프로그래밍입문"
+          ],
+          "note": "2027년 8월 졸업생부터 적용"
+        },
+        {
+          "groupKey": "smart-mobility-programming-c",
+          "label": "프로그래밍 선택",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "C언어",
+            "C++Programming"
+          ],
+          "note": "C언어 / C++Programming 중 택1"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "minCourses": 8,
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2027-aug-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "공식 페이지는 전공필수 표를 2027년 2월 졸업생까지 적용되는 심화프로그램 이수자 기준으로 제시하며, 2027년 8월 이후 졸업자는 심화프로그램 비적용대상으로 구분한다."
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "programTrack": "심화프로그램 비적용",
+      "status": "confirmed",
+      "note": "2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    }
+  ]
+}

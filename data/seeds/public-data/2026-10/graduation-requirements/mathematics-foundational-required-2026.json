@@ -1,0 +1,32 @@
+{
+  "department": "수학과",
+  "admissionYear": 2026,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 수학과 공식 학과 페이지",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/712/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "수학과 전공이수로드맵의 1학년 계열기초 영역은 학과필수로 미적분학연습1/2, 미적분학 1/2를 제시한다.",
+    "같은 페이지의 교과과정은 1학년 교육과정을 미적분학 및 공통교양으로 제시한다.",
+    "물리학 및 실험, 화학 및 실험, 생물학 및 실험은 택3으로 표시되어 있으나 세부 과목명·학점이 페이지 본문만으로는 완전히 정규화되지 않아 이번 seed에서는 학과필수만 확정 반영한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "mathematics-foundational-required-2026",
+      "label": "수학과 학과필수",
+      "category": "학문기초교양",
+      "minCourses": 4,
+      "requiredCourseTitles": [
+        "미적분학연습1",
+        "미적분학연습2",
+        "미적분학1",
+        "미적분학2"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2026
+      },
+      "status": "confirmed",
+      "note": "수학과 공식 페이지의 1학년 계열기초 학과필수 표기 기준. 대학기초수학 1단계 학생은 공통 배치 규칙에 따라 기초미적분학 선이수가 추가될 수 있다."
+    }
+  ]
+}

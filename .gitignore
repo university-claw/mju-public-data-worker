@@ -24,7 +24,9 @@ tmp/
 temp/
 .tmp/
 .cache/
-data/
+data/*
+!data/seeds/
+!data/seeds/**
 *.traineddata
 
 # OS / editor

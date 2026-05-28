@@ -1,0 +1,319 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2026-1학기 학사안내문(v1.13) 전공필수 현행·과거 해제 기준",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/143/176287/download.do",
+  "sourcePublishedAt": "2026-03-26",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "명지대학교 학사안내문 게시판은 2026-1학기 학사안내문을 공식 첨부파일로 제공한다.",
+    "2026-1학기 학사안내문(v1.13)의 '전공필수 2025학번 이후' 표는 화학나노학전공, 스포츠예술대학, 건축대학 전공필수과목지정현황을 제시한다.",
+    "같은 안내문은 미적분학 단계별 수강을 '기초미적분학(A1) => 미적분학1(A2) => 미적분학2(A3)' 또는 '미적분학1(A2) => 미적분학2(A3)'로 제시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-chemistry-nano-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "화학나노학전공",
+      "requiredCredits": 15,
+      "minCourses": 5,
+      "courseGroups": [
+        {
+          "groupKey": "chemistry-nano-inorganic-2025-plus",
+          "label": "무기화학 계열 택1",
+          "minCourses": 1,
+          "requiredCredits": 3,
+          "requiredCourseTitles": [
+            "무기화학1",
+            "무기화학2",
+            "무기물 및 소재합성론",
+            "에너지소재 디자인 및 작동 원리"
+          ],
+          "groupType": "choice",
+          "note": "2026-1학기 학사안내문 전공필수 2025학번 이후 표: 무기화학1,2, 무기물 및 소재합성론, 에너지소재 디자인 및 작동 원리 중 택1"
+        },
+        {
+          "groupKey": "chemistry-nano-nano-polymer-2025-plus",
+          "label": "나노/고분자화학 계열 택1",
+          "minCourses": 1,
+          "requiredCredits": 3,
+          "requiredCourseTitles": [
+            "나노화학기초",
+            "기능성나노소재",
+            "고분자화학기초",
+            "나노화학2"
+          ],
+          "groupType": "choice",
+          "note": "2026-1학기 학사안내문 전공필수 2025학번 이후 표: 나노화학기초, 기능성나노소재, 고분자화학기초, 나노화학2 중 택1"
+        },
+        {
+          "groupKey": "chemistry-nano-organic-2025-plus",
+          "label": "유기화학 계열 택1",
+          "minCourses": 1,
+          "requiredCredits": 3,
+          "requiredCourseTitles": [
+            "유기화학1",
+            "유기화학2",
+            "유기화학3",
+            "유기합성화학"
+          ],
+          "groupType": "choice",
+          "note": "2026-1학기 학사안내문 전공필수 2025학번 이후 표: 유기화학 1-3, 유기합성화학 중 택1"
+        },
+        {
+          "groupKey": "chemistry-nano-analytical-2025-plus",
+          "label": "분석/기기분석 계열 택1",
+          "minCourses": 1,
+          "requiredCredits": 3,
+          "requiredCourseTitles": [
+            "분석화학1",
+            "분석화학2",
+            "기기분석:전기화학",
+            "기기분석:분광학"
+          ],
+          "groupType": "choice",
+          "note": "2026-1학기 학사안내문 전공필수 2025학번 이후 표: 분석화학 1,2, 기기분석:전기화학, 기기분석:분광학 중 택1"
+        },
+        {
+          "groupKey": "chemistry-nano-physical-2025-plus",
+          "label": "물리화학 계열 택1",
+          "minCourses": 1,
+          "requiredCredits": 3,
+          "requiredCourseTitles": [
+            "물리화학1",
+            "물리화학2",
+            "물리화학3",
+            "분자분광학과반응속도",
+            "에너지 소재 모델링"
+          ],
+          "groupType": "choice",
+          "note": "2026-1학기 학사안내문 전공필수 2025학번 이후 표: 물리화학 1-3, 분자분광학과반응속도, 에너지 소재 모델링 중 택1"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "departmentPatterns": [
+          "^15811\\b",
+          "화학나노학전공"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표 기준. 표는 5개 선택 묶음을 제시하므로 각 묶음에서 1과목씩 총 15학점으로 기록한다."
+    },
+    {
+      "requirementKey": "major-required-convergence-energy-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "융합에너지학전공",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "departmentPatterns": [
+          "^15812\\b",
+          "융합에너지학전공"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표에서 융합에너지학전공 행은 확인되지만 전공필수 교과목 지정 내용은 공란이다."
+    },
+    {
+      "requirementKey": "major-required-mathematics-released-2020-graduates-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "수학과",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "departmentPatterns": [
+          "^15809\\b",
+          "수학과"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 표와 2023학년도 외국인학생 생활안내서는 수학과 기존 전공필수 과목 비고에 '2020년 2월 졸업생부터 전공필수 해제'를 기재한다."
+    },
+    {
+      "requirementKey": "major-required-physics-released-2024-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "물리학과",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "departmentPatterns": [
+          "^15808\\b",
+          "물리학과"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 표는 물리학과 기존 전공필수 과목 비고에 '2024학번부터 전공필수 전체해제'를 기재한다."
+    },
+    {
+      "requirementKey": "major-required-sports-guidance-2018-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "스포츠지도학전공",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "departmentPatterns": [
+          "^17622\\b",
+          "스포츠지도학전공"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표는 체육학전공/스포츠산업학전공에 산악훈련을 제시하고, 스포츠지도학전공은 별도 교과목을 제시하지 않는다. 같은 안내문 2024학번까지 표에도 스포츠지도학전공은 전공필수 없음으로 기재되어 있다."
+    },
+    {
+      "requirementKey": "major-required-baduk-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "바둑학과",
+      "requiredCredits": 0,
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "departmentPatterns": [
+          "^17609\\b",
+          "바둑학과"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13)의 바둑학과 전공필수 표는 전공필수 없음으로 기재되어 있다."
+    },
+    {
+      "requirementKey": "major-required-architecture-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "건축학전공",
+      "minCourses": 23,
+      "requiredCourseTitles": [
+        "건축유형과계획",
+        "건축설계와조형",
+        "건축설계1",
+        "건축설계2",
+        "건축구조의이해",
+        "건축과문화",
+        "대지조성계획",
+        "건축CAD",
+        "근현대건축사",
+        "건축재료및구법",
+        "건축설계3",
+        "건축설계4",
+        "건축구조시스템",
+        "환경시스템1",
+        "환경시스템2",
+        "도시주거환경계획",
+        "건축시공",
+        "건축법규",
+        "건축설계5",
+        "건축설계6",
+        "건축설계실무와창업",
+        "건축종합설계1",
+        "건축종합설계2"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "departmentPatterns": [
+          "^18031\\b",
+          "건축학전공"
+        ],
+        "departmentExcludes": [
+          "전통건축"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표 기준. 폐지 표기 과목은 현행 2025학번 이후 필수 과목 목록에서 제외한다."
+    },
+    {
+      "requirementKey": "major-required-traditional-architecture-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "전통건축학전공",
+      "minCourses": 29,
+      "requiredCourseTitles": [
+        "건축유형과계획",
+        "건축설계와조형",
+        "건축설계1",
+        "건축설계2",
+        "건축구조의이해",
+        "건축과문화",
+        "대지조성계획",
+        "건축CAD",
+        "근현대건축사",
+        "건축재료및구법",
+        "건축설계3",
+        "건축설계4",
+        "건축구조시스템",
+        "환경시스템1",
+        "환경시스템2",
+        "도시주거환경계획",
+        "건축시공",
+        "건축법규",
+        "건축설계5",
+        "건축설계6",
+        "건축설계실무와창업",
+        "건축종합설계1",
+        "건축종합설계2",
+        "한옥실습",
+        "동양건축사",
+        "목구조",
+        "건축문화유산론",
+        "한옥설계",
+        "하이브리드목구조시스템"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "departmentPatterns": [
+          "^18032\\b",
+          "전통건축학전공"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표 기준. 폐지 표기 과목은 현행 2025학번 이후 필수 과목 목록에서 제외한다."
+    },
+    {
+      "requirementKey": "major-required-space-design-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "공간디자인학과",
+      "minCourses": 24,
+      "requiredCourseTitles": [
+        "건축유형과계획",
+        "건축설계와조형",
+        "CAD",
+        "공간디자인1",
+        "공간디자인2",
+        "색채와재료",
+        "컴퓨터그래픽스",
+        "공간디자인사",
+        "건축구조의이해",
+        "공간디자인3",
+        "공간디자인4",
+        "디지털디자인",
+        "한국의공간문화",
+        "공간디자인방법론",
+        "공간환경과건축설비",
+        "공간디자인5",
+        "공간디자인6",
+        "공간디자인세미나",
+        "경관디자인론",
+        "공간실시설계",
+        "건축법규",
+        "공간디자인실무",
+        "공간디자인7",
+        "공간디자인8"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025,
+        "departmentPatterns": [
+          "^18040\\b",
+          "공간디자인학과"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표 기준. 폐지 표기 과목은 현행 2025학번 이후 필수 과목 목록에서 제외한다."
+    }
+  ]
+}

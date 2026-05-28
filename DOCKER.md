@@ -37,5 +37,37 @@ on the configured interval.
 
 Set `PUBLIC_DATA_WORKER_RUN_MIGRATIONS=0` to skip the startup migration step.
 
+## Public Data Seed Import
+
+Large MSI course catalog exports and graduation requirement JSON files should be
+kept out of code PRs. Store them as a private GitHub Release asset zip and let the
+worker import them into Postgres.
+
+Required zip layout:
+
+```text
+course-catalog-2026-10.json
+graduation-requirements/*.json
+```
+
+Run once on demand:
+
+```bash
+PUBLIC_DATA_SEED_RELEASE_TAG=public-data-seeds-2026-10 \
+PUBLIC_DATA_SEED_ASSET_NAME=mju-public-data-seeds-2026-10.zip \
+PUBLIC_DATA_SEED_GITHUB_TOKEN=<token-for-private-release> \
+npm run seed:import-release
+```
+
+Or import at container startup after migrations:
+
+```env
+PUBLIC_DATA_SEED_IMPORT_ON_START=1
+PUBLIC_DATA_SEED_RELEASE_REPO=university-claw/mju-public-data-worker
+PUBLIC_DATA_SEED_RELEASE_TAG=public-data-seeds-2026-10
+PUBLIC_DATA_SEED_ASSET_NAME=mju-public-data-seeds-2026-10.zip
+PUBLIC_DATA_SEED_GITHUB_TOKEN=<token-for-private-release>
+```
+
 Mount `/data/public-assets` as the persisted local asset volume and `/root/.paddlex`
 as the Paddle model cache volume.

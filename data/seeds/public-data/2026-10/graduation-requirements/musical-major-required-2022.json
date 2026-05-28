@@ -1,0 +1,42 @@
+{
+  "department": "뮤지컬공연전공",
+  "admissionYear": 2022,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2022학년도 신입생 수강신청 안내자료[예술학부 뮤지컬공연전공]",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/135702/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "뮤지컬공연전공 안내자료 2. 전공필수 표는 종합뮤지컬제작실습, 뮤지컬제작실습, 째즈, 클래식발레, 합창, 뮤지컬개론, 기초연기, 시창을 제시한다.",
+    "종합뮤지컬제작실습 1~3 및 뮤지컬제작실습4는 2022학번부터 4과목 모두 필수로 표시되어 있다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-musical-2022-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "뮤지컬공연전공",
+      "requiredCredits": 34,
+      "minCourses": 13,
+      "requiredCourseTitles": [
+        "종합뮤지컬제작실습1",
+        "종합뮤지컬제작실습2",
+        "종합뮤지컬제작실습3",
+        "뮤지컬제작실습4",
+        "째즈",
+        "클래식발레",
+        "합창1",
+        "합창2",
+        "뮤지컬개론",
+        "기초연기1",
+        "기초연기2",
+        "시창1",
+        "시창2"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2022
+      },
+      "status": "confirmed",
+      "note": "2022학년도 예술학부 뮤지컬공연전공 전공필수 표 기준"
+    }
+  ]
+}

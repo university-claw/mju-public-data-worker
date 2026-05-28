@@ -1,0 +1,67 @@
+{
+  "department": "인문콘텐츠학부 미술사·역사학전공",
+  "admissionYear": 2003,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 방목기초교육대학 전공필수 및 2026 전공·진로 Festival",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/bangmok/291/157898/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "방목기초교육대학 공식 전공필수 표는 사학과 2003학번 이후 전공필수로 한국사사료이해, 동아시아사사료이해, 서양사사료이해를 제시한다.",
+    "방목기초교육대학 공식 전공필수 표는 미술사학과 2015학번 이후 전공필수로 한국미술사, 서양미술사를 제시한다.",
+    "2026학년도 전공·진로 Festival 학부·학과·전공 소개 BOOK은 현행 인문콘텐츠학부 미술사·역사학전공을 '(미술사학과, 사학과)'로 병기한다. Festival PDF: https://www.mju.ac.kr/bbs/mjukr/141/176202/download.do"
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-history-track-2003-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "역사학 트랙",
+      "requiredCredits": 9,
+      "minCourses": 3,
+      "courseGroups": [
+        {
+          "groupKey": "major-required-history-track",
+          "label": "역사학 트랙 전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "한국사사료이해",
+            "동아시아사사료이해",
+            "서양사사료이해"
+          ],
+          "note": "한국사강독, 동양사강독, 서양사강독은 폐지로 표기되어 대체 현행 과목만 반영"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2003
+      },
+      "status": "confirmed",
+      "note": "방목 전공필수 표의 사학과 기준을 Festival 현행 명칭 병기에 따라 미술사·역사학전공 역사학 트랙으로 연결"
+    },
+    {
+      "requirementKey": "major-required-art-history-track-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "미술사학 트랙",
+      "requiredCredits": 6,
+      "minCourses": 2,
+      "courseGroups": [
+        {
+          "groupKey": "major-required-art-history-track",
+          "label": "미술사학 트랙 전공필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "한국미술사",
+            "서양미술사"
+          ]
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2015
+      },
+      "status": "confirmed",
+      "note": "방목 전공필수 표의 미술사학과 기준을 Festival 현행 명칭 병기에 따라 미술사·역사학전공 미술사학 트랙으로 연결"
+    }
+  ]
+}

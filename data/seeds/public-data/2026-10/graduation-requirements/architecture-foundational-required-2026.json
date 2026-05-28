@@ -1,0 +1,37 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2026,
+  "sourceKind": "official_notice_pdf",
+  "sourceTitle": "2026학년도 2월 건축대학 졸업대상자 졸업 요건 안내",
+  "sourceUrl": "https://arch.mju.ac.kr/upload/board/board_251103135509741.pdf",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "건축대학 졸업 요건 안내는 교양 졸업 이수 요건 중 학문기초교양으로 한국건축사(3), 서양건축사(3), 공간디자인이해(3), 동서양미술과미학(3), 건축학개론(2)을 제시하고 총 14학점으로 명시한다.",
+    "동일 안내는 전공필수 과목 이수 확인 필요성을 말하지만, PDF 텍스트 추출 범위에서 전공필수 세부 과목표는 확인되지 않는다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "architecture-foundational-required-2026",
+      "label": "건축대학 학문기초교양 필수",
+      "category": "학문기초교양",
+      "requiredCredits": 14,
+      "minCourses": 5,
+      "requiredCourseTitles": [
+        "한국건축사",
+        "서양건축사",
+        "공간디자인이해",
+        "동서양미술과미학",
+        "건축학개론"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2026,
+        "departmentPatterns": [
+          "^(?:18031|18032|18040)\\b",
+          "(?:건축학전공|전통건축학전공|공간디자인학과)"
+        ]
+      },
+      "status": "confirmed",
+      "note": "건축대학 공식 졸업 요건 안내의 학문기초교양 14학점 기준. 전공필수 세부 과목은 동일 PDF에서 추출 확인되지 않아 기존 미제공 표시를 유지한다."
+    }
+  ]
+}

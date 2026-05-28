@@ -1,0 +1,146 @@
+{
+  "department": "데이터사이언스전공",
+  "admissionYear": 2025,
+  "sourceKind": "official_notice",
+  "sourceTitle": "2025학년도 인공지능·소프트웨어융합대학 교과과정 개편 안내",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/software/1420/165101/download.do",
+  "sourceEvidence": [
+    "적용 대상 : 2025학번부터 적용함",
+    "전학부(과) 공통교양 17, 핵심교양 12, 학문기초교양 15, 일반교양 10, 전공 70, 자유선택 10, 최소이수 졸업학점 134",
+    "공통전공(데이터사이언스전공, 인공지능전공) 표: 알고리즘, 인공지능수학, 데이터사이언스개론, 머신러닝, 캡스톤디자인1이 필수(25학번~)로 표시됨"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "programTrack": "비인증",
+      "courseGroups": [
+        {
+          "groupKey": "ai-sw-foundational-choices",
+          "label": "융합소프트웨어학부 학문기초교양",
+          "requiredCredits": 15,
+          "minCourses": 5,
+          "requiredCourseTitles": [
+            "ICT비즈니스와경영",
+            "융합공학입문설계",
+            "저작권과소프트웨어",
+            "컴퓨터논리의이해",
+            "디자인개론",
+            "마케팅과ICT융합기술",
+            "창업경영",
+            "인간심리의이해",
+            "통계학개론",
+            "선형대수학개론",
+            "대중문화와매스컴",
+            "경제학원론",
+            "철학산책",
+            "인문학을통한통합적사고",
+            "미적분학1",
+            "물리학1",
+            "화학1",
+            "디지털혁신"
+          ],
+          "note": "공지 PDF에 제시된 학문기초교양 교과목 중 15학점 이수"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "데이터사이언스전공은 융합소프트웨어학부 2025학번 이상 학문기초교양 기준 적용"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 15,
+      "requiredCourseTitles": [
+        "알고리즘",
+        "인공지능수학",
+        "데이터사이언스개론",
+        "머신러닝",
+        "캡스톤디자인1"
+      ],
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "2025학년도 인공지능·소프트웨어융합대학 교과과정 개편 안내 PDF의 공통전공(데이터사이언스전공, 인공지능전공) 표에서 25학번 이후 전공필수로 표시된 교과목"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "status": "confirmed",
+      "note": "인공지능·소프트웨어융합대학 2025학번부터 적용"
+    }
+  ]
+}

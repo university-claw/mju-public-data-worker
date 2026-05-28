@@ -1,0 +1,42 @@
+{
+  "department": "공공인재학부 행정학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 공공인재학부 행정학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/578/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 학과 페이지는 교과과정에서 필수전공(7과목)을 별도 명시한다.",
+    "필수전공 7과목은 계량행정, 행정학의이해(eng), 리더십과 조직행동(eng), 감성과현대행정(eng), 비교정책론(eng), 비영리조직(eng), 커뮤니티개발연구(eng)이다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "minCourses": 7,
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "필수전공",
+          "minCourses": 7,
+          "requiredCourseTitles": [
+            "계량행정",
+            "행정학의이해",
+            "리더십과 조직행동",
+            "감성과현대행정",
+            "비교정책론",
+            "비영리조직",
+            "커뮤니티개발연구"
+          ],
+          "note": "공식 페이지 표기의 eng 과목명은 영문트랙 여부 표시로 보존 대상 메타데이터"
+        }
+      ],
+      "status": "confirmed",
+      "note": "2025년 공공인재학부 행정학전공 개편 이후 공식 교과과정 기준"
+    }
+  ]
+}

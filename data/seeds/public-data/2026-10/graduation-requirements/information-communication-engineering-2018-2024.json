@@ -1,0 +1,151 @@
+{
+  "department": "정보통신공학전공",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 정보통신공학전공 졸업 이수학점 및 전공필수",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/676/subview.do",
+  "sourceEvidence": [
+    "2018학년도 ~ 2024학년도 입학생 표: 정보통신공학과 공통교양 17, 핵심교양 12, 학문기초교양 15, 일반교양 10, 교양 소계 54, 전공 70, 자유선택 10, 최소이수졸업학점 134",
+    "공식 정보통신공학전공 페이지는 2018학년도~2024학년도 입학생 학문기초교양에서 미적분학1과 C언어를 필수로, 나머지 선택 과목과 이수학점 15학점을 제시한다.",
+    "같은 공식 페이지의 전공필수 표는 캡스톤디자인1, 캡스톤디자인2를 전공필수로 제시한다.",
+    "MSI 개설강좌 학과 코드 15612는 현재 컴퓨터정보통신공학부 정보통신공학전공으로 표시되어 공식 표의 정보통신공학과를 현재 전공명으로 정규화"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "programTrack": "비인증",
+      "courseGroups": [
+        {
+          "groupKey": "foundational-required-2018-2024",
+          "label": "학문기초교양 필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "C언어"
+          ],
+          "note": "2018~2024학년도 입학생: 미적분학1, C언어 필수"
+        },
+        {
+          "groupKey": "foundational-choice-2018-2024",
+          "label": "학문기초교양 선택",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "미적분학2",
+            "일반물리학",
+            "일반화학",
+            "선형대수학개론",
+            "통계학개론",
+            "공학수학1",
+            "공학수학2",
+            "C++Programming",
+            "저작권과 소프트웨어",
+            "ICT비즈니스와 경영",
+            "융합공학입문설계"
+          ],
+          "note": "필수 6학점 외 선택 과목에서 9학점 이수"
+        }
+      ],
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "liberal-total-credit",
+      "label": "교양학점",
+      "category": "교양학점",
+      "requiredCredits": 54,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공통교양, 핵심교양, 학문기초교양, 일반교양 소계"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "requiredCredits": 6,
+      "courseGroups": [
+        {
+          "groupKey": "major-required-capstone-2018-2024",
+          "label": "전공필수",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "캡스톤디자인1",
+            "캡스톤디자인2"
+          ],
+          "note": "공식 정보통신공학전공 전공필수 표 기준"
+        }
+      ],
+      "status": "confirmed",
+      "note": "공식 정보통신공학전공 페이지의 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "최소이수졸업학점",
+      "category": "졸업학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 정보통신공학과 최소이수졸업학점"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "department": "글로벌스마트인프라공학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 GLOBAL SMART INFRASTRUCTURE ENGINEERING MAJOR 공식 Graduation 페이지",
+  "sourceUrl": "https://gsie.mju.ac.kr/gsie/10872/subview.do",
+  "sourceEvidence": [
+    "공식 학과 페이지에서 GLOBAL SMART INFRASTRUCTURE ENGINEERING MAJOR 항목은 확인되나, 2025학번 영역별 졸업요건 학점표는 확인되지 않음",
+    "공식 Graduation 페이지 본문은 'Graduation (졸업 요건 내용 필요)'로 표시되어 졸업요건 세부 기준을 아직 제공하지 않음",
+    "공식 Curriculum 페이지는 General/MSC 및 Major 교과목 목록을 제공하지만, 졸업요건 충족 기준 또는 전공필수 지정 여부를 제공하지 않음",
+    "명지대학교 졸업요건 2025학번 이후 표(https://www.mju.ac.kr/mjukr/473/subview.do)는 스마트인프라공학부의 건설환경공학전공, 환경시스템공학전공, 스마트모빌리티공학전공만 제시하며 글로벌스마트인프라공학전공(외)은 제시하지 않음",
+    "2026-1학기 학사안내문(v1.13) 전공필수 2025학번 이후 표에서도 글로벌스마트인프라공학전공의 학부 졸업요건 또는 전공필수 세부 교과목은 확인되지 않음",
+    "명지대학교 부전공 안내 표(https://www.mju.ac.kr/mjukr/9662/subview.do)는 글로벌스마트인프라공학전공(외) 행에 공통교양 17, 핵심교양 12, 학문기초교양 21, 일반교양 4, 전공 70, 부전공 21, 자유선택 0, 최소이수졸업학점 145를 제시함",
+    "위 부전공 표는 부전공 이수자의 구성표이므로 주전공 단일 이수 졸업요건이나 전공필수 세부 과목 확정값으로 사용하지 않음"
+  ],
+  "rules": [
+    {
+      "requirementKey": "official-graduation-requirements-unprovided-2025",
+      "label": "공식 졸업요건",
+      "category": "공식 졸업요건",
+      "appliesTo": { "admissionYearFrom": 2025 },
+      "status": "unprovided",
+      "note": "2025학번 글로벌스마트인프라공학전공의 주전공 단일 이수 영역별 졸업요건 및 전공필수 세부 기준은 공식 source에서 미제공 상태로 표시. 부전공 표의 학점 행은 확인되지만 주전공 확정값으로 승격하지 않음"
+    }
+  ]
+}

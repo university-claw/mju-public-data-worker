@@ -1,0 +1,41 @@
+{
+  "department": "글로벌비즈니스학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 경영학부 글로벌비즈니스학전공 교과목소개",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/4750/subview.do",
+  "sourceEvidence": [
+    "공식 교과목소개 페이지는 커리어디자인, 경영의이해, 창의적컴퓨팅, 경영통계(이론), 마케팅관리, 전략경영론, 조직행동, 국제경영, 인사관리를 전공필수로 표시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "minCourses": 9,
+          "requiredCourseTitles": [
+            "커리어디자인",
+            "경영의이해",
+            "창의적컴퓨팅",
+            "경영통계(이론)",
+            "마케팅관리",
+            "전략경영론",
+            "조직행동",
+            "국제경영",
+            "인사관리"
+          ],
+          "note": "공식 교과목소개의 과목구분 전공필수 표시 기준"
+        }
+      ],
+      "status": "confirmed",
+      "note": "공식 학점표는 총 전공 63학점을 제공하고, 공식 교과목소개는 전공필수 과목명을 제공한다."
+    }
+  ]
+}

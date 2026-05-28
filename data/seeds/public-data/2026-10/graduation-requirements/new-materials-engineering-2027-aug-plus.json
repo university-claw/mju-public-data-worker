@@ -1,0 +1,194 @@
+{
+  "department": "신소재공학전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 화공신소재공학부 신소재공학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/766/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "신소재공학전공 심화프로그램 비적용대상 2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "신소재공학전공 심화프로그램 비적용대상 2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 24,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "courseGroups": [
+        {
+          "groupKey": "new-materials-math",
+          "label": "수학",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "미적분학2",
+            "공학수학1"
+          ]
+        },
+        {
+          "groupKey": "new-materials-chemistry",
+          "label": "화학",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "화학1",
+            "화학2"
+          ]
+        },
+        {
+          "groupKey": "new-materials-chemistry-lab",
+          "label": "화학실험",
+          "requiredCredits": 2,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "화학실험1",
+            "화학실험2"
+          ]
+        },
+        {
+          "groupKey": "new-materials-physics",
+          "label": "물리",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "물리학1"
+          ]
+        },
+        {
+          "groupKey": "new-materials-physics-lab",
+          "label": "물리실험",
+          "requiredCredits": 1,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "물리학실험1"
+          ]
+        },
+        {
+          "groupKey": "new-materials-computer",
+          "label": "컴퓨터",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "C언어"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "신소재공학전공 학문기초교양 24학점은 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 1,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "신소재공학전공 심화프로그램 비적용대상 2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "신소재공학전공 심화프로그램 비적용대상 2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2027-aug-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 23,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08",
+        "includesTransferStudents": true
+      },
+      "courseGroups": [
+        {
+          "groupKey": "new-materials-major-required",
+          "label": "전공필수",
+          "requiredCredits": 23,
+          "minCourses": 9,
+          "requiredCourseTitles": [
+            "공학입문설계",
+            "재료과학및공학1",
+            "재료과학및공학2",
+            "신소재실험1",
+            "신소재실험2",
+            "신소재실험3",
+            "신소재실험4",
+            "캡스톤디자인1",
+            "캡스톤디자인2"
+          ],
+          "note": "공학입문설계는 전입생 및 편입생 제외"
+        }
+      ],
+      "status": "confirmed",
+      "note": "신소재공학전공 전공필수 23학점은 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "신소재공학전공 심화프로그램 비적용대상 2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "심화프로그램 비적용",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "신소재공학전공 심화프로그램 비적용대상 2027년 8월 이후 졸업자 중 2018학년도 이후 입학생 기준"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "department": "컴퓨터공학전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 컴퓨터공학전공 졸업이수가이드",
+  "sourceUrl": "https://cs.mju.ac.kr/cs/10763/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 19,
+      "requiredCourseTitles": [
+        "미적분학1",
+        "통계학개론",
+        "공학수학1",
+        "이산수학개론",
+        "선형대수학개론",
+        "물리학1",
+        "물리학실험1"
+      ],
+      "programTrack": "공학인증",
+      "minCourses": 7,
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "liberal-total-credit",
+      "label": "교양학점",
+      "category": "교양학점",
+      "requiredCredits": 48,
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 74,
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 12,
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "confirmed",
+      "note": "2018학년도 이후 입학생 공학인증 이수 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-pre-2024",
+      "label": "전공 필수 과목",
+      "category": "전공",
+      "programTrack": "공학인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023
+      },
+      "status": "unprovided",
+      "note": "컴퓨터공학전공 교과과정 공식 페이지는 전공 필수 과목을 24학번부터 적용한다고 고지합니다."
+    }
+  ]
+}

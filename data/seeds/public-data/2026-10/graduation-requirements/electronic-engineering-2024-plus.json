@@ -1,0 +1,174 @@
+{
+  "department": "전자공학전공",
+  "admissionYear": 2024,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 전기전자공학부 전자공학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/752/subview.do",
+  "sourceEvidence": [
+    "전자공학전공 비인증 이수학점은 공식 학과 페이지의 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준이다.",
+    "2026.03.03 산업경영공학과 공식 공지는 전자공학전공 전공필수 교과목을 2024학번부터 적용한다고 명시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "전자공학전공 비인증 이수학점은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "전자공학전공 비인증 이수학점은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 25,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "courseGroups": [
+        {
+          "groupKey": "electronic-math",
+          "label": "수학",
+          "requiredCredits": 12,
+          "minCourses": 4,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "미적분학2",
+            "공학수학1",
+            "공학수학2"
+          ]
+        },
+        {
+          "groupKey": "electronic-science",
+          "label": "과학",
+          "requiredCredits": 7,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "물리학1",
+            "물리학2",
+            "물리학실험2"
+          ]
+        },
+        {
+          "groupKey": "electronic-computer",
+          "label": "컴퓨터",
+          "requiredCredits": 6,
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "C언어",
+            "파이썬프로그래밍입문"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "전자공학전공 학문기초교양 교과목 포함 기준은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 적용"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 0,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "전자공학전공 비인증 이수학점은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "전자공학전공 비인증 이수학점은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "requiredCredits": 30,
+      "courseGroups": [
+        {
+          "groupKey": "major-required-2024-plus",
+          "label": "전공필수",
+          "requiredCredits": 30,
+          "minCourses": 11,
+          "requiredCourseTitles": [
+            "회로이론",
+            "디지털논리회로",
+            "전자기학",
+            "기초전자회로",
+            "지능형센서응용",
+            "반도체공학",
+            "디지털시스템",
+            "신호및시스템",
+            "고급C언어",
+            "회로실험",
+            "캡스톤디자인1"
+          ],
+          "note": "고급C언어와 회로실험은 2학점/1학점 과목이므로 전공필수 11개 교과목, 30학점으로 계산"
+        }
+      ],
+      "status": "confirmed",
+      "note": "2026.03.03 공식 학과 공지의 전자공학전공 전공필수 표 기준"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "전자공학전공 비인증 이수학점은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "전자공학전공 비인증 이수학점은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 기준"
+    }
+  ]
+}

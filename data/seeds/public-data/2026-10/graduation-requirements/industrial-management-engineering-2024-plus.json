@@ -1,0 +1,128 @@
+{
+  "department": "산업경영공학과",
+  "admissionYear": 2024,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 산업경영공학과 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/801/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "산업경영공학과 비인증 이수학점 2024학년도 이후 입학생 기준",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "산업경영공학과 비인증 이수학점 2024학년도 이후 입학생 기준",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "programTrack": "비인증",
+      "courseGroups": [
+        {
+          "groupKey": "math",
+          "label": "수학",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "통계학개론",
+            "선형대수학개론"
+          ]
+        },
+        {
+          "groupKey": "science-choice",
+          "label": "과학",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "물리학1",
+            "물리학2",
+            "일반화학"
+          ],
+          "groupType": "choice",
+          "note": "물리학1, 물리학2, 일반화학 중 택1"
+        },
+        {
+          "groupKey": "computer",
+          "label": "컴퓨터",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "파이썬프로그래밍입문"
+          ]
+        }
+      ],
+      "status": "confirmed",
+      "note": "학문기초교양 교과목 포함 기준은 2024학년도 이후 입학생 및 2027년 8월 이후 졸업생 적용",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "산업경영공학과 비인증 이수학점 2024학년도 이후 입학생 기준",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "산업경영공학과 비인증 이수학점 2024학년도 이후 입학생 기준",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "산업경영공학과 비인증 이수학점 2024학년도 이후 입학생 기준",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "산업경영공학과 비인증 이수학점 2024학년도 이후 입학생 기준",
+      "appliesTo": {
+        "admissionYearFrom": 2024
+      }
+    }
+  ]
+}

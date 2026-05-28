@@ -1,0 +1,146 @@
+{
+  "department": "기계공학전공",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 기계공학전공 졸업요건",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/794/subview.do",
+  "sourceEvidence": [
+    "졸업을 위한 최소 이수학점 : 18~24학번 (2027년 8월 졸업생부터 적용)",
+    "전공 70, 공통교양 17, 핵심교양 12, 학문기초교양 19, 일반교양 6, 자유선택 10, 총 학점 134",
+    "전공필수 24학점: 정역학, 고체역학, 열역학, 유체역학, 공통기계공학실험, 기계공학실험, 캡스톤디자인1, 캡스톤디자인2",
+    "공식 교과과정 페이지는 2024학년도 및 이전 입학생 중 2027년 8월 졸업생부터 위 전공필수 24학점 기준을 적용한다고 명시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 19,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 6,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "major-required-courses-2018-2024-2027-aug-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "비인증",
+      "requiredCredits": 24,
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 24,
+          "minCourses": 8,
+          "requiredCourseTitles": [
+            "정역학",
+            "고체역학",
+            "열역학",
+            "유체역학",
+            "공통기계공학실험",
+            "기계공학실험",
+            "캡스톤디자인1",
+            "캡스톤디자인2"
+          ],
+          "note": "2024학년도 및 이전 입학생 중 2027년 8월 졸업생부터 적용"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "공식 교과과정 페이지의 18~24학번 중 2027년 8월 졸업생부터 적용되는 전공필수 24학점 기준"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "graduationTermFrom": "2027-08"
+      },
+      "status": "confirmed",
+      "note": "기계공학전공 18~24학번 중 2027년 8월 졸업생부터 적용"
+    }
+  ]
+}

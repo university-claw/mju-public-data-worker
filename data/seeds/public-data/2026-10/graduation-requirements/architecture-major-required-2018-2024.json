@@ -1,0 +1,150 @@
+{
+  "department": "2018-2024학번 건축대학 전공필수",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2023학년도 1학기 명지대학교 외국인학생 신·편입생 생활안내서",
+  "sourceUrl": "https://enter.mju.ac.kr/mju/up_file/2023/2023-03-14_111832_1.pdf",
+  "sourcePublishedAt": "2023-03-14",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "53쪽 자연캠퍼스 전공필수 표는 건축학부(건축학,전통건축 공통) 전공필수 교과목을 제시한다.",
+    "같은 표는 건축학부(전통건축) 추가 전공필수 교과목과 건축학부(공간디자인) 전공필수 교과목을 별도 제시한다.",
+    "표 하단은 자연캠퍼스 전공필수 적용 학번은 각 학과 기준을 우선하고 별도 기준이 없으면 2009학년도 입학생 기준이라고 안내한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-architecture-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "건축학전공",
+      "minCourses": 23,
+      "requiredCourseTitles": [
+        "건축설계와조형1",
+        "건축설계와조형2",
+        "건축설계1",
+        "건축설계2",
+        "건축구조의이해",
+        "건축과문화",
+        "대지조성계획",
+        "건축CAD",
+        "근현대건축사",
+        "건축재료및구법",
+        "건축설계3",
+        "건축설계4",
+        "건축구조시스템",
+        "환경시스템1",
+        "환경시스템2",
+        "도시주거환경계획",
+        "건축시공",
+        "건축법규",
+        "건축설계5",
+        "건축설계6",
+        "건축설계실무와창업",
+        "건축종합설계1",
+        "건축종합설계2"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^18031\\b",
+          "건축학전공"
+        ],
+        "departmentExcludes": [
+          "전통건축"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2023학년도 자연캠퍼스 전공필수 표의 건축학부(건축학,전통건축 공통) 교과목 중 건축학전공 적용분."
+    },
+    {
+      "requirementKey": "major-required-traditional-architecture-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "전통건축학전공",
+      "minCourses": 27,
+      "requiredCourseTitles": [
+        "건축설계와조형1",
+        "건축설계와조형2",
+        "건축설계1",
+        "건축설계2",
+        "건축구조의이해",
+        "건축과문화",
+        "대지조성계획",
+        "건축CAD",
+        "근현대건축사",
+        "건축재료및구법",
+        "건축설계3",
+        "건축설계4",
+        "건축구조시스템",
+        "환경시스템1",
+        "환경시스템2",
+        "도시주거환경계획",
+        "건축시공",
+        "건축법규",
+        "건축설계5",
+        "건축설계6",
+        "건축설계실무와창업",
+        "건축종합설계1",
+        "건축종합설계2",
+        "한옥실습",
+        "동양건축사",
+        "목구조",
+        "건축문화유산론"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^18032\\b",
+          "전통건축"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2023학년도 자연캠퍼스 전공필수 표의 건축학부 공통 교과목과 전통건축 추가 교과목."
+    },
+    {
+      "requirementKey": "major-required-space-design-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "공간디자인학과",
+      "minCourses": 24,
+      "requiredCourseTitles": [
+        "건축설계와조형1",
+        "건축설계와조형2",
+        "CAD",
+        "공간디자인1",
+        "공간디자인2",
+        "색채와재료",
+        "컴퓨터그래픽스",
+        "공간디자인사",
+        "건축구조의이해",
+        "공간디자인3",
+        "공간디자인4",
+        "디지털디자인",
+        "한국의공간문화",
+        "공간디자인방법론",
+        "공간환경과건축설비",
+        "공간디자인5",
+        "공간디자인6",
+        "공간디자인세미나",
+        "경관디자인론",
+        "공간실시설계",
+        "건축법규",
+        "공간디자인실무",
+        "공간디자인7",
+        "공간디자인8"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^18040\\b",
+          "공간디자인"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2023학년도 자연캠퍼스 전공필수 표의 건축학부(공간디자인) 교과목."
+    }
+  ]
+}

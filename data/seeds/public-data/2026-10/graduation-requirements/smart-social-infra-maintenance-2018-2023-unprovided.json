@@ -1,0 +1,22 @@
+{
+  "department": "스마트사회인프라유지관리학과",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 대학원 스마트사회인프라유지관리학과 공식 학과소개",
+  "sourceUrl": "https://www.mju.ac.kr/gs/9458/subview.do",
+  "sourceEvidence": [
+    "대학원 공식 학과소개에서 스마트사회인프라유지관리학과는 대학원 학과로 확인되나, 학부 2018-2023학번 영역별 졸업요건 학점표는 확인되지 않음",
+    "학과내규 직접 URL(https://www.mju.ac.kr/gs/9461/subview.do)은 검색 색인에 졸업요건 문구가 남아 있으나, 실제 접속 시 학교 사이트가 페이지 없음 알림을 반환함",
+    "명지대학교 졸업요건 2018~2024학번 표(https://www.mju.ac.kr/mjukr/473/subview.do)에는 스마트사회인프라유지관리학과 행이 없음"
+  ],
+  "rules": [
+    {
+      "requirementKey": "official-graduation-requirements-unprovided-2018-2023",
+      "label": "공식 졸업요건",
+      "category": "공식 졸업요건",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2023 },
+      "status": "unprovided",
+      "note": "2018-2023학번 스마트사회인프라유지관리학과의 학부 영역별 졸업요건 및 전공필수 세부 기준은 공식 source에서 미제공 상태로 표시"
+    }
+  ]
+}

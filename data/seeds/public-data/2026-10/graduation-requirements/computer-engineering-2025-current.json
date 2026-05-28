@@ -1,0 +1,110 @@
+{
+  "department": "컴퓨터공학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 컴퓨터공학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/808/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "courseGroups": [
+        {
+          "groupKey": "foundational-required-2025-current",
+          "label": "학문기초교양",
+          "requiredCredits": 15,
+          "minCourses": 5,
+          "requiredCourseTitles": [
+            "미적분학1",
+            "통계학개론",
+            "공학수학1",
+            "이산수학개론",
+            "선형대수학개론"
+          ],
+          "note": "2025.03.01. 기준 컴퓨터공학전공 학문기초교양"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "minCourses": 5,
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 학문기초교양"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 2025.03.01. 기준 교과과정 총 학점"
+    }
+  ]
+}

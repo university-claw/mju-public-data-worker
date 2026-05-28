@@ -1,0 +1,38 @@
+{
+  "department": "바둑학과",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2023학년도 1학기 명지대학교 외국인학생 신·편입생 생활안내서",
+  "sourceUrl": "https://enter.mju.ac.kr/mju/up_file/2023/2023-03-14_111832_1.pdf",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "명지대학교 국제교류처 생활안내서의 자연캠퍼스 전공필수 표는 바둑학과 전공필수 교과목을 제시한다.",
+    "바둑교육론은 비고에 전공필수 해제로 표기되어 제외한다.",
+    "표는 바둑학연구방법론, 바둑영어1, 바둑사, 바둑평가론을 바둑학과 전공필수 항목으로 제시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-baduk-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 12,
+      "minCourses": 4,
+      "requiredCourseTitles": [
+        "바둑학연구방법론",
+        "바둑영어1",
+        "바둑사",
+        "바둑평가론"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^17609\\b",
+          "바둑학과"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2023학년도 1학기 명지대학교 외국인학생 신·편입생 생활안내서 전공필수 표 기준. 바둑교육론은 전공필수 해제로 표기되어 제외한다."
+    }
+  ]
+}

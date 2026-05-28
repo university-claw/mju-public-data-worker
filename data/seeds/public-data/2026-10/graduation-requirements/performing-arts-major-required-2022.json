@@ -1,0 +1,42 @@
+{
+  "department": "공연예술학부 연극·영화전공",
+  "admissionYear": 2022,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2022학년도 신입생 수강신청 안내자료[예술학부 영화전공/뮤지컬공연전공]",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/135701/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "영화전공 안내자료 2. 전공필수 표는 한국영화사, 세계영화사, 졸업프로젝트, 영상기초워크샵, 영화제작워크샵, 영화제작프로젝트를 제시한다.",
+    "뮤지컬공연전공 안내자료 2. 전공필수 표는 종합뮤지컬제작실습, 뮤지컬제작실습, 째즈, 클래식발레, 합창, 뮤지컬개론, 기초연기, 시창을 제시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-film-2022-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "연극·영화전공",
+      "requiredCredits": 27,
+      "minCourses": 9,
+      "requiredCourseTitles": [
+        "한국영화사",
+        "세계영화사",
+        "졸업프로젝트1(캡스톤디자인)",
+        "졸업프로젝트2(캡스톤디자인)",
+        "영상기초워크샵2",
+        "영상기초워크샵1",
+        "영화제작워크샵1",
+        "영화제작워크샵2",
+        "영화제작프로젝트1"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2022,
+        "departmentPatterns": [
+          "^(?:17641)\\b",
+          "공연예술학부.*(?:연극|영화)|영화전공"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2022학년도 예술학부 영화전공 전공필수 표 기준. 현재 카탈로그의 연극·영화전공에 매핑하되, 공식 근거는 영화전공 표임을 명시한다."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "department": "경상·통계학부 국제통상학전공",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 경상·통계학부 국제통상학전공 교육과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/629/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 학과 페이지는 2025학년도 입학생부터 적용되는 교육과정을 제공한다.",
+    "1학년 교육과정 표에서 기초교양과 전공필수를 구분하고 전공필수에 국제통상원론을 명시한다.",
+    "공식 2026학년도 1학기 개설강좌 자료는 국제통상원론을 3학점 전공 교과목으로 표시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2025-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 3,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "국제통상원론"
+          ],
+          "note": "2025학년도 입학생부터 적용되는 국제통상학전공 전공필수"
+        }
+      ],
+      "status": "confirmed",
+      "note": "2025학번부터 사회과학대학 경상·통계학부 국제통상학전공 소속 기준"
+    }
+  ]
+}

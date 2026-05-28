@@ -1,0 +1,120 @@
+{
+  "department": "2018-2024학번 자연과학 전공필수",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2023학년도 1학기 명지대학교 외국인학생 신·편입생 생활안내서",
+  "sourceUrl": "https://enter.mju.ac.kr/mju/up_file/2023/2023-03-14_111832_1.pdf",
+  "sourcePublishedAt": "2023-03-14",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "50쪽 자연캠퍼스 전공필수 표는 물리학과 전공필수 교과목과 화학과 2018학번부터 적용 선택 묶음을 제시한다.",
+    "화학과 표는 5개 분야에서 각 1과목씩 총 15학점 이수로 표시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-physics-2018-2023",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "물리학과",
+      "requiredCredits": 12,
+      "minCourses": 4,
+      "requiredCourseTitles": [
+        "역학",
+        "전자기학",
+        "양자역학",
+        "열및통계물리학"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2023,
+        "departmentPatterns": [
+          "^15808\\b",
+          "물리학과"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2026-1 학사안내문은 물리학과 전공필수가 2024학번부터 전체 해제되었다고 안내하므로 2018~2023학번에만 적용한다."
+    },
+    {
+      "requirementKey": "major-required-chemistry-nano-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "화학나노학전공",
+      "requiredCredits": 15,
+      "minCourses": 5,
+      "courseGroups": [
+        {
+          "groupKey": "chemistry-organic",
+          "label": "유기화학 계열 택1",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "유기화학1",
+            "유기화학2",
+            "유기화학3",
+            "유기합성화학"
+          ],
+          "groupType": "choice"
+        },
+        {
+          "groupKey": "chemistry-inorganic",
+          "label": "무기화학 계열 택1",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "무기화학1",
+            "무기화학2",
+            "무기화학3",
+            "무기화학4"
+          ],
+          "groupType": "choice"
+        },
+        {
+          "groupKey": "chemistry-physical",
+          "label": "물리화학 계열 택1",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "물리화학1",
+            "물리화학2",
+            "물리화학3",
+            "물리화학4"
+          ],
+          "groupType": "choice"
+        },
+        {
+          "groupKey": "chemistry-analytical",
+          "label": "분석화학 계열 택1",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "분석화학1",
+            "분석화학2"
+          ],
+          "groupType": "choice"
+        },
+        {
+          "groupKey": "chemistry-biochemistry",
+          "label": "생화학반응 계열 택1",
+          "requiredCredits": 3,
+          "minCourses": 1,
+          "requiredCourseTitles": [
+            "생화학반응1",
+            "생화학반응2"
+          ],
+          "groupType": "choice"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2018,
+        "admissionYearTo": 2024,
+        "departmentPatterns": [
+          "^15811\\b",
+          "화학나노"
+        ]
+      },
+      "status": "confirmed",
+      "note": "2023학년도 자연캠퍼스 전공필수 표의 화학과 2018학번부터 적용 기준. 현재 카탈로그의 화학나노학전공에 대응되는 화학 전공 경로에만 적용한다."
+    }
+  ]
+}

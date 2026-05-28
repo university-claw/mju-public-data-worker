@@ -1,0 +1,41 @@
+{
+  "department": "경상·통계학부 경제학전공",
+  "admissionYear": 2015,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 경상·통계학부 경제학전공 전공이수로드맵",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/584/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 학과 페이지는 2학년 전공기초1 영역에서 ★ 표시 과목을 전공필수과목으로 명시한다.",
+    "★ 표시 과목은 미시경제학(구. 시장 및 기업이론), 거시경제학(구. 국민경제론), 경제통계이다.",
+    "같은 공식 페이지의 전공변경 및 전입사정 기준은 필수과목(15학번) 전공필수로 동일한 세 과목을 제시한다.",
+    "공식 교과목소개 페이지는 경제통계, 시장및기업이론, 국민경제론을 각각 3학점으로 표시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 9,
+      "appliesTo": {
+        "admissionYearFrom": 2015
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 9,
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "미시경제학",
+            "거시경제학",
+            "경제통계"
+          ],
+          "note": "미시경제학은 구 시장및기업이론, 거시경제학은 구 국민경제론"
+        }
+      ],
+      "status": "confirmed",
+      "note": "공식 전공이수로드맵 및 필수과목(15학번) 전입사정 기준"
+    }
+  ]
+}

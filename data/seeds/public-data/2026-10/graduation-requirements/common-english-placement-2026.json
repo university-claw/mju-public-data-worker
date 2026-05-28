@@ -1,0 +1,103 @@
+{
+  "department": "전체 학부(과)",
+  "admissionYear": 2026,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 방목기초교육대학 2026학년도 신입생 학습능력평가",
+  "sourceUrl": "https://bangmok.mju.ac.kr/bangmok/10034/subview.do",
+  "sourcePublishedAt": "2025-12-29",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "입학토익 응시대상: 인문캠퍼스, 자연캠퍼스 신입생 전원",
+    "공통교양 영역 교과목인 영어, 영어회화의 단계별 수업을 위한 기초자료",
+    "1단계(평가 미응시자 포함): 기초영어→영어1→영어2, 기초영어→영어회화1→영어회화2",
+    "2단계: 영어1(영어회화1)→영어2(영어회화2), 영어3(영어회화3)→영어4(영어회화4)"
+  ],
+  "rules": [
+    {
+      "requirementKey": "english-placement-2026",
+      "label": "영어 단계",
+      "category": "공통교양",
+      "courseGroups": [
+        {
+          "groupKey": "english-placement-basic",
+          "label": "입학토익 1단계 영어",
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "기초영어",
+            "영어1",
+            "영어2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-placement-sequence",
+          "note": "평가 미응시자 포함: 기초영어→영어1→영어2"
+        },
+        {
+          "groupKey": "conversation-placement-basic",
+          "label": "입학토익 1단계 영어회화",
+          "minCourses": 3,
+          "requiredCourseTitles": [
+            "기초영어",
+            "영어회화1",
+            "영어회화2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-placement-sequence",
+          "note": "평가 미응시자 포함: 기초영어→영어회화1→영어회화2"
+        },
+        {
+          "groupKey": "english-placement-standard",
+          "label": "입학토익 2단계 영어 기본",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어1",
+            "영어2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-placement-sequence",
+          "note": "영어1→영어2"
+        },
+        {
+          "groupKey": "english-placement-advanced",
+          "label": "입학토익 2단계 영어 심화",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어3",
+            "영어4"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "english-placement-sequence",
+          "note": "영어3→영어4"
+        },
+        {
+          "groupKey": "conversation-placement-standard",
+          "label": "입학토익 2단계 영어회화 기본",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어회화1",
+            "영어회화2"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-placement-sequence",
+          "note": "영어회화1→영어회화2"
+        },
+        {
+          "groupKey": "conversation-placement-advanced",
+          "label": "입학토익 2단계 영어회화 심화",
+          "minCourses": 2,
+          "requiredCourseTitles": [
+            "영어회화3",
+            "영어회화4"
+          ],
+          "groupType": "alternative",
+          "alternativeGroup": "conversation-placement-sequence",
+          "note": "영어회화3→영어회화4"
+        }
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2026
+      },
+      "status": "confirmed",
+      "note": "방목기초교육대학 2026학년도 신입생 학습능력평가의 입학토익 단계 배치 기준"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "department": "반도체공학부",
+  "admissionYear": 2025,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 반도체공학부 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/8481/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부 2025.3.1. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부 2025.3.1. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부 2025.3.1. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부 2025.3.1. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부 2025.3.1. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부 2025.3.1. 기준 교과과정 이수학점"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "appliesTo": {
+        "admissionYearFrom": 2025
+      },
+      "programTrack": "비인증",
+      "status": "confirmed",
+      "note": "반도체공학부는 공학인증심화 프로그램을 운영하지 않음"
+    }
+  ]
+}

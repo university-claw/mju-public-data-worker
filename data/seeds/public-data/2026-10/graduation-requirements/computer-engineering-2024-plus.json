@@ -1,0 +1,121 @@
+{
+  "department": "컴퓨터공학전공",
+  "admissionYear": 2024,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 컴퓨터공학전공 졸업이수가이드",
+  "sourceUrl": "https://cs.mju.ac.kr/cs/10763/subview.do",
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "requiredCourseTitles": [
+        "미적분학1",
+        "통계학개론",
+        "공학수학1",
+        "이산수학개론",
+        "선형대수학개론"
+      ],
+      "programTrack": "비인증",
+      "minCourses": 5,
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2024학년도 이후 입학생 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    },
+    {
+      "requirementKey": "liberal-total-credit",
+      "label": "교양학점",
+      "category": "교양학점",
+      "requiredCredits": 54,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "총 취득학점",
+      "category": "총 취득학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": {
+        "admissionYearFrom": 2024,
+        "admissionYearTo": 2024
+      },
+      "status": "confirmed",
+      "note": "컴퓨터공학전공 졸업이수가이드의 2018학년도 이후 입학생 비인증 이수 기준"
+    }
+  ]
+}

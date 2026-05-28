@@ -1,0 +1,22 @@
+{
+  "department": "멀티미디어콘텐츠크리에이션",
+  "admissionYear": 2018,
+  "sourceKind": "department_page",
+  "sourceTitle": "2018-2023학번 멀티미디어콘텐츠크리에이션 공식 졸업요건 미제공",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/10046/subview.do",
+  "sourceEvidence": [
+    "공식 멀티미디어콘텐츠크리에이션 페이지에서 전공 존재와 소개는 확인됨",
+    "확인된 2018-2023학번별 영역 졸업요건 세부표는 확인되지 않음",
+    "명지대학교 졸업요건 페이지는 세부 졸업요건을 학사공지 게시판의 학사안내문에서 확인하라고 안내함: https://www.mju.ac.kr/mjukr/473/subview.do"
+  ],
+  "rules": [
+    {
+      "requirementKey": "official-graduation-requirements-unprovided-2018-2023",
+      "label": "공식 졸업요건",
+      "category": "공식 졸업요건",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2023 },
+      "status": "unprovided",
+      "note": "2018-2023학번 멀티미디어콘텐츠크리에이션의 영역별 졸업요건 세부 학점표는 현재 확인된 공식 source에서 미제공 상태로 표시"
+    }
+  ]
+}

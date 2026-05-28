@@ -1,0 +1,122 @@
+{
+  "department": "반도체공학부",
+  "admissionYear": 2018,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "명지대학교 졸업요건 2018~2024학번 반도체공학과",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/473/subview.do",
+  "sourceEvidence": [
+    "2018학년도 ~ 2024학년도 입학생 표: 반도체공학과 공통교양 17, 핵심교양 12, 학문기초교양 15, 일반교양 10, 교양 소계 54, 전공 70, 자유선택 10, 최소이수졸업학점 134",
+    "공식 표 비고: 2027년 2월 졸업생까지 적용. 같은 표의 2027년 8월 졸업생부터 적용 행도 동일 학점값을 제시함",
+    "2026.03.03 반도체·ICT대학 공식 공지는 반도체공학부 전공필수 교과목으로 반도체과학, 반도체공학, 프로그래밍, 반도체세미나, 산학프로젝트1, 산학프로젝트2를 제시하고 2023학번부터 적용한다고 명시한다: https://ie.mju.ac.kr/ie/6564/subview.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGaWUlMkY5OTIlMkYyMjk2MzklMkZhcnRjbFZpZXcuZG8lM0Y%3D",
+    "MSI 개설강좌 학과 코드 15640/15650은 현재 반도체공학부/반도체시스템공학과로 표시되어 공식 표의 반도체공학과를 반도체공학부 기준으로 정규화"
+  ],
+  "rules": [
+    {
+      "requirementKey": "common-liberal-credit",
+      "label": "공통교양",
+      "category": "공통교양",
+      "requiredCredits": 17,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "core-liberal-credit",
+      "label": "핵심교양",
+      "category": "핵심교양",
+      "requiredCredits": 12,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "foundational-liberal-credit",
+      "label": "학문기초교양",
+      "category": "학문기초교양",
+      "requiredCredits": 15,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "general-liberal-credit",
+      "label": "일반교양",
+      "category": "일반교양",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "liberal-total-credit",
+      "label": "교양학점",
+      "category": "교양학점",
+      "requiredCredits": 54,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공통교양, 핵심교양, 학문기초교양, 일반교양 소계"
+    },
+    {
+      "requirementKey": "major-credit",
+      "label": "전공",
+      "category": "전공",
+      "requiredCredits": 70,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "major-required-courses-2018-2024",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "비인증",
+      "requiredCredits": 15,
+      "courseGroups": [
+        {
+          "groupKey": "major-required-2023-2024",
+          "label": "전공필수",
+          "requiredCredits": 15,
+          "minCourses": 6,
+          "requiredCourseTitles": [
+            "반도체과학",
+            "반도체공학",
+            "프로그래밍",
+            "반도체세미나",
+            "산학프로젝트1",
+            "산학프로젝트2"
+          ],
+          "note": "2026.03.03 반도체·ICT대학 공식 공지의 전공필수 교과목 안내 기준"
+        }
+      ],
+      "appliesTo": { "admissionYearFrom": 2023, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 반도체·ICT대학 전공필수 공지는 2023학번부터 적용으로 명시"
+    },
+    {
+      "requirementKey": "free-elective-credit",
+      "label": "자유선택",
+      "category": "자유선택",
+      "requiredCredits": 10,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 학점표 기준"
+    },
+    {
+      "requirementKey": "total-credit",
+      "label": "최소이수졸업학점",
+      "category": "졸업학점",
+      "requiredCredits": 134,
+      "programTrack": "비인증",
+      "appliesTo": { "admissionYearFrom": 2018, "admissionYearTo": 2024 },
+      "status": "confirmed",
+      "note": "공식 졸업요건 2018~2024학번 반도체공학과 최소이수졸업학점"
+    }
+  ]
+}

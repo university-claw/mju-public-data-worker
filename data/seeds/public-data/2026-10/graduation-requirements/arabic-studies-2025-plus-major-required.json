@@ -1,0 +1,43 @@
+{
+  "department": "아시아·중동어문학부 아랍지역학전공",
+  "admissionYear": 2015,
+  "sourceKind": "department_page",
+  "sourceTitle": "명지대학교 아시아·중동어문학부 아랍지역학전공 교과과정",
+  "sourceUrl": "https://www.mju.ac.kr/mjukr/551/subview.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "공식 학과 페이지의 교과과정 표는 비고란에 필수 과목을 표시한다.",
+    "필수로 표시된 과목은 기초아랍어, 아랍어문법1, 초급아랍어회화2, 중급아랍어회화1, 시사아랍어이다.",
+    "해당 표는 각 필수 과목을 3학점으로 표시한다.",
+    "명지대학교 방목기초교육대학 전공필수 표는 초급아랍어회화2, 중급아랍어회화1, 시사아랍어를 2015학번부터 적용되는 전공필수로 제시한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-courses-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "requiredCredits": 15,
+      "appliesTo": {
+        "admissionYearFrom": 2015
+      },
+      "courseGroups": [
+        {
+          "groupKey": "major-required",
+          "label": "전공필수",
+          "requiredCredits": 15,
+          "minCourses": 5,
+          "requiredCourseTitles": [
+            "기초아랍어",
+            "아랍어문법1",
+            "초급아랍어회화2",
+            "중급아랍어회화1",
+            "시사아랍어"
+          ],
+          "note": "공식 교과과정 표 비고란의 필수 표시 과목. 방목 전공필수 표의 적용시작학번 기준으로 2015학번 이후에 적용한다."
+        }
+      ],
+      "status": "confirmed",
+      "note": "아랍지역학전공 공식 교과과정 기준"
+    }
+  ]
+}

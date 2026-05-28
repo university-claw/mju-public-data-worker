@@ -1,0 +1,48 @@
+{
+  "department": "작곡전공",
+  "admissionYear": 2015,
+  "sourceKind": "official_handbook",
+  "sourceTitle": "2021학년도 신입생 수강신청 안내자료[예술학부 피아노·성악·작곡전공]",
+  "sourceUrl": "https://www.mju.ac.kr/bbs/mjukr/141/116467/download.do",
+  "sourceRetrievedAt": "2026-05-27",
+  "sourceEvidence": [
+    "안내자료 마. 전공필수 표는 예술(음악)학부(피아노,성악,작곡) 공통으로 전공실기1~8을 제시한다.",
+    "같은 표는 작곡 전공의 화성법및건반화성2·작곡소프트웨어연구·악기론·고급화성·재즈화성·대위법1·대위법2·앙상블편곡법·오케스트라편곡법·멀티미디어 음악을 제시한다.",
+    "작곡워크샵은 폐지로 표시되어 현행 필수 과목 목록에서 제외한다."
+  ],
+  "rules": [
+    {
+      "requirementKey": "major-required-composition-2015-plus",
+      "label": "전공필수",
+      "category": "전공",
+      "programTrack": "작곡전공",
+      "requiredCredits": 44,
+      "minCourses": 18,
+      "requiredCourseTitles": [
+        "전공실기1",
+        "전공실기2",
+        "전공실기3",
+        "전공실기4",
+        "전공실기5",
+        "전공실기6",
+        "전공실기7",
+        "전공실기8",
+        "화성법및건반화성2",
+        "작곡소프트웨어연구",
+        "악기론",
+        "고급화성",
+        "재즈화성",
+        "대위법1",
+        "대위법2",
+        "앙상블편곡법",
+        "오케스트라편곡법",
+        "멀티미디어 음악"
+      ],
+      "appliesTo": {
+        "admissionYearFrom": 2015
+      },
+      "status": "confirmed",
+      "note": "2021학년도 예술학부 작곡 전공필수 표 기준. 폐지로 표시된 작곡워크샵은 제외하고 대체 표기된 작곡소프트웨어연구를 반영한다."
+    }
+  ]
+}
